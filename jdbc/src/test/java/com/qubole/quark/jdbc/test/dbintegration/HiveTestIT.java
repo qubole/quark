@@ -30,7 +30,7 @@ public class HiveTestIT {
 
   public void tpcds500Query(String dataSource, String table) throws SQLException {
     String query = "select * from "
-        + dataSource + ""
+        + dataSource + "."
         + "tpcds_orc_500" +"."
         + table + " limit 1";
     conn.createStatement().executeQuery(query);
@@ -75,7 +75,7 @@ public class HiveTestIT {
         (1,2,3,4,5.63543,7.84354,9.25566,5.678, "nezhatest", "running hive test",
             "on all data types", '2015-10-25', '2015-10-25 13:15:55.123456789');*/
     String query = "select * from "
-        + dataSource + ""
+        + dataSource + "."
         + "nezha_test.basicTypes limit 1";
     conn.createStatement().executeQuery(query);
   }
