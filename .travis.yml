@@ -1,10 +1,12 @@
 language: java
-
 sudo: false
-
 jdk:
-  - openjdk7
-  - oraclejdk8
-
+- openjdk7
+- oraclejdk8
 os:
-  - linux
+- linux
+notifications:
+  slack:
+    secure: gokcF0ETKhnPlP9HPV78Qk89bklwZmAfaO+qbAEsiYCbnBaJb6UReqIOH4bi46vyWxkyYbalsVSbAFCRKbR63ko8MmBW3t80FZ9y4AZYtIaV+Zt6WLW67kxfhnaXlGdb8vR2jbnz5KE64BEfpHLB8gwzEwjICKp/+me2Bdo+9URuazvUe6tJS3VDBmUYJijfgz1mvrP/La9kRHZtlf6QbbevMC5Iba7ZmZxK+C9ioDDaU1+H27pqdmBfVxKk9K04urvPzlFNbyhc2dplkvQSs4KyGUMzGLayF+Sf/mY1YFoVE9eugPZI+8xpFUCKE63oWvOS2oyKB30t8O0IHDIK6GhNTKIyQ3BuwdKn9PSxKvl//4ccmQdaIxPIrPTGZBk38DHUxtZDmWE8ht55JgjTi5uW8sKn4I9PDeNa1inJY11zMqhYNkP6ULWvHgeKFL3R9dUyLPy2Jf3gJHo6aRMxZeEe8xVnFbXFVw6IgbJe/uZmGncxhQIqNF3UT9d/RFDXMXlWA2OqdHf/j/Ur3Iur8auB0ZTJ6obkzhl+IeBI402YCKbOG9Yh/y4PCX11hvJO047W9ratYPxjCWuxvHFUvi8Wm9lyUglFcOqyp/UpwI3czvDnJL7rgXWr8A2HW5Dh4MyB+8Udk5EPgRo2gSM1tPeQQXpnxlJjIs8cysN1DTU=
+  on_success: change
+  on_failure: always
