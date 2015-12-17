@@ -1,0 +1,7 @@
+{
+    "driverType" : "REDSHIFT",
+    "url": "${redshift.driverConnection.url}",
+    "databaseName": "${redshift.driverConnection.databaseName}",
+    "userName": "${redshift.driverConnection.userName}",
+    "password": "${redshift.driverConnection.password}"
+}

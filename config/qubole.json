@@ -1,0 +1,18 @@
+{
+    "driverConnectionList":[
+        {
+            "driverType" : "HIVE",
+            "url": "jdbc:mysql://localhost/metastore_19",
+            "databaseName": "default",
+            "userName": "root",
+            "password": ""
+        },
+        {
+            "driverType" : "REDSHIFT",
+            "url": "",
+            "databaseName": "testdb",
+            "userName": "root",
+            "password": ""
+        }
+    ]
+}

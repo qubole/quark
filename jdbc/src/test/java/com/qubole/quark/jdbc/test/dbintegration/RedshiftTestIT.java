@@ -1,0 +1,41 @@
+package com.qubole.quark.jdbc.test.dbintegration;
+
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
+
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Created by amoghm on 12/8/15.
+ */
+public class RedshiftTestIT {
+  private final Connection conn = getConnection();
+
+  private static Connection getConnection() {
+    try {
+      Class.forName("com.qubole.quark.jdbc.QuarkDriver");
+      return DriverManager.getConnection("jdbc:quark:"
+          + System.getProperty("integrationTestResource") + "/redshiftModel.json",
+          new Properties());
+    } catch (SQLException | ClassNotFoundException e) {
+      throw new RuntimeException("Exception thrown on creating Quark connection: "
+          + e.getMessage());
+    }
+  }
+
+  @Test
+  public void redshiftTest1() throws SQLException, ClassNotFoundException {
+    String query="select * from redshift.public.nation_partition";
+    conn.createStatement().executeQuery(query);
+  }
+
+  @Test
+  public void redshiftTest2() throws SQLException, ClassNotFoundException {
+    String query="select * from redshift.public.store_sales_partition";
+    conn.createStatement().executeQuery(query);
+  }
+}

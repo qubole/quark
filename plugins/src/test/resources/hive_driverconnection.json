@@ -1,0 +1,7 @@
+{
+    "driverType" : "HIVE",
+    "url": "${hive.driverConnection.url}",
+    "databaseName": "${hive.driverConnection.databaseName}",
+    "userName": "${hive.driverConnection.userName}",
+    "password": "${hive.driverConnection.password}"
+}
