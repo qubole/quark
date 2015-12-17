@@ -15,6 +15,8 @@
 {% endcomment %}
 -->
 
+[![Build Status](https://travis-ci.org/qubole/quark.svg)](https://travis-ci.org/qubole/quark)
+
 Introduction
 ============
 
