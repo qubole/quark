@@ -26,9 +26,7 @@ public interface QuarkFactory {
   /**
    * Creates a Schema.
    *
-   * @param parentSchema Parent schema
-   * @param name         Name of this schema
-   * @param operand      The "operand" JSON property
+   * @param info      Properties hash that contains JsonModel and default schema.
    * @return Created schema
    */
   QuarkFactoryResult create(Properties info) throws QuarkException;

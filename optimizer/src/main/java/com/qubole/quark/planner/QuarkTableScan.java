@@ -35,8 +35,7 @@ import java.util.List;
 
 /**
  * Relational expression representing a scan of a CSV file.
- * <p/>
- * <p>Like any table scan, it serves as a leaf node of a query tree.</p>
+ * Like any table scan, it serves as a leaf node of a query tree.
  */
 public class QuarkTableScan extends TableScan implements EnumerableRel {
   final QuarkTable quarkTable;

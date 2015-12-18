@@ -883,12 +883,11 @@ public class RelToSqlConverter {
      * Once you have a Result of implementing a child relational expression,
      * call this method to create a Builder to implement the current relational
      * expression by adding additional clauses to the SQL query.
-     * <p/>
+     * <p></p>
      * <p>You need to declare which clauses you intend to add. If the clauses
      * are "later", you can add to the same query. For example, "GROUP BY" comes
      * after "WHERE". But if they are the same or earlier, this method will
      * start a new SELECT that wraps the previous result.</p>
-     * <p/>
      * <p>When you have called
      * {@link Builder#setSelect(org.apache.calcite.sql.SqlNodeList)},
      * {@link Builder#setWhere(org.apache.calcite.sql.SqlNode)} etc. call

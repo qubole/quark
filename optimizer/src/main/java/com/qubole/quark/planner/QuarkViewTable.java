@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Table that is a materialized view.
- * <p/>
+ * <p></p>
  * <p>It can exist in two states: materialized and not materialized. Over time,
  * a given materialized view may switch states. How it is expanded depends upon
  * its current state. State is managed by

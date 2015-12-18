@@ -48,8 +48,7 @@ public class QuarkCube {
   public static class Measure {
     /**
      * Arguments to the measure.
-     * <p/>
-     * <p>Valid values are:
+     * Valid values are:
      * <ul>
      * <li>Not specified: no arguments</li>
      * <li>null: no arguments</li>
@@ -57,11 +56,10 @@ public class QuarkCube {
      * <li>String: single argument, the name of a lattice column</li>
      * <li>List: multiple arguments, each a column name</li>
      * </ul>
-     * <p/>
      * <p>Unlike lattice dimensions, measures can not be specified in qualified
      * format, {@code ["table", "column"]}. When you define a lattice, make sure
      * that each column you intend to use as a measure has a unique name within
-     * the lattice (using "{@code AS alias}" if necessary).
+     * the lattice (using "{@code AS alias}" if necessary).</p>
      */
 
     public final String agg;
@@ -108,8 +106,7 @@ public class QuarkCube {
   public static class Dimension implements Comparable<Dimension> {
     /**
      * Arguments to the measure.
-     * <p/>
-     * <p>Valid values are:
+     * Valid values are:
      * <ul>
      * <li>Not specified: no arguments</li>
      * <li>null: no arguments</li>
@@ -117,11 +114,10 @@ public class QuarkCube {
      * <li>String: single argument, the name of a lattice column</li>
      * <li>List: multiple arguments, each a column name</li>
      * </ul>
-     * <p/>
      * <p>Unlike lattice dimensions, measures can not be specified in qualified
      * format, {@code ["table", "column"]}. When you define a lattice, make sure
      * that each column you intend to use as a measure has a unique name within
-     * the lattice (using "{@code AS alias}" if necessary).
+     * the lattice (using "{@code AS alias}" if necessary).</p>
      */
 
     public final String name;
@@ -247,8 +243,7 @@ public class QuarkCube {
   public final String name;
   /**
    * SQL query that defines the lattice.
-   * <p/>
-   * <p>Must be a string or a list of strings (which are concatenated separated
+   * Must be a string or a list of strings (which are concatenated separated
    * by newlines).
    */
   public final Object sql;

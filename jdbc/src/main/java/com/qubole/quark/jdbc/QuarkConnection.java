@@ -31,7 +31,6 @@ import java.util.Properties;
 public interface QuarkConnection extends Connection {
   /**
    * Returns the root schema.
-   * <p/>
    * <p>You can define objects (such as relations) in this schema, and
    * also nested schemas.</p>
    *
@@ -48,13 +47,14 @@ public interface QuarkConnection extends Connection {
 
   /**
    * Returns an instance of the connection properties.
-   * <p/>
-   * <p>NOTE: The resulting collection of properties is same collection used
+   * <p>
+   * NOTE: The resulting collection of properties is same collection used
    * by the connection, and is writable, but behavior if you modify the
    * collection is undefined. Some implementations might, for example, see
    * a modified property, but only if you set it before you create a
    * statement. We will remove this method when there are better
-   * implementations of stateful connections and configuration.</p>
+   * implementations of stateful connections and configuration.
+   * </p>
    *
    * @return properties
    */

@@ -76,8 +76,7 @@ public class QuarkMetaResultSet extends Meta.MetaResultSet {
 
   /**
    * Creates a result set with maxRowCount.
-   * <p/>
-   * <p>If {@code maxRowCount} is -2 ({@link QuarkMetaImpl#UNLIMITED_COUNT}),
+   * If {@code maxRowCount} is -2 ({@link QuarkMetaImpl#UNLIMITED_COUNT}),
    * returns an unlimited number of rows in a single frame; any other
    * negative value (typically -1) returns an unlimited number of rows
    * in frames of the default frame size.

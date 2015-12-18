@@ -99,8 +99,8 @@ public class QuarkMetaImpl extends MetaImpl {
   /**
    * Special value for {@link Statement#getMaxRows()} that means fetch
    * an unlimited number of rows in a single batch.
-   * <p/>
-   * <p>Any other negative value will return an unlimited number of rows but
+   *
+   * Any other negative value will return an unlimited number of rows but
    * will do it in the default batch size, namely 100.
    */
   public static final long UNLIMITED_COUNT = -2L;
@@ -1131,14 +1131,12 @@ public class QuarkMetaImpl extends MetaImpl {
 
     /**
      * JDBC connection property for setting connection cache expiration duration.
-     * <p/>
      * <p>Used in conjunction with {@link #EXPIRY_UNIT}.</p>
      */
     EXPIRY_DURATION(STMT_CACHE_KEY_BASE + ".expirydiration", "5"),
 
     /**
      * JDBC connection property for setting connection cache expiration unit.
-     * <p/>
      * <p>Used in conjunction with {@link #EXPIRY_DURATION}.</p>
      */
     EXPIRY_UNIT(STMT_CACHE_KEY_BASE + ".expiryunit", TimeUnit.MINUTES.name());

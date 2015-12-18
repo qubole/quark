@@ -72,8 +72,8 @@ public class QuarkTileTable extends AbstractTable
 
   /**
    * Returns an enumerable over a given projection of the fields.
-   * <p/>
-   * <p>Called from generated code.
+   *
+   * Called from generated code.
    */
   public Enumerable<Object> project(final int[] fields) {
     return backingTable.project(fields);

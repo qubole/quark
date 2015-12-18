@@ -58,7 +58,8 @@ public abstract class QuarkJdbcFactory implements AvaticaFactory {
    * Creates a Quark connection for Avatica (in terms of Avatica types).
    * <p>
    * This implementation delegates to
-   * {@link #newConnection(QuarkDriver, QuarkJdbcFactory, String, Properties)}.
+   * {@link #newConnection(QuarkDriver, QuarkJdbcFactory, String, Properties, CalciteRootSchema,
+   * JavaTypeFactory)}.
    * </p>
    */
   @Override
