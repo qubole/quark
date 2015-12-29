@@ -46,10 +46,13 @@ Install Quark JDBC from Source
     
 Install Quark JDBC from Maven
 -----------------------------
+Find the latest version from [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cquark-jdbc)
 
     mvn org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
-        -DrepoUrl=http://download.java.net/maven/2/ \
-        -Dartifact=com.qubole:quark-jdbc:3.1.0
+        -DrepoUrl=-DrepoUrl=http://repo1.maven.org/maven2 \
+        -Dartifact=com.qubole:quark-jdbc:<version>
+
+Get jar from mvn repository on the local drive `~/.m2/repositories/com/qubole/quark-jdbc`.
         
 Configure Quark
 ---------------
