@@ -55,7 +55,7 @@ public class HiveDb extends JdbcDB {
         .put("character\\([0-9]+\\)", "character")
         .put("decimal\\([0-9]+,[0-9]+\\)", "double").build();
 
-  HiveDb(String url, String user, String password) {
+  public HiveDb(String url, String user, String password) {
     super(url, user, password);
   }
 

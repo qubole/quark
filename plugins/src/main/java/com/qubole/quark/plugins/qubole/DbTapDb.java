@@ -17,6 +17,8 @@ package com.qubole.quark.plugins.qubole;
 
 import org.apache.calcite.sql.SqlDialect;
 
+import org.apache.commons.lang.Validate;
+
 import com.google.common.collect.ImmutableMap;
 
 import com.qubole.qds.sdk.java.client.QdsClient;
@@ -41,14 +43,14 @@ import java.util.concurrent.ExecutionException;
  */
 public class DbTapDb extends QuboleDB {
 
-  private static final String ROW_DELIMETER = "\r\n";
-  private static final String COLUMN_DELIMETER = "\t";
   protected int dbTapid;
   private String productName = null;
   private String defaultSchema = null;
 
   DbTapDb(String endpoint, String token, int dbTapId) {
     super(endpoint, token);
+    Validate.notNull(dbTapId, "Field \"dbtapid\" specifying Qubole's endpoint needs "
+        + "to be defined for Qubole Data Source of type DBTAP in JSON");
     this.dbTapid = dbTapId;
   }
 

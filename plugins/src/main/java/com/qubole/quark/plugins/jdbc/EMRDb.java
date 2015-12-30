@@ -29,7 +29,7 @@ public class EMRDb extends HiveDb {
   private Connection connection;
   public String driverName;
 
-  EMRDb(String jdbcUrl, String url, String user, String password, String driverName) {
+  public EMRDb(String jdbcUrl, String url, String user, String password, String driverName) {
     super(url, user, password);
     this.jdbcUrl = jdbcUrl;
     this.driverName = driverName;
