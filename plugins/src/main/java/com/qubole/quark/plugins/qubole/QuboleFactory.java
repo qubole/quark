@@ -15,6 +15,8 @@
 
 package com.qubole.quark.plugins.qubole;
 
+import org.apache.commons.lang.Validate;
+
 import com.qubole.quark.QuarkException;
 import com.qubole.quark.plugin.DataSource;
 import com.qubole.quark.plugin.DataSourceFactory;
@@ -27,6 +29,17 @@ import java.util.Map;
 public class QuboleFactory implements DataSourceFactory {
   @Override
   public DataSource create(Map<String, Object> properties) throws QuarkException {
+
+    Validate.notNull(properties.get("type"),
+        "Field \"type\" specifying either HIVE or DBTAP needs "
+            + "to be defined for Qubole Data Source in JSON");
+    Validate.notNull(properties.get("endpoint"),
+        "Field \"endpoint\" specifying Qubole's endpoint needs "
+        + "to be defined for Qubole Data Source in JSON");
+    Validate.notNull(properties.get("token"),
+        "Field \"token\" specifying Authentication token needs "
+        + "to be defined for Qubole Data Source in JSON");
+
     String type = properties.get("type").toString();
     String token = properties.get("token").toString();
     String endpoint =  properties.get("endpoint").toString();
@@ -34,9 +47,12 @@ public class QuboleFactory implements DataSourceFactory {
     if (type.toUpperCase().equals("HIVE")) {
       return new HiveDb(endpoint, token);
     } else if (type.toUpperCase().equals("DBTAP")) {
+      Validate.notNull(properties.get("dbtapid"),
+          "Field \"dbtapid\" needs to be defined for Qubole Data Source in JSON");
       return new DbTapDb(endpoint, token, Integer.parseInt(properties.get("dbtapid").toString()));
     } else {
-      throw new QuarkException(new Throwable("Invalid qubole DataSource type:" + type));
+      throw new QuarkException(new Throwable("Invalid qubole DataSource type:" + type
+          + "\nCurrently supporting either HIVE or DBTAP"));
     }
   }
 }

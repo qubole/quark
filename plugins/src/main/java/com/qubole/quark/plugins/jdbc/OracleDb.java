@@ -59,7 +59,7 @@ public class OracleDb extends JdbcDB {
           .put("LONG", "long")
           .build();
 
-  OracleDb(String url, String user, String password) {
+  public OracleDb(String url, String user, String password) {
     super(url, user, password);
   }
 

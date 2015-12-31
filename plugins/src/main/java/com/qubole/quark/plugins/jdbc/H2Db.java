@@ -51,7 +51,7 @@ public class H2Db extends JdbcDB {
         .put("1", "character")
         .put("91", "date").build();
 
-  H2Db(String url, String user, String password) {
+  public H2Db(String url, String user, String password) {
     super(url, user, password);
   }
 

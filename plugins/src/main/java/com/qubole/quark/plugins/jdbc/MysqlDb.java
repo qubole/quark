@@ -56,7 +56,7 @@ public class MysqlDb extends JdbcDB {
   private String defaultSchema = null;
   private final String productName = "MYSQL";
 
-  MysqlDb(String url, String user, String password) {
+  public MysqlDb(String url, String user, String password) {
     super(url, user, password);
   }
 

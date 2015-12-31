@@ -41,7 +41,7 @@ public class RedShiftDb extends JdbcDB {
         .put("double precision", "float")
         .put("character\\([0-9]+\\)", "character").build();
 
-  RedShiftDb(String url, String user, String password) {
+  public RedShiftDb(String url, String user, String password) {
     super(url, user, password);
   }
 
