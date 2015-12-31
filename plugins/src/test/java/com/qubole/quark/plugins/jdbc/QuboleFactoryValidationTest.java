@@ -23,7 +23,7 @@ public class QuboleFactoryValidationTest {
     factory.create(props);
   }
 
-  @Test(expected = QuarkException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testInvalidType() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
     props.put("type", "h4");
@@ -71,7 +71,7 @@ public class QuboleFactoryValidationTest {
     factory.create(props);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = QuarkException.class)
   public void testDbTapIdNull() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
     props.put("type", "dbtap");

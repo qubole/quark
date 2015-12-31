@@ -19,6 +19,8 @@ import org.apache.calcite.runtime.ResultSetEnumerable;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 
+import org.apache.commons.lang.Validate;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -39,6 +41,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.sql.DataSource;
 /**
@@ -55,10 +58,20 @@ public abstract class JdbcDB implements Executor {
   protected final String user;
   protected final String password;
 
-  JdbcDB(String url, String user, String password) {
-    this.url = url;
-    this.user = user;
-    this.password = password;
+  JdbcDB(Map<String, Object> properties) {
+    validate(properties);
+    this.url = (String) properties.get("url");
+    this.user = (String) properties.get("username");
+    this.password = (String) properties.get("password");
+  }
+
+  private void validate(Map<String, Object> properties) {
+    Validate.notNull(properties.get("url"), "Field \"url\" specifying JDBC endpoint needs "
+        + "to be defined for JDBC Data Source in JSON");
+    Validate.notNull(properties.get("username"), "Field \"username\" specifying username needs "
+        + "to be defined for JDBC Data Source in JSON");
+    Validate.notNull(properties.get("password"), "Field \"password\" specifying password "
+        + "to be defined for JDBC Data Source in JSON");
   }
 
   public ImmutableMap<String, Schema> getSchemas() throws QuarkException {

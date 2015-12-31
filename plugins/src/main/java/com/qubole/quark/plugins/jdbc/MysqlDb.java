@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * Created by dev on 11/23/15.
@@ -56,8 +57,8 @@ public class MysqlDb extends JdbcDB {
   private String defaultSchema = null;
   private final String productName = "MYSQL";
 
-  public MysqlDb(String url, String user, String password) {
-    super(url, user, password);
+  public MysqlDb(Map<String, Object> properties) {
+    super(properties);
   }
 
   @Override

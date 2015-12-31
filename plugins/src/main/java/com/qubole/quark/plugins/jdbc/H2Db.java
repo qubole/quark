@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -51,8 +52,8 @@ public class H2Db extends JdbcDB {
         .put("1", "character")
         .put("91", "date").build();
 
-  public H2Db(String url, String user, String password) {
-    super(url, user, password);
+  public H2Db(Map<String, Object> properties) {
+    super(properties);
   }
 
   public Connection getConnection() throws ClassNotFoundException, SQLException {

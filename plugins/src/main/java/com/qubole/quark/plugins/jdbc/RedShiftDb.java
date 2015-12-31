@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -41,8 +42,8 @@ public class RedShiftDb extends JdbcDB {
         .put("double precision", "float")
         .put("character\\([0-9]+\\)", "character").build();
 
-  public RedShiftDb(String url, String user, String password) {
-    super(url, user, password);
+  public RedShiftDb(Map<String, Object> properties) {
+    super(properties);
   }
 
   public Connection getConnection() throws ClassNotFoundException, SQLException {

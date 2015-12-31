@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * Support Apache Hive database as a {@link com.qubole.quark.plugin.DataSource}
@@ -55,8 +56,8 @@ public class HiveDb extends JdbcDB {
         .put("character\\([0-9]+\\)", "character")
         .put("decimal\\([0-9]+,[0-9]+\\)", "double").build();
 
-  public HiveDb(String url, String user, String password) {
-    super(url, user, password);
+  public HiveDb(Map<String, Object> properties) {
+    super(properties);
   }
 
   public Connection getConnection() throws ClassNotFoundException, SQLException {

@@ -43,42 +43,29 @@ public class JdbcFactory implements DataSourceFactory {
   public DataSource create(Map<String, Object> properties) throws QuarkException {
     validate(properties);
     String type = (String) properties.get("type");
-    String url = (String) properties.get("url");
-    String user = (String) properties.get("username");
-    String password = (String) properties.get("password");
-
     Class dbClass = DB_PLUGINS.get(type.toUpperCase());
     Validate.notNull(dbClass, "Invalid DataSource type: " + type
         + " Please specify one of these: "
         + Arrays.toString(DB_PLUGINS.keySet().toArray()));
-    return getDataSource(type, url, user, password, dbClass);
+    return getDataSource(properties, dbClass);
   }
 
-  private DataSource getDataSource(String type,
-                                   String url,
-                                   String user,
-                                   String password,
+  private DataSource getDataSource(Map<String, Object> properties,
                                    Class dbClass) throws QuarkException {
     try {
-      Class[] parameters = new Class[] {String.class, String.class, String.class};
-      return (DataSource) (dbClass.getConstructor(parameters)
-          .newInstance(url, user, password));
-    } catch (NoSuchMethodException | IllegalAccessException
-        | InstantiationException | InvocationTargetException e) {
+      return (DataSource) (dbClass.getConstructor(Map.class)
+          .newInstance(properties));
+    } catch (NoSuchMethodException | IllegalAccessException | InstantiationException e) {
       throw new QuarkException(new Throwable("Invoking invalid constructor on class "
-          + "specified for type " + type.toUpperCase() + ": " + dbClass.getCanonicalName()));
+          + "specified for type " + properties.get("type") + ": " + dbClass.getCanonicalName()));
+    } catch (InvocationTargetException e) {
+      throw new QuarkException(e.getTargetException());
     }
   }
 
   private void validate(Map<String, Object> properties) {
     Validate.notNull(properties.get("type"),
         "Field \"type\" specifying type of DataSource endpoint needs "
-        + "to be defined for JDBC Data Source in JSON");
-    Validate.notNull(properties.get("url"), "Field \"url\" specifying JDBC endpoint needs "
-        + "to be defined for JDBC Data Source in JSON");
-    Validate.notNull(properties.get("username"), "Field \"username\" specifying username needs "
-        + "to be defined for JDBC Data Source in JSON");
-    Validate.notNull(properties.get("password"), "Field \"password\" specifying password "
         + "to be defined for JDBC Data Source in JSON");
   }
 }

@@ -47,8 +47,8 @@ public class HiveDb extends QuboleDB {
                   .put("character\\([0-9]+\\)", "character")
                   .put("decimal\\([0-9]+,[0-9]+\\)", "double").build();
 
-  HiveDb(String token, String endpoint) {
-    super(token, endpoint);
+  public HiveDb(Map<String, Object> properties) {
+    super(properties);
   }
 
   @Override
