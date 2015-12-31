@@ -18,6 +18,8 @@ package com.qubole.quark.plugins.qubole;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 
+import org.apache.commons.lang.Validate;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -62,9 +64,19 @@ public abstract class QuboleDB implements Executor {
   protected String token;
   protected String endpoint;
 
-  QuboleDB(String endpoint, String token) {
-    this.endpoint = endpoint;
-    this.token = token;
+  QuboleDB(Map<String, Object> properties) {
+    validate(properties);
+    this.endpoint = (String) properties.get("endpoint");
+    this.token = (String) properties.get("token");
+  }
+
+  private void validate(Map<String, Object> properties) {
+    Validate.notNull(properties.get("endpoint"),
+        "Field \"endpoint\" specifying Qubole's endpoint needs "
+            + "to be defined for Qubole Data Source in JSON");
+    Validate.notNull(properties.get("token"),
+        "Field \"token\" specifying Authentication token needs "
+            + "to be defined for Qubole Data Source in JSON");
   }
 
   @Override

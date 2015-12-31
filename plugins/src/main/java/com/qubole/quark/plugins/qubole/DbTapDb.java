@@ -47,11 +47,12 @@ public class DbTapDb extends QuboleDB {
   private String productName = null;
   private String defaultSchema = null;
 
-  DbTapDb(String endpoint, String token, int dbTapId) {
-    super(endpoint, token);
-    Validate.notNull(dbTapId, "Field \"dbtapid\" specifying Qubole's endpoint needs "
+  public DbTapDb(Map<String, Object> properties) {
+    super(properties);
+    Validate.notNull(properties.get("dbtapid"),
+        "Field \"dbtapid\" specifying Qubole's endpoint needs "
         + "to be defined for Qubole Data Source of type DBTAP in JSON");
-    this.dbTapid = dbTapId;
+    this.dbTapid = Integer.parseInt(properties.get("dbtapid").toString());
   }
 
   @Override

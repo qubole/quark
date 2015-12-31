@@ -15,10 +15,13 @@
 
 package com.qubole.quark.plugins.jdbc;
 
+import org.apache.commons.lang.Validate;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by dev on 11/16/15.
@@ -29,10 +32,12 @@ public class EMRDb extends HiveDb {
   private Connection connection;
   public String driverName;
 
-  public EMRDb(String jdbcUrl, String url, String user, String password, String driverName) {
-    super(url, user, password);
-    this.jdbcUrl = jdbcUrl;
-    this.driverName = driverName;
+  public EMRDb(Map<String, Object> properties) {
+    super(properties);
+    Validate.notNull(properties.get("driverName"), "Specify field 'driverName' for EMR");
+    Validate.notNull(properties.get("jdbcUrl"), "Specify field 'jdbcUrl' for EMR");
+    this.jdbcUrl = (String) properties.get("jdbcUrl");
+    this.driverName = (String) properties.get("driverName");
   }
 
   public Connection getConnectionExec() throws ClassNotFoundException, SQLException {

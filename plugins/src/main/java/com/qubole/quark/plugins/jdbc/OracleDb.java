@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * Created by dev on 11/23/15.
@@ -59,8 +60,8 @@ public class OracleDb extends JdbcDB {
           .put("LONG", "long")
           .build();
 
-  public OracleDb(String url, String user, String password) {
-    super(url, user, password);
+  public OracleDb(Map<String, Object> properties) {
+    super(properties);
   }
 
   @Override
