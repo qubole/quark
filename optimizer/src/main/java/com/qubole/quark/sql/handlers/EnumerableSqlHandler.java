@@ -45,6 +45,7 @@ public class EnumerableSqlHandler implements SqlHandler<RelNode, String> {
         SqlWorker.PlannerProgram.EnumerableProgram;
     Planner planner = config.getPlanner();
     try {
+      Class.forName("org.apache.calcite.jdbc.Driver");
       planner.close();
       planner.reset();
       final SqlNode sqlNode = planner.parse(sql);
@@ -53,6 +54,8 @@ public class EnumerableSqlHandler implements SqlHandler<RelNode, String> {
       return planner.transform(plannerProgram.getIndex(),
           convertedNode.getTraitSet().plus(EnumerableConvention.INSTANCE).simplify(),
           convertedNode);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("Error loading calcite Driver: " + e.getMessage(), e);
     } catch (SqlParseException e) {
       LOGGER.error("SqlParsing failed: " + e.getMessage(), e);
       throw new RuntimeException("SqlParsing failed: " + e.getMessage(), e);
