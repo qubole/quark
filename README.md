@@ -20,13 +20,12 @@
 Introduction
 ============
 
-Quark (/ˈkwɔrk/ or /ˈkwɑrk/) is a federation layer over the databases in a analytics stack.
- It provides a federated schema that maps tables in multiple database systems. 
- With the help of the federated schema, Quark makes it possible to define and use materialized 
- views, olap cubes and other relationships between tables stored in different databases. 
-Quark comes with a simple execution layer that redirects queries to use materialized views or 
-cubes.
-Quark is distributed as a JDBC jar and will work with most tools that integrate through JDBC. 
+Quark (/ˈkwɔrk/ or /ˈkwɑrk/) optimizes access to data for data analysts by managing relationships 
+between tables across all databases in an organization. Quark makes it possible to define and use 
+materialized views and olap cubes between tables stored in different databases. Materialized views 
+help in managing cold and hot data between a data lake and a data warehouse. Ola cubes help to 
+optimize reports by rerouting reporting queries to cubes stored in a fast database. Quark is 
+distributed as a JDBC jar and will work with most tools that integrate through JDBC. 
 
 Installation
 ============
