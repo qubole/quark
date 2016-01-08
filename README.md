@@ -24,7 +24,7 @@ Quark (/ˈkwɔrk/ or /ˈkwɑrk/) simplifies and optimizes access to data for dat
 managing relationships between tables across all databases in an organization. Quark defines 
 materialized views and olap cubes, using them to route queries between tables stored in different 
 databases. Materialized views simplify the management of cold and hot data between a data lake 
-and a data warehouse. Ola cubes optimize reports by rerouting queries to cubes stored in a fast 
+and a data warehouse. OLAP cubes optimize reports by rerouting queries to cubes stored in a fast 
 database. Quark is distributed as a JDBC jar and will work with most tools that integrate through
  JDBC. 
 
