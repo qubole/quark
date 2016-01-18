@@ -24,7 +24,7 @@ import org.apache.calcite.plan.RelOptTable;
  * Created by amoghm on 7/9/15.
  */
 public class QuarkViewScan extends QuarkTableScan {
-  protected QuarkViewScan(RelOptCluster cluster, RelOptTable table,
+  public QuarkViewScan(RelOptCluster cluster, RelOptTable table,
                           QuarkViewTable quarkTable) {
     super(cluster, table, quarkTable);
   }

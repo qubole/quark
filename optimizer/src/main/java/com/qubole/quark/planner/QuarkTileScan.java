@@ -41,7 +41,7 @@ public class QuarkTileScan extends TableScan implements EnumerableRel {
   final QuarkTable quarkTable;
   final QuarkTile quarkTile;
 
-  protected QuarkTileScan(RelOptCluster cluster, RelOptTable table, QuarkTile quarkTile,
+  public QuarkTileScan(RelOptCluster cluster, RelOptTable table, QuarkTile quarkTile,
                           QuarkTable quarkTable) {
     super(cluster, cluster.traitSetOf(EnumerableConvention.INSTANCE), table);
     this.quarkTile = quarkTile;
