@@ -100,7 +100,7 @@ Connect through SQLLine
     
     #Start SQLLine
 
-    java -Djava.ext.dirs=/home/user/sqlLine/ sqlline.SqlLine
+    java -classpath "/home/user/sqlLine/*" sqlline.SqlLine
 
     # Connect to Quark
 
