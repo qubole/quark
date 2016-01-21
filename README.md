@@ -28,6 +28,10 @@ and a data warehouse. OLAP cubes optimize reports by rerouting queries to cubes 
 database. Quark is distributed as a JDBC jar and will work with most tools that integrate through
  JDBC. 
 
+Mailing List: quark-dev@googlegroups.com  
+Subscribe: quark-dev+subscribe@googlegroups.com  
+Unsubscribe: quark-dev+unsubscribe@googlegroups.com  
+
 Installation
 ============
 If you haven't already installed Java8 HOTSPOT and maven, please install them.
