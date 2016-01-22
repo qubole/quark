@@ -20,6 +20,8 @@
 Introduction
 ============
 
+[![Join the chat at https://gitter.im/qubole/quark](https://badges.gitter.im/qubole/quark.svg)](https://gitter.im/qubole/quark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Quark (/ˈkwɔrk/ or /ˈkwɑrk/) simplifies and optimizes access to data for data analysts by 
 managing relationships between tables across all databases in an organization. Quark defines 
 materialized views and olap cubes, using them to route queries between tables stored in different 
