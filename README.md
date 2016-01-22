@@ -31,6 +31,7 @@ database. Quark is distributed as a JDBC jar and will work with most tools that 
 Mailing List: quark-dev@googlegroups.com  
 Subscribe: quark-dev+subscribe@googlegroups.com  
 Unsubscribe: quark-dev+unsubscribe@googlegroups.com  
+Gitter: https://gitter.im/qubole/quark  
 
 Installation
 ============
