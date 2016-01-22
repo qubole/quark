@@ -40,7 +40,7 @@ import java.util.List;
 public class QuarkTableScan extends TableScan implements EnumerableRel {
   final QuarkTable quarkTable;
 
-  public QuarkTableScan(RelOptCluster cluster, RelOptTable table,
+  protected QuarkTableScan(RelOptCluster cluster, RelOptTable table,
                            QuarkTable quarkTable) {
     super(cluster, cluster.traitSetOf(EnumerableConvention.INSTANCE), table);
     this.quarkTable = quarkTable;

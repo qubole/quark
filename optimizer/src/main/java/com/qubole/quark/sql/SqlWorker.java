@@ -27,6 +27,7 @@ import org.apache.calcite.interpreter.Bindables;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.materialize.MaterializationService;
 import org.apache.calcite.plan.ConventionTraitDef;
+import org.apache.calcite.plan.QuarkMaterializeCluster;
 import org.apache.calcite.plan.RelOptLattice;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptRule;
@@ -94,10 +95,12 @@ public class SqlWorker {
 
   private final QueryContext context;
   private final CalciteCatalogReader catalogReader;
+  private final QuarkMaterializeCluster.RelOptPlannerHolder plannerHolder;
 
   public SqlWorker(QueryContext context) {
     this.context = context;
     this.catalogReader = createCatalogReader(context);
+    this.plannerHolder = new QuarkMaterializeCluster.RelOptPlannerHolder(null);
     this.planner = buildPlanner(context);
   }
 
@@ -143,7 +146,7 @@ public class SqlWorker {
         = ImmutableList.builder();
     for (RuleSet ruleSet: getRules()) {
       builder.add(Programs.sequence(
-          new EnumerableProgram(ruleSet, this.context),
+          new EnumerableProgram(ruleSet, this.context, this.plannerHolder),
           Programs.CALC_PROGRAM));
     }
     return builder.build();
@@ -157,9 +160,13 @@ public class SqlWorker {
     final QueryContext context;
     final MaterializationService materializationService
         = MaterializationService.instance();
-    private EnumerableProgram(RuleSet ruleSet, QueryContext context) {
+    final QuarkMaterializeCluster.RelOptPlannerHolder plannerHolder;
+    List<Prepare.Materialization> materializations = null;
+    private EnumerableProgram(RuleSet ruleSet, QueryContext context,
+                              QuarkMaterializeCluster.RelOptPlannerHolder holder) {
       this.ruleSet = ruleSet;
       this.context = context;
+      this.plannerHolder = holder;
     }
 
     public RelNode run(RelOptPlanner planner, RelNode rel,
@@ -186,8 +193,8 @@ public class SqlWorker {
       planner.setRoot(rel);
 
       MaterializationService.setThreadLocal(materializationService);
-      populateMaterializationsAndLattice(planner, rootSchema);
-
+      plannerHolder.setPlanner(planner);
+      populateMaterializationsAndLattice(plannerHolder, rootSchema);
       if (!rel.getTraitSet().equals(requiredOutputTraits)) {
         rel = planner.changeTraits(rel, requiredOutputTraits);
         planner.setRoot(rel);
@@ -197,16 +204,16 @@ public class SqlWorker {
       return planner2.findBestExp();
     }
 
-    private void populateMaterializationsAndLattice(RelOptPlanner planner,
-                                                    CalciteSchema rootSchema) {
-      Materializer materializer = new Materializer();
-      List<Prepare.Materialization> materializations =
-          MaterializationService.instance().query(rootSchema);
-
-      for (Prepare.Materialization materialization : materializations) {
-        materializer.populateMaterializations(context.getPrepareContext(),
-            planner, materialization);
+    private void populateMaterializationsAndLattice(
+        QuarkMaterializeCluster.RelOptPlannerHolder plannerHolder,
+        CalciteSchema rootSchema) {
+      if (materializations == null) {
+        materializations =
+            MaterializationService.instance().query(rootSchema);
       }
+      Materializer materializer = new Materializer(materializations);
+
+      materializer.populateMaterializations(context.getPrepareContext(), plannerHolder);
 
       List<CalciteSchema.LatticeEntry> lattices = Schemas.getLatticeEntries(rootSchema);
 
@@ -216,7 +223,7 @@ public class SqlWorker {
         final RelOptTableImpl starRelOptTable =
             RelOptTableImpl.create(catalogReader,
                 starTable.getTable().getRowType(typeFactory), starTable, null);
-        planner.addLattice(
+        plannerHolder.getPlanner().addLattice(
             new RelOptLattice(lattice.getLattice(), starRelOptTable));
       }
     }
