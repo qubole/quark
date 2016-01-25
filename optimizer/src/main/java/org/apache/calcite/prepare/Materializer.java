@@ -16,8 +16,13 @@
 package org.apache.calcite.prepare;
 
 import org.apache.calcite.jdbc.CalcitePrepare;
+import org.apache.calcite.plan.QuarkMaterializeCluster;
+import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptMaterialization;
 import org.apache.calcite.plan.RelOptPlanner;
+import org.apache.calcite.rex.RexBuilder;
+
+import java.util.List;
 
 /**
  * Created by amoghm on 11/19/15.
@@ -29,11 +34,23 @@ import org.apache.calcite.plan.RelOptPlanner;
  * 2. Adds to the planner
  */
 public class Materializer {
-  MaterializePrepare prepare = new MaterializePrepare();
-  public void populateMaterializations(CalcitePrepare.Context context,
-      RelOptPlanner planner, Prepare.Materialization materialization) {
-    prepare.populateMaterializations(context, planner, materialization);
+  private List<Prepare.Materialization> materializations;
+  public Materializer(List<Prepare.Materialization> materializations) {
+    this.materializations = materializations;
+  }
 
+  public void populateMaterializations(CalcitePrepare.Context context,
+                                       QuarkMaterializeCluster.RelOptPlannerHolder holder) {
+    MaterializePrepare prepare = new MaterializePrepare(holder);
+    for (Prepare.Materialization materialization : materializations) {
+      if (materialization.queryRel == null || materialization.tableRel == null) {
+        prepare.populateMaterializations(context, materialization);
+      }
+      holder.getPlanner().addMaterialization(
+          new RelOptMaterialization(materialization.tableRel,
+              materialization.queryRel,
+              materialization.getStarTableIdentified()));
+    }
   }
 
   /**
@@ -41,14 +58,19 @@ public class Materializer {
    * make populateMaterializations accessible
    */
   private class MaterializePrepare extends CalcitePrepareImpl {
+    QuarkMaterializeCluster.RelOptPlannerHolder holderPlanner;
+    MaterializePrepare(QuarkMaterializeCluster.RelOptPlannerHolder holderPlanner) {
+      this.holderPlanner = holderPlanner;
+    }
+    /** Factory method for cluster. */
+    @Override
+    protected RelOptCluster createCluster(RelOptPlanner planner,
+                                          RexBuilder rexBuilder) {
+      return QuarkMaterializeCluster.create(this.holderPlanner, rexBuilder);
+    }
     public void populateMaterializations(Context context,
-                                  RelOptPlanner planner,
-                                  Prepare.Materialization materialization) {
-      super.populateMaterializations(context, planner, materialization);
-      planner.addMaterialization(
-          new RelOptMaterialization(materialization.tableRel,
-              materialization.queryRel,
-              materialization.getStarTableIdentified()));
+                                         Prepare.Materialization materialization) {
+      super.populateMaterializations(context, holderPlanner.getPlanner(), materialization);
     }
   }
 }
