@@ -155,7 +155,8 @@ public class SqlWorker {
   public class EnumerableProgram implements Program {
     final RuleSet ruleSet;
     final QueryContext context;
-
+    final MaterializationService materializationService
+        = MaterializationService.instance();
     private EnumerableProgram(RuleSet ruleSet, QueryContext context) {
       this.ruleSet = ruleSet;
       this.context = context;
@@ -184,6 +185,7 @@ public class SqlWorker {
       planner.setExecutor(new RexExecutorImpl(null));
       planner.setRoot(rel);
 
+      MaterializationService.setThreadLocal(materializationService);
       populateMaterializationsAndLattice(planner, rootSchema);
 
       if (!rel.getTraitSet().equals(requiredOutputTraits)) {
@@ -200,12 +202,15 @@ public class SqlWorker {
       Materializer materializer = new Materializer();
       final List<Prepare.Materialization> materializations =
           MaterializationService.instance().query(rootSchema);
+
       for (Prepare.Materialization materialization : materializations) {
         materializer.populateMaterializations(context.getPrepareContext(),
             planner, materialization);
       }
+
       final List<CalciteSchema.LatticeEntry> lattices =
           Schemas.getLatticeEntries(rootSchema);
+
       for (CalciteSchema.LatticeEntry lattice : lattices) {
         final CalciteSchema.TableEntry starTable = lattice.getStarTable();
         final JavaTypeFactory typeFactory = context.getTypeFactory();
