@@ -57,14 +57,10 @@ public class EnumerableSqlHandler implements SqlHandler<RelNode, String> {
     } catch (ClassNotFoundException e) {
       throw new RuntimeException("Error loading calcite Driver: " + e.getMessage(), e);
     } catch (SqlParseException e) {
-      LOGGER.error("SqlParsing failed: " + e.getMessage(), e);
       throw new RuntimeException("SqlParsing failed: " + e.getMessage(), e);
     } catch (ValidationException e) {
-      LOGGER.error("Sql Validation failed: " + e.getMessage(), e);
       throw new RuntimeException("Sql Validation failed: " + e.getMessage(), e);
     } catch (RelConversionException e) {
-      LOGGER.error("Sql to RelNode conversion or transformation failed: "
-          + e.getMessage(), e);
       throw new RuntimeException("Sql to RelNode conversion or transformation failed: "
           + e.getMessage(), e);
     }

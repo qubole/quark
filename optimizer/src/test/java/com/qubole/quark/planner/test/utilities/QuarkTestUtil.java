@@ -27,6 +27,7 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
+import java.sql.SQLException;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -50,13 +51,14 @@ public class QuarkTestUtil {
     return mapper.writeValueAsString(defaultSchema);
   }
 
-  public static String getParsedSql(String sql, Properties info) throws QuarkException {
+  public static String getParsedSql(String sql, Properties info)
+      throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     return parser.parse(sql).getParsedSql();
   }
 
   public static void checkParsedSql(String sql, Properties info, String expectedSql)
-      throws QuarkException {
+      throws QuarkException, SQLException {
     String finalQuery = getParsedSql(sql, info);
     assertEquals(expectedSql, finalQuery);
   }
@@ -75,7 +77,7 @@ public class QuarkTestUtil {
                                           Properties info,
                                           ImmutableList<String> expected,
                                           ImmutableList<String> unexpected)
-      throws QuarkException {
+      throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     RelNode relNode = parser.parse(sql).getRelNode();
     String relStr = RelOptUtil.toString(relNode);

@@ -24,6 +24,7 @@ import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.core.TableScan;
+import org.apache.calcite.runtime.CalciteContextException;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlDialect;
@@ -47,8 +48,6 @@ import com.qubole.quark.utilities.RelToSqlConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 import java.sql.SQLException;
 
@@ -97,7 +96,7 @@ public class Parser {
     }
   }
 
-  private RelNode parseInternal(String sql) throws SQLException, IOException {
+  private RelNode parseInternal(String sql) throws SQLException {
     try {
       //final CalcitePrepare.Context prepareContext = context.getPrepareContext();
       //Class elementType = Object[].class;
@@ -106,9 +105,8 @@ public class Parser {
       LOG.info("\n" + RelOptUtil.dumpPlan(
           "", relNode, false, SqlExplainLevel.ALL_ATTRIBUTES));
       return relNode;
-    } catch (Exception e) {
-      LOG.error("Parse Internal threw exception : " + e.getMessage(), e);
-      throw new IOException("Parse Failed " + e.getMessage(), e);
+    } catch (CalciteContextException e) {
+      throw new SQLException(e.getMessage(), e);
     }
   }
 
@@ -132,14 +130,13 @@ public class Parser {
     return result.replace("\n", " ");
   }
 
-  public ParserResult parse(String sql) {
+  public ParserResult parse(String sql) throws SQLException {
     DataSourceSchema dataSource = this.context.getDefaultDataSource();
-    ParserResult result = new ParserResult(sql, dataSource, null, null, false);
     final AtomicBoolean foundNonQuarkScan = new AtomicBoolean(false);
     final ImmutableSet.Builder<DataSourceSchema> dsBuilder = new ImmutableSet.Builder<>();
     try {
       final SqlKind kind = getSqlParser(sql).parseQuery().getKind();
-      result = new ParserResult(stripNamespace(sql, dataSource),
+      ParserResult result = new ParserResult(stripNamespace(sql, dataSource),
           dataSource, kind, null, false);
       RelNode relNode = parseInternal(sql);
       if (context.getDefaultDataSource() != null) {
@@ -220,29 +217,33 @@ public class Parser {
         final DataSourceSchema newDataSource = dataSources.asList().get(0);
         final String stripNamespace = stripNamespace(sql, newDataSource);
         result = new ParserResult(stripNamespace, newDataSource, kind, relNode, true);
+      } else if (this.context.isUnitTestMode()) {
+        /**
+         *  No default datasource set, so just send back parsed sql
+         */
+        String parsedSql =
+            getParsedSql(relNode,
+                new SqlDialect(SqlDialect.DatabaseProduct.UNKNOWN, "UNKNOWN", null, true));
+        result = new ParserResult(parsedSql, null, kind, relNode, true);
       } else if (dataSources.size() > 1) {
         /**
          * Check if it's partially optimized, i.e., tablescans of multiple datasources
          * are found in RelNode. We currently donot support multiple datasources,
          * so send back the original query stored in result by updating relNode.
          */
-        result = new ParserResult(stripNamespace(sql, dataSource),
-            dataSource, kind, relNode, true);
+        throw new SQLException("Federation between data sources is not allowed", "0A001");
       } else if (dataSources.isEmpty()) {
         /**
          *  No datasource found, so just send back parsed sql
          */
-        String parsedSql =
-            getParsedSql(relNode,
-                new SqlDialect(SqlDialect.DatabaseProduct.UNKNOWN, "UNKNOWN", null, true));
-        result = new ParserResult(parsedSql, null, kind, relNode, true);
+        throw new SQLException("No dataSource found for query", "3D001");
       }
+      return result;
+    } catch (SQLException e) {
+      throw e;
     } catch (Exception e) {
-      LOG.error("Exception thrown while parsing: " + e.getMessage(), e);
-      LOG.warn("Falling back to original query");
+      throw new SQLException(e.getMessage(), e.getCause());
     }
-
-    return result;
   }
 
   /**
