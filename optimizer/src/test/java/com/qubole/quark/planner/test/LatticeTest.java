@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
@@ -154,6 +155,7 @@ public class LatticeTest {
   @BeforeClass
   public static void setUpClass() throws Exception {
     info = new Properties();
+    info.put("unitTestMode", "true");
     info.put("schemaFactory", "com.qubole.quark.planner.test.LatticeTest$SchemaFactory");
 
     ImmutableList<String> defaultSchema = ImmutableList.of("FOODMART");
@@ -163,7 +165,7 @@ public class LatticeTest {
   }
 
   @Test
-  public void testSimple() throws QuarkException {
+  public void testSimple() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     Parser.ParserResult result = parser.parse("select * from account");
     List<String> usedTables = parser.getTables(result.getRelNode());
@@ -172,7 +174,7 @@ public class LatticeTest {
   }
 
   @Test
-  public void testCountFact() throws QuarkException {
+  public void testCountFact() throws QuarkException, SQLException {
     final String sql = "select t.the_year, "
         + "  sum(s.unit_sales)  "
         + "from foodmart.sales_fact_1997 as s "
@@ -189,7 +191,7 @@ public class LatticeTest {
   }
 
   @Test
-  public void testWebReturns() throws QuarkException {
+  public void testWebReturns() throws QuarkException, SQLException {
     final String sql = "select dd.d_year, "
         + "  sum(wr_net_loss)  "
         + "from tpcds.web_returns as w "
@@ -206,7 +208,7 @@ public class LatticeTest {
   }
 
   @Test
-  public void storeFilterQuery() throws QuarkException {
+  public void storeFilterQuery() throws QuarkException, SQLException {
     String sql = "select d_year, d_qoy, cd_gender, sum(ss_sales_price) " +
         " from tpcds.store_sales join tpcds.date_dim on ss_sold_date_sk = d_date_sk " +
         " join tpcds.customer_demographics on ss_cdemo_sk = cd_demo_sk " +
@@ -226,7 +228,7 @@ public class LatticeTest {
    * aggregate is used to remove the filter column.
    */
   @Test
-  public void storeFilterQuery2() throws QuarkException {
+  public void storeFilterQuery2() throws QuarkException, SQLException {
       String sql = "select d_year, d_qoy, sum(ss_sales_price) " +
           " from tpcds.store_sales join tpcds.date_dim on ss_sold_date_sk = d_date_sk " +
           " join tpcds.customer_demographics on ss_cdemo_sk = cd_demo_sk " +

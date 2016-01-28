@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -53,6 +54,7 @@ public class RelToSqlConverterTest {
   @BeforeClass
   public static void setUpClass() throws Exception {
     info = new Properties();
+    info.put("unitTestMode", "true");
     info.put("defaultSchema", QuarkTestUtil.toJson("FOODMART"));
     info.put("schemaFactory", "com.qubole.quark.planner.test.RelToSqlConverterTest$SchemaFactory");
 
@@ -62,7 +64,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSimpleSelectQueryFromProductTable() throws QuarkException {
+  public void testSimpleSelectQueryFromProductTable() throws QuarkException, SQLException {
     String query = "select product_id from product";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -71,7 +73,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSimpleSelectQueryFromCategoryTable() throws QuarkException {
+  public void testSimpleSelectQueryFromCategoryTable() throws QuarkException, SQLException {
     String query = "select category_id from category";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -80,7 +82,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectTwoColumnQuery() throws QuarkException {
+  public void testSelectTwoColumnQuery() throws QuarkException, SQLException {
     String query = "select product_id, product_class_id from product";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -91,7 +93,7 @@ public class RelToSqlConverterTest {
   //TODO: add test for query -> select * from product
 
   @Test
-  public void testSelectQueryWithWhereClauseOfLessThan() throws QuarkException {
+  public void testSelectQueryWithWhereClauseOfLessThan() throws QuarkException, SQLException {
     String query = "select product_id, shelf_width from product where product_id < 10";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -103,7 +105,7 @@ public class RelToSqlConverterTest {
 
   //This test also produces operand product_id which is casted to integer.
   @Test
-  public void testSelectQueryWithWhereClauseOfEqual() throws QuarkException {
+  public void testSelectQueryWithWhereClauseOfEqual() throws QuarkException, SQLException {
     String query = "select product_id, shelf_width from product where product_id = 10";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -113,7 +115,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithWhereClauseofGreaterThan() throws QuarkException {
+  public void testSelectQueryWithWhereClauseofGreaterThan() throws QuarkException, SQLException {
     String query = "select product_id, shelf_width from product where product_id > 10";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -124,7 +126,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithWhereClauseofLessThanEqualTo() throws QuarkException {
+  public void testSelectQueryWithWhereClauseofLessThanEqualTo() throws QuarkException, SQLException {
     String query = "select product_id, shelf_width from product where product_id <= 10";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -135,7 +137,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithWhereClauseofGreaterThanEqualTo() throws QuarkException {
+  public void testSelectQueryWithWhereClauseofGreaterThanEqualTo() throws QuarkException, SQLException {
     String query = "select product_id, shelf_width from product where product_id >= 10";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -146,7 +148,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithWhereClauseWithExpressionFirst() throws QuarkException {
+  public void testSelectQueryWithWhereClauseWithExpressionFirst() throws QuarkException, SQLException {
     String query = "select product_id, shelf_width from product where 10 < product_id";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -157,7 +159,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithGroupBy() throws QuarkException {
+  public void testSelectQueryWithGroupBy() throws QuarkException, SQLException {
     String query = "select count(*) from product group by product_class_id, product_id "; //having net_weight > 100";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -168,7 +170,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithMinAggregateFunction() throws QuarkException {
+  public void testSelectQueryWithMinAggregateFunction() throws QuarkException, SQLException {
     String query = "select min(net_weight) from product group by product_class_id ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -179,7 +181,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithMinAggregateFunction1() throws QuarkException {
+  public void testSelectQueryWithMinAggregateFunction1() throws QuarkException, SQLException {
     String query = "select PRODUCT_CLASS_ID, min(net_weight) from product group by product_class_id ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -190,7 +192,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithSumAggregateFunction() throws QuarkException {
+  public void testSelectQueryWithSumAggregateFunction() throws QuarkException, SQLException {
     String query = "select sum(net_weight) from product group by product_class_id ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -201,7 +203,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithMultipleAggregateFunction() throws QuarkException {
+  public void testSelectQueryWithMultipleAggregateFunction() throws QuarkException, SQLException {
     String query = "select sum(net_weight), min(low_fat), count(*) from product group by product_class_id ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -212,7 +214,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithMultipleAggregateFunction1() throws QuarkException {
+  public void testSelectQueryWithMultipleAggregateFunction1() throws QuarkException, SQLException {
     String query = "select product_class_id, sum(net_weight), min(low_fat), count(*) from product group by product_class_id ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -223,7 +225,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithGroupByAndProjectList() throws QuarkException {
+  public void testSelectQueryWithGroupByAndProjectList() throws QuarkException, SQLException {
     String query = "select product_class_id, product_id, count(*) from product group by product_class_id, product_id "; //having net_weight > 100";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -234,7 +236,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithGroupByAndProjectList1() throws QuarkException {
+  public void testSelectQueryWithGroupByAndProjectList1() throws QuarkException, SQLException {
     String query = "select count(*)  from product group by product_class_id, product_id "; //having net_weight > 100";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -256,7 +258,7 @@ public class RelToSqlConverterTest {
 //  }
 
   @Test
-  public void testSelectQueryWithOrderByClause() throws QuarkException {
+  public void testSelectQueryWithOrderByClause() throws QuarkException, SQLException {
     String query = "select product_id from product order by net_weight";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -267,7 +269,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithOrderByClause1() throws QuarkException {
+  public void testSelectQueryWithOrderByClause1() throws QuarkException, SQLException {
     String query = "select product_id, net_weight from product order by net_weight";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -278,7 +280,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithTwoOrderByClause() throws QuarkException {
+  public void testSelectQueryWithTwoOrderByClause() throws QuarkException, SQLException {
     String query = "select product_id from product order by net_weight, gross_weight";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -289,7 +291,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithTwoOrderByClause1() throws QuarkException {
+  public void testSelectQueryWithTwoOrderByClause1() throws QuarkException, SQLException {
     String query = "select product_id, net_weight from product order by net_weight, gross_weight";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -300,7 +302,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithAscDescOrderByClause() throws QuarkException {
+  public void testSelectQueryWithAscDescOrderByClause() throws QuarkException, SQLException {
     String query = "select product_id from product order by net_weight asc, gross_weight desc, low_fat";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -311,7 +313,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithAscDescOrderByClause1() throws QuarkException {
+  public void testSelectQueryWithAscDescOrderByClause1() throws QuarkException, SQLException {
     String query = "select product_id, net_weight, gross_weight from product order by net_weight asc, gross_weight desc, low_fat";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -322,7 +324,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithLimitClause() throws QuarkException {
+  public void testSelectQueryWithLimitClause() throws QuarkException, SQLException {
     String query = "select product_id from product limit 100 offset 10";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -333,7 +335,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSqlParsingOfLimitClauseForRedShift() throws QuarkException, SqlParseException {
+  public void testSqlParsingOfLimitClauseForRedShift() throws QuarkException, SQLException, SqlParseException {
     String query = "select product_id from product limit 100 offset 10";
     final SqlDialect redshiftDialect =
         SqlDialect.getProduct("REDSHIFT", null).getDialect();
@@ -348,7 +350,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryComplex() throws QuarkException {
+  public void testSelectQueryComplex() throws QuarkException, SQLException {
     String query = "select count(*) from product where cases_per_pallet > 100 group by product_id, units_per_case order by units_per_case desc";//, units_per_case, net_weight ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -361,7 +363,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryComplex1() throws QuarkException {
+  public void testSelectQueryComplex1() throws QuarkException, SQLException {
     String query = "select count(*), units_per_case, product_id from product where cases_per_pallet > 100 group by product_id, units_per_case order by units_per_case desc";//, units_per_case, net_weight ";
     QuarkTestUtil.checkParsedSql(
         query,
@@ -374,7 +376,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithGroup() throws QuarkException {
+  public void testSelectQueryWithGroup() throws QuarkException, SQLException {
     String query = "select count(*), sum(employee_id) from RESERVE_EMPLOYEE where hire_date > '2015-01-01' "
         + "and (position_title = 'SDE' or position_title = 'SDM') group by store_id, position_title";//, units_per_case, net_weight ";
     QuarkTestUtil.checkParsedSql(
@@ -387,7 +389,7 @@ public class RelToSqlConverterTest {
   }
 
   @Test
-  public void testSelectQueryWithGroup1() throws QuarkException {
+  public void testSelectQueryWithGroup1() throws QuarkException, SQLException {
     String query = "select count(*), sum(employee_id), POSITION_TITLE, STORE_ID from RESERVE_EMPLOYEE where hire_date > '2015-01-01' "
         + "and (position_title = 'SDE' or position_title = 'SDM') group by store_id, position_title";//, units_per_case, net_weight ";
     QuarkTestUtil.checkParsedSql(
