@@ -218,9 +218,6 @@ public class Parser {
         final String stripNamespace = stripNamespace(sql, newDataSource);
         result = new ParserResult(stripNamespace, newDataSource, kind, relNode, true);
       } else if (this.context.isUnitTestMode()) {
-        /**
-         *  No default datasource set, so just send back parsed sql
-         */
         String parsedSql =
             getParsedSql(relNode,
                 new SqlDialect(SqlDialect.DatabaseProduct.UNKNOWN, "UNKNOWN", null, true));
@@ -228,14 +225,10 @@ public class Parser {
       } else if (dataSources.size() > 1) {
         /**
          * Check if it's partially optimized, i.e., tablescans of multiple datasources
-         * are found in RelNode. We currently donot support multiple datasources,
-         * so send back the original query stored in result by updating relNode.
+         * are found in RelNode. We currently donot support multiple datasources.
          */
         throw new SQLException("Federation between data sources is not allowed", "0A001");
       } else if (dataSources.isEmpty()) {
-        /**
-         *  No datasource found, so just send back parsed sql
-         */
         throw new SQLException("No dataSource found for query", "3D001");
       }
       return result;
