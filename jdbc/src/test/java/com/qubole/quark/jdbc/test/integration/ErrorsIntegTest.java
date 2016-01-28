@@ -3,6 +3,8 @@ package com.qubole.quark.jdbc.test.integration;
 import com.qubole.quark.jdbc.test.integration.utility.IntegTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -11,14 +13,17 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
 /**
  * Created by rajatv on 1/28/16.
  */
 public class ErrorsIntegTest extends IntegTest {
-  public static final String h2Url = "jdbc:h2:mem:SimpleTest;DB_CLOSE_DELAY=-1";
-  public static final String viewUrl = "jdbc:h2:mem:SimpleViews;DB_CLOSE_DELAY=-1";
+  private static final Logger log = LoggerFactory.getLogger(ErrorsIntegTest.class);
+
+  public static final String h2Url = "jdbc:h2:mem:ErrorTest;DB_CLOSE_DELAY=-1";
+  public static final String viewUrl = "jdbc:h2:mem:ErrorViews;DB_CLOSE_DELAY=-1";
   public static Connection conn;
 
   @BeforeClass
@@ -29,20 +34,29 @@ public class ErrorsIntegTest extends IntegTest {
 
     Class.forName("com.qubole.quark.jdbc.QuarkDriver");
     conn = DriverManager.getConnection("jdbc:quark:"
-        + TpcdsIntegTest.class.getResource("/SimpleModel.json").getPath(), new Properties());
+        + TpcdsIntegTest.class.getResource("/ErrorsModel.json").getPath(), new Properties());
   }
 
   @Test
   public void testSyntaxError() throws SQLException, ClassNotFoundException {
     String query = "select count(*) canonical.public.web_returns";
-    assertThatThrownBy(() -> conn.createStatement().executeQuery(query)).isInstanceOf(SQLException.class)
-        .hasMessageContaining("Encountered \".\" at line 1, column 26.");
+    try {
+      conn.createStatement().executeQuery(query);
+      failBecauseExceptionWasNotThrown(SQLException.class);
+    } catch (SQLException e) {
+      assertThat((Throwable) e).hasMessageContaining("Encountered \".\" at line 1, column 26.");
+    }
   }
 
   @Test
   public void testSemanticError() throws SQLException, ClassNotFoundException {
     String query = "select count(*) from canonical.public.web_rturns";
-    assertThatThrownBy(() -> conn.createStatement().executeQuery(query)).isInstanceOf(SQLException.class)
-        .hasMessageContaining("Table 'CANONICAL.PUBLIC.WEB_RTURNS' not found");
+    try {
+      conn.createStatement().executeQuery(query);
+      failBecauseExceptionWasNotThrown(SQLException.class);
+    } catch (SQLException e) {
+      log.info(e.getMessage());
+      assertThat((Throwable) e).hasMessageContaining("Table 'CANONICAL.PUBLIC.WEB_RTURNS' not found");
+    }
   }
 }

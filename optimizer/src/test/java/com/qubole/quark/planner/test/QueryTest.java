@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
 /**
  * Created by rajatv on 2/6/15.
@@ -156,18 +156,24 @@ public class QueryTest {
   @Test
   public void testSyntaxError() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
-
-    assertThatThrownBy(() -> parser.parse("select count(*) test.many_columns where " +
-        "test.many_columns.j > 100 and test.many_columns.i = 10")).isInstanceOf(SQLException.class)
-        .hasMessageContaining("Encountered \".\" at line 1, column 21.");
+    try {
+      parser.parse("select count(*) test.many_columns where " +
+          "test.many_columns.j > 100 and test.many_columns.i = 10");
+      failBecauseExceptionWasNotThrown(SQLException.class);
+    } catch (SQLException e) {
+      assertThat((Throwable) e).hasMessageContaining("Encountered \".\" at line 1, column 21.");
+    }
   }
 
   @Test
   public void testSemanticError() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
-
-    assertThatThrownBy(() -> parser.parse("select count(*) from test.many_colum where " +
-        "test.many_columns.j > 100 and test.many_columns.i = 10")).isInstanceOf(SQLException.class)
-        .hasMessageContaining("Table 'TEST.MANY_COLUM' not found");
+    try {
+      parser.parse("select count(*) from test.many_colum where " +
+          "test.many_columns.j > 100 and test.many_columns.i = 10");
+      failBecauseExceptionWasNotThrown(SQLException.class);
+    } catch (SQLException e) {
+      assertThat((Throwable) e).hasMessageContaining("Table 'TEST.MANY_COLUM' not found");
+    }
   }
 }
