@@ -34,6 +34,7 @@ import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 
 /**
  * Created by rajatv on 2/6/15.
@@ -90,6 +92,7 @@ public class QueryTest {
   @BeforeClass
   public static void setUpClass() throws Exception {
     info = new Properties();
+    info.put("unitTestMode", "true");
     info.put("defaultSchema", QuarkTestUtil.toJson("TEST"));
     info.put("schemaFactory", "com.qubole.quark.planner.test.QueryTest$SchemaFactory");
     info.put("model",
@@ -109,7 +112,7 @@ public class QueryTest {
   }
 
   @Test
-  public void testParse() throws QuarkException {
+  public void testParse() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     RelNode relNode = parser.parse("select * from simple").getRelNode();
     List<String> usedTables = parser.getTables(relNode);
@@ -118,7 +121,7 @@ public class QueryTest {
   }
 
   @Test
-  public void testFilter() throws QuarkException {
+  public void testFilter() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
 
     Parser.ParserResult result =
@@ -133,7 +136,7 @@ public class QueryTest {
   }
 
   @Test
-  public void testTwoFilter() throws QuarkException {
+  public void testTwoFilter() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
 
     Parser.ParserResult result =
@@ -148,5 +151,29 @@ public class QueryTest {
         result.getParsedSql()
             .equals("SELECT COUNT(*) FROM TEST.MANY_COLUMNS WHERE J > 100 AND I = 10")
     );
+  }
+
+  @Test
+  public void testSyntaxError() throws QuarkException, SQLException {
+    Parser parser = new Parser(info);
+    try {
+      parser.parse("select count(*) test.many_columns where " +
+          "test.many_columns.j > 100 and test.many_columns.i = 10");
+      failBecauseExceptionWasNotThrown(SQLException.class);
+    } catch (SQLException e) {
+      assertThat((Throwable) e).hasMessageContaining("Encountered \".\" at line 1, column 21.");
+    }
+  }
+
+  @Test
+  public void testSemanticError() throws QuarkException, SQLException {
+    Parser parser = new Parser(info);
+    try {
+      parser.parse("select count(*) from test.many_colum where " +
+          "test.many_columns.j > 100 and test.many_columns.i = 10");
+      failBecauseExceptionWasNotThrown(SQLException.class);
+    } catch (SQLException e) {
+      assertThat((Throwable) e).hasMessageContaining("Table 'TEST.MANY_COLUM' not found");
+    }
   }
 }

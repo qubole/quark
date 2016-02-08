@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -220,6 +221,7 @@ public class SchemaTest {
   @BeforeClass
   public static void setUpClass() throws Exception {
     info = new Properties();
+    info.put("unitTestMode", "true");
     info.put("schemaFactory", "com.qubole.quark.planner.test.SchemaTest$SchemaFactory");
     info.put("materializationsEnabled", "true");
 
@@ -229,7 +231,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testSimple() throws QuarkException {
+  public void testSimple() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     List<String> usedTables =
         parser.getTables(parser.parse("select * from simple").getRelNode());
@@ -238,7 +240,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testDefaultSimple() throws QuarkException {
+  public void testDefaultSimple() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select * from default.simple",
         info,
@@ -246,7 +248,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testTpchNation() throws QuarkException {
+  public void testTpchNation() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     RelNode relNode = parser.parse("select * from tpch.nation").getRelNode();
     List<String> usedTables = parser.getTables(relNode);
@@ -255,7 +257,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testTpchAsDefault() throws QuarkException, JsonProcessingException {
+  public void testTpchAsDefault() throws QuarkException, SQLException, JsonProcessingException {
     info.put("defaultSchema", QuarkTestUtil.toJson("TPCH"));
     try {
       Parser parser = new Parser(info);
@@ -268,7 +270,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testDefaultNation() throws QuarkException {
+  public void testDefaultNation() throws QuarkException, SQLException {
     Parser parser = new Parser(info);
     RelNode relNode = parser.parse("select * from tpch.nation").getRelNode();
     List<String> usedTables = parser.getTables(relNode);
@@ -279,7 +281,7 @@ public class SchemaTest {
   //TODO: Check this regression
   @Ignore("Regression in calcite. Need to check")
   @Test
-  public void testView100() throws QuarkException {
+  public void testView100() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select p_name from tpch.part where p_size = 110",
         info,
@@ -287,7 +289,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPartless110() throws QuarkException {
+  public void testViewPartless110() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select p_name from tpch.part where p_size < 110",
         info,
@@ -295,7 +297,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewGreater110() throws QuarkException {
+  public void testViewGreater110() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select p_name from tpch.part where p_size > 110",
         info,
@@ -303,7 +305,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewGreater120() throws QuarkException {
+  public void testViewGreater120() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select p_name from tpch.part where p_size > 120",
         info,
@@ -311,7 +313,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewSALES_greaterDate() throws QuarkException {
+  public void testViewSALES_greaterDate() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select p_salesid from tpch.sales where p_saledate > \'2016-10-07\'",
         info,
@@ -320,7 +322,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_RETAILPRICE() throws QuarkException {
+  public void testViewPART_RETAILPRICE() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select p_name from tpch.part where p_retailprice > 110.0",
         info,
@@ -329,7 +331,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_test1() throws QuarkException {
+  public void testViewPART_COMP1_test1() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where (p_retailprice > 20.0 AND p_size > 75)",
         info,
@@ -339,7 +341,7 @@ public class SchemaTest {
 
 
   @Test
-  public void testViewPART_COMP1_test2() throws QuarkException {
+  public void testViewPART_COMP1_test2() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where (20.0 < p_retailprice  AND 80 < p_size)",
         info,
@@ -348,7 +350,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_test3() throws QuarkException {
+  public void testViewPART_COMP1_test3() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where (20.0 < p_retailprice  AND 80 < p_size " +
             "AND p_name = 'quark')",
@@ -358,7 +360,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_NegativeTest1() throws QuarkException {
+  public void testViewPART_COMP1_NegativeTest1() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where (p_retailprice > 20.0 OR p_size > 500)",
         info,
@@ -367,7 +369,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_NegativeTest2() throws QuarkException {
+  public void testViewPART_COMP1_NegativeTest2() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where (p_retailprice > (2.0 + 10.0) OR p_size > 500)",
         info,
@@ -376,7 +378,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_NegativeTest3() throws QuarkException {
+  public void testViewPART_COMP1_NegativeTest3() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where p_size < 500",
         info,
@@ -385,7 +387,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_NegativeTest4() throws QuarkException {
+  public void testViewPART_COMP1_NegativeTest4() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where p_size < 500 AND p_retailprice > 30.0",
         info,
@@ -394,7 +396,7 @@ public class SchemaTest {
   }
 
   @Test
-  public void testViewPART_COMP1_NegativeTest5() throws QuarkException {
+  public void testViewPART_COMP1_NegativeTest5() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedRelString(
         "select p_name from tpch.part where (p_size < 500 AND p_retailprice > 30.0 AND p_name = 'qubole') ",
         info,

@@ -55,6 +55,7 @@ public class QueryContext {
   protected static final Logger LOG = LoggerFactory.getLogger(QueryContext.class);
   private final SchemaPlus rootSchema = CalciteSchema.createRootSchema(true).plus();
   private DataSourceSchema defaultDataSource;
+  private boolean unitTestMode;
   private final List<String> defaultSchema;
   private final Class schemaFactoryClazz;
   private final Properties info;
@@ -97,6 +98,7 @@ public class QueryContext {
       final RelDataTypeSystem typeSystem =
           cfg.typeSystem(RelDataTypeSystem.class, RelDataTypeSystem.DEFAULT);
       this.typeFactory = new JavaTypeFactoryImpl(typeSystem);
+      this.unitTestMode = Boolean.parseBoolean(info.getProperty("unitTestMode", "false"));
 
       Object obj = schemaFactoryClazz.newInstance();
       if (obj instanceof QuarkFactory) {
@@ -201,5 +203,9 @@ public class QueryContext {
 
   public DataSourceSchema getDefaultDataSource() {
     return defaultDataSource;
+  }
+
+  public boolean isUnitTestMode() {
+    return unitTestMode;
   }
 }

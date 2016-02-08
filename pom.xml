@@ -64,6 +64,7 @@
         <jackson.asl.version>1.9.13</jackson.asl.version>
         <jackson.version>2.4.0</jackson.version>
         <calcite.version>1.5.0-qds-r8</calcite.version>
+        <assertj.version>2.3.0</assertj.version>
         <!-- check if there is a better way -->
         <project.rootdir>${basedir}</project.rootdir>
 
@@ -132,7 +133,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>1.7.1</version>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

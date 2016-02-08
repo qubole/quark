@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,7 @@ public class MetricsTest {
   @BeforeClass
   public static void setUpClass() throws Exception {
     info = new Properties();
+    info.put("unitTestMode", "true");
     info.put("schemaFactory", "com.qubole.quark.planner.test.MetricsTest$SchemaFactory");
     info.put("materializationsEnabled", "true");
 
@@ -122,7 +124,7 @@ public class MetricsTest {
   }
 
   @Test
-  public void testViewFilter() throws QuarkException {
+  public void testViewFilter() throws QuarkException, SQLException {
     QuarkTestUtil.checkParsedSql(
         "select name, value from metrics_schema.metrics where name='FileSystemCounters.S3_READ_OPS'",
         info,
