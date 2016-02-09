@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Represents a cube. It stores all the information required to
@@ -127,56 +128,49 @@ public class QuarkCube {
     public final String parentId;
     public final Dimension parentDimension;
     private List<Dimension> childrenDimensions;
+    private final boolean mandatory;
 
-    public Dimension(Object qualifiedCol, String cubeColumn, int cubeOrdinal) {
-      this.qualifiedCol = qualifiedCol;
-      this.cubeColumn = cubeColumn;
-      this.cubeOrdinal = cubeOrdinal;
-      this.name = cubeColumn;
-      this.parentId = null;
-      this.parentDimension = null;
-      this.childrenDimensions = ImmutableList.of();
+    public boolean isMandatory() {
+      return mandatory;
     }
 
-    public Dimension(String name, String schemaName, String tableName, String columnName,
-                     String cubeColumn, int cubeOrdinal, String parent) {
-      this(name, schemaName, tableName, columnName, cubeColumn, cubeOrdinal, parent, null,
-          new ArrayList<Dimension>());
-    }
-
-    public Dimension(String name, String schemaName, String tableName, String columnName,
-                     String cubeColumn, int cubeOrdinal, String parentId,
-                     Dimension parentDimension, List<Dimension> childrenDimensions) {
+    private static Object createQualifiedCol(String schemaName,
+                                             String tableName,
+                                             String columnName) {
+      Object qualifiedCol;
       if (schemaName.isEmpty() && tableName.isEmpty()) {
-        this.qualifiedCol = columnName.toUpperCase();
+        qualifiedCol = columnName.toUpperCase();
       } else if (schemaName.isEmpty()) {
-        this.qualifiedCol = new ImmutableList.Builder<String>()
+        qualifiedCol = new ImmutableList.Builder<String>()
             .add(tableName.toUpperCase())
             .add(columnName.toUpperCase()).build();
       } else {
-        this.qualifiedCol = new ImmutableList.Builder<String>()
+        qualifiedCol = new ImmutableList.Builder<String>()
             .add(schemaName.toUpperCase())
             .add(tableName.toUpperCase())
             .add(columnName.toUpperCase()).build();
       }
-      this.name = name;
-      this.cubeColumn = cubeColumn.toUpperCase();
-      this.cubeOrdinal = cubeOrdinal;
-      this.parentDimension = parentDimension;
-      this.childrenDimensions = childrenDimensions;
-      this.parentId = parentId;
+      return qualifiedCol;
     }
 
-    public Dimension(String name, Object qualifiedCol,
-                     String cubeColumn, int cubeOrdinal, String parentId,
-                     Dimension parentDimension, List<Dimension> childrenDimensions) {
-      this.qualifiedCol = qualifiedCol;
+    protected Dimension(String name, String schemaName, String tableName, String columnName,
+        String cubeColumn, int cubeOrdinal, String parentId, Dimension parentDimension,
+        List<Dimension> childrenDimensions, boolean mandatory) {
+      this(name, createQualifiedCol(schemaName, tableName, columnName), cubeColumn,
+          cubeOrdinal, parentId, parentDimension, childrenDimensions, mandatory);
+    }
+
+    protected Dimension(String name, Object qualifiedCol, String cubeColumn, int cubeOrdinal,
+        String parentId, Dimension parentDimension, List<Dimension> childrenDimensions,
+        boolean mandatory) {
       this.name = name;
+      this.qualifiedCol = qualifiedCol;
+      this.parentId = parentId;
       this.cubeColumn = cubeColumn.toUpperCase();
       this.cubeOrdinal = cubeOrdinal;
       this.parentDimension = parentDimension;
       this.childrenDimensions = childrenDimensions;
-      this.parentId = parentId;
+      this.mandatory = mandatory;
     }
 
     public List<Dimension> getChildrenDimensions() {
@@ -224,6 +218,68 @@ public class QuarkCube {
           + "cubeColumn=" + cubeColumn + ", "
           + "cubeOrdinal=" + cubeOrdinal
           + "}";
+    }
+
+    /*public static Builder builder(String name, Object qualifiedCol, String cubeColumn,
+                                  int cubeOrdinal) {
+      return new Builder(name, qualifiedCol, cubeColumn, cubeOrdinal);
+    }*/
+
+    public static Builder builder(String name, String schemaName, String tableName,
+        String columnName, String cubeColumn, int cubeOrdinal) {
+      return new Builder(name, schemaName, tableName, columnName,
+          cubeColumn, cubeOrdinal);
+    }
+
+    /**
+     * Builder for Dimensions
+     */
+    public static class Builder {
+      public final String name;
+      public final String schemaName;
+      public final String tableName;
+      public final String columnName;
+      public final String cubeColumn;
+      public final int cubeOrdinal;
+      public String parentId = null;
+      public Dimension parentDimension = null;
+      private List<Dimension> childrenDimensions = new ArrayList<>();
+      private boolean mandatory = false;
+
+      Builder(String name, String schemaName, String tableName,
+          String columnName, String cubeColumn, int cubeOrdinal) {
+        this.name = name;
+        this.schemaName = schemaName;
+        this.tableName = tableName;
+        this.columnName = columnName;
+        this.cubeColumn = cubeColumn;
+        this.cubeOrdinal = cubeOrdinal;
+      }
+
+      public Builder setChildrenDimensions(List<Dimension> childrenDimensions) {
+        this.childrenDimensions = childrenDimensions;
+        return this;
+      }
+
+      public Builder setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
+        return this;
+      }
+
+      public Builder setParentId(String parentId) {
+        this.parentId = parentId;
+        return this;
+      }
+
+      public Builder setParentDimension(Dimension parentDimension) {
+        this.parentDimension = parentDimension;
+        return this;
+      }
+
+      public Dimension build() {
+        return new Dimension(name, schemaName, tableName, columnName, cubeColumn,
+            cubeOrdinal, parentId, parentDimension, childrenDimensions, mandatory);
+      }
     }
   }
 
@@ -326,7 +382,7 @@ public class QuarkCube {
     }
     final QuarkCube.Dimension element = new QuarkCube.Dimension(dimension.name,
         dimension.qualifiedCol, dimension.cubeColumn, dimension.cubeOrdinal, dimension
-        .parentId, parentDimension, dimension.childrenDimensions);
+        .parentId, parentDimension, dimension.childrenDimensions, false);
 
     idToDimensionMap.put(dimension.name, element);
     // Add element as a child of it's parent jsonDimension.
@@ -364,7 +420,7 @@ public class QuarkCube {
 
     final Set<Set<Dimension>> dimensionSets;
     if (groups == null || groups.isEmpty()) {
-      dimensionSets = getDimensionSets();
+      dimensionSets = getDimensionSets(dimensions);
     } else {
       dimensionSets = ImmutableSet.<Set<Dimension>>builder()
           .addAll(groups) //Add all possible groups
@@ -393,30 +449,38 @@ public class QuarkCube {
     return latticeBuilder.build();
   }
 
-  private Set<Set<Dimension>> getDimensionSets() {
+  public static Set<Set<Dimension>> getDimensionSets(ImmutableSet<Dimension> dimensions) {
     Set<Set<Dimension>> result = Sets.newHashSet();
     result.add(new HashSet<Dimension>());
-    for (Dimension d : this.dimensions) {
+    for (Dimension d : dimensions) {
       // traverse only the top level dimension i.e., with no parents
       if (d.parentDimension == null) {
-        result = cartesian(ImmutableList.of(result, getHierarichalSet(d)));
+        result = cartesian(ImmutableList.of(result,
+            getHierarichalSet(d, new AtomicBoolean(false))));
       }
     }
     return result;
   }
 
-  private Set<Set<Dimension>> getHierarichalSet(Dimension d) {
+  private static Set<Set<Dimension>> getHierarichalSet(Dimension d,
+      AtomicBoolean isChildMandatory) {
+    if (d.isMandatory()) {
+      isChildMandatory.set(true);
+    }
     final Set<Dimension> dSet = Sets.newHashSet(d);
     if (d.getChildrenDimensions().isEmpty()) {
-      return Sets.newHashSet(dSet, Sets.<Dimension>newHashSet());
+      return (d.isMandatory()) ? Sets.<Set<Dimension>>newHashSet(dSet)
+          : Sets.newHashSet(dSet, Sets.<Dimension>newHashSet());
     } else {
       ImmutableList.Builder<Set<Set<Dimension>>> cartesianList = ImmutableList.builder();
       cartesianList.add((Set) Sets.<Set<Dimension>>newHashSet(dSet));
       for (Dimension child : d.getChildrenDimensions()) {
-        cartesianList.add(getHierarichalSet(child));
+        cartesianList.add(getHierarichalSet(child, isChildMandatory));
       }
       Set<Set<Dimension>> result = cartesian(cartesianList.build());
-      result.add(Sets.newHashSet(new HashSet<Dimension>()));
+      if (!isChildMandatory.get()) {
+        result.add(Sets.newHashSet(new HashSet<Dimension>()));
+      }
       return result;
     }
   }
