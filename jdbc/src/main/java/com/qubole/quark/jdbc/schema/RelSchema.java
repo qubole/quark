@@ -104,8 +104,12 @@ public class RelSchema extends MetadataSchema {
                          @JsonProperty("column") String columnName,
                          @JsonProperty("cubeColumn") String cubeColumnName,
                          @JsonProperty("dimensionOrder") int dimensionOrder,
-                         @JsonProperty("parent") String parent) {
-      super(name, schemaName, tableName, columnName, cubeColumnName, dimensionOrder, parent);
+                         @JsonProperty("parent") String parent,
+                         @JsonProperty("mandatory") Boolean mandatory) {
+      super(name, schemaName, tableName, columnName,
+          cubeColumnName, dimensionOrder, parent, null,
+          new ArrayList<QuarkCube.Dimension>(),
+          (mandatory == null) ? false : mandatory);
     }
   }
 
