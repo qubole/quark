@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
 import com.qubole.quark.planner.QuarkCube;
+import com.qubole.quark.planner.QuarkCube.Dimension;
 import com.qubole.quark.planner.MetadataSchema;
 import com.qubole.quark.planner.QuarkSchema;
 import com.qubole.quark.planner.Parser;
@@ -53,16 +54,18 @@ public class LatticeTest {
 
 
       final ImmutableList<QuarkCube.Dimension> dimensions = new ImmutableList.Builder<QuarkCube.Dimension>()
-          .add(new QuarkCube.Dimension(ImmutableList.of("I", "I_ITEM_ID"), "I_ITEM_ID", 0))
-          .add(new QuarkCube.Dimension(ImmutableList.of("CD", "CD_GENDER"), "CD_GENDER", 5))
-          .add(new QuarkCube.Dimension(ImmutableList.of("CD", "CD_MARITAL_STATUS"),
-              "CD_MARITAL_STATUS", 6))
-          .add(new QuarkCube.Dimension(ImmutableList.of("CD", "CD_EDUCATION_STATUS"),
-              "CD_EDUCATION_STATUS", 7))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_YEAR"), "D_YEAR", 1))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_QOY"), "D_QOY", 2))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_MOY"), "D_MOY", 3))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_DATE"), "D_DATE", 4))
+          .add(Dimension.builder("I_ITEM_ID", "", "I", "I_ITEM_ID" ,
+              "I_ITEM_ID", 0).build())
+          .add(Dimension.builder("CD_GENDER", "", "CD", "CD_GENDER" ,
+              "CD_GENDER", 5).build())
+          .add(Dimension.builder("CD_MARITAL_STATUS", "", "CD", "CD_MARITAL_STATUS" ,
+              "CD_MARITAL_STATUS", 6).build())
+          .add(Dimension.builder("CD_EDUCATION_STATUS", "", "CD", "CD_EDUCATION_STATUS" ,
+              "CD_EDUCATION_STATUS", 7).build())
+          .add(Dimension.builder("D_YEAR", "", "DD", "D_YEAR" , "D_YEAR", 1).build())
+          .add(Dimension.builder("D_QOY", "", "DD", "D_QOY" , "D_QOY", 2).build())
+          .add(Dimension.builder("D_MOY", "", "DD", "D_MOY" , "D_MOY", 3).build())
+          .add(Dimension.builder("D_DATE", "", "DD", "D_DATE" , "D_DATE", 4).build())
           .build();
 
       final QuarkCube count_fact = new QuarkCube("web_returns_cube",
@@ -85,18 +88,20 @@ public class LatticeTest {
           .build();
 
       final ImmutableList<QuarkCube.Dimension> dimensions = new ImmutableList.Builder<QuarkCube.Dimension>()
-          .add(new QuarkCube.Dimension(ImmutableList.of("I", "I_ITEM_ID"), "I_ITEM_ID", 0))
-          .add(new QuarkCube.Dimension(ImmutableList.of("C", "C_CUSTOMER_ID"), "C_CUSTOMER_ID", 1))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_YEAR"), "D_YEAR", 2))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_QOY"), "D_QOY", 3))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_MOY"), "D_MOY", 4))
-          .add(new QuarkCube.Dimension(ImmutableList.of("DD", "D_DATE"), "D_DATE", 5))
-
-          .add(new QuarkCube.Dimension(ImmutableList.of("CD", "CD_GENDER"), "CD_GENDER", 6))
-          .add(new QuarkCube.Dimension(ImmutableList.of("CD", "CD_MARITAL_STATUS"),
-              "CD_MARITAL_STATUS", 7))
-          .add(new QuarkCube.Dimension(ImmutableList.of("CD", "CD_EDUCATION_STATUS"),
-              "CD_EDUCATION_STATUS", 8))
+          .add(Dimension.builder("I_ITEM_ID", "", "I", "I_ITEM_ID" ,
+              "I_ITEM_ID", 0).build())
+          .add(Dimension.builder("C_CUSTOMER_ID", "", "C", "C_CUSTOMER_ID" ,
+              "C_CUSTOMER_ID", 1).build())
+          .add(Dimension.builder("D_YEAR", "", "DD", "D_YEAR" , "D_YEAR", 2).build())
+          .add(Dimension.builder("D_QOY", "", "DD", "D_QOY" , "D_QOY", 3).build())
+          .add(Dimension.builder("D_MOY", "", "DD", "D_MOY" , "D_MOY", 4).build())
+          .add(Dimension.builder("D_DATE", "", "DD", "D_DATE" , "D_DATE", 5).build())
+          .add(Dimension.builder("CD_GENDER",  "", "CD", "CD_GENDER" ,
+              "CD_GENDER", 6).build())
+          .add(Dimension.builder("CD_MARITAL_STATUS", "", "CD", "CD_MARITAL_STATUS" ,
+              "CD_MARITAL_STATUS", 7).build())
+          .add(Dimension.builder("CD_EDUCATION_STATUS", "", "CD", "CD_EDUCATION_STATUS" ,
+              "CD_EDUCATION_STATUS", 8).build())
           .build();
 
       final QuarkCube count_fact = new QuarkCube("store_sales_cube",
@@ -118,8 +123,8 @@ public class LatticeTest {
 
 
       final ImmutableList<QuarkCube.Dimension> dimensions = new ImmutableList.Builder<QuarkCube.Dimension>()
-          .add(new QuarkCube.Dimension(ImmutableList.of("T", "THE_YEAR"), "THE_YEAR", 0))
-          .add(new QuarkCube.Dimension(ImmutableList.of("T", "QUARTER"), "QUARTER", 1))
+          .add(QuarkCube.Dimension.builder("THE_YEAR", "", "T", "THE_YEAR" , "THE_YEAR", 0).build())
+          .add(QuarkCube.Dimension.builder("QUARTER", "", "T", "QUARTER" , "QUARTER", 1).build())
           .build();
 
       final QuarkCube count_fact = new QuarkCube("count_fact",
