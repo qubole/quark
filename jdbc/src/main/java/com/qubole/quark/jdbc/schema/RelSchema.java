@@ -54,8 +54,16 @@ public class RelSchema extends MetadataSchema {
   public RelSchema(@JsonProperty("views") List<JsonView> views,
                    @JsonProperty("cubes") List<JsonCube> cubes) {
     super();
-    this.views = new ArrayList<QuarkView>(views);
-    this.cubes = new ArrayList<QuarkCube>(cubes);
+    this.views = ImmutableList.of();
+    this.cubes = ImmutableList.of();
+
+    if (views != null) {
+      this.views = new ArrayList<QuarkView>(views);
+    }
+
+    if (cubes != null) {
+      this.cubes = new ArrayList<QuarkCube>(cubes);
+    }
   }
 
   @Override
@@ -85,7 +93,7 @@ public class RelSchema extends MetadataSchema {
                     ) {
       super(name, query, new ArrayList<Measure>(jsonMeasures),
           ImmutableList.<Dimension>copyOf(jsonDimensions),
-          ImmutableList.<Group>copyOf(jsonGroups),
+          jsonGroups == null ? ImmutableList.<Group>of() : ImmutableList.<Group>copyOf(jsonGroups),
           ImmutableList.of(destination, schemaName, tableName),
           groupingColumn,
           ImmutableList.of(schemaName, tableName));

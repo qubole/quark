@@ -101,14 +101,14 @@ Occurs in `root.relSchema`. Similar to materialized views in databases.
     {
         name: 'warehouse_big`
         query: 'select * from hive.tpcds.warehouse as wr where wr.w_warehouse_sq_ft > 100'
-        destination: 'VIEWS'
+        dataSource: 'VIEWS'
         schema: 'PUBLIC'
         table: 'WAREHOUSE_PARTITION'
     }
     
 `name` Name of the view.  
 `query` Query that describes the materialized view.  
-`destination` Data source where the materialized view is stored.  
+`dataSource` Data source where the materialized view is stored.  
 `schema` Schema of the table where the materialized view is stored.
 `table`  Name of the table where the materialized view is stored.
     
@@ -150,11 +150,11 @@ Occurs in `root.relSchema.cubes`.
         parent: null,
     }
 
-`schema_name` Schema of the source table.  
-`table_name`  Table name or alias of the source table.  
-`column_name` Column name in the source table.  
-`cube_column_name` Column in the cube table.  
-`dimension_order` Ordinal number in the dimension list.  
+`schema` Schema of the source table.  
+`table`  Table name or alias of the source table.  
+`column` Column name in the source table.  
+`cubeColumn` Column in the cube table.  
+`dimensionOrder` Ordinal number in the dimension list.  
 `name` A descriptive name for the dimension. It should be unique. The name is used to identify 
 parents and children in a dimension hierarchy.    
 `parent` Cube Column Name of the parent dimension if its part of a hierarchy.  

@@ -49,3 +49,24 @@ insert into web_returns_cube(
     web_page_count
 ) values (
 1, 2015, 1, 1, '2015-01-01', 'M', 'M', 'graduate', '2', 100, 100, 50, 100, 2);
+
+create table store_returns_computed
+(
+    sr_customer_sk  integer,
+    sr_store_sk     integer,
+
+    d_date          date,
+    d_year          integer,
+    d_moy           integer,
+    d_qoy           integer,
+
+    i_item_id       char(16),
+
+    s_store_id      char(16),
+    s_store_name    varchar(50),
+
+    c_customer_id   char(16),
+    grouping__id            varchar(50),
+    total_net_loss  double,
+    total_return_amt    double
+);
