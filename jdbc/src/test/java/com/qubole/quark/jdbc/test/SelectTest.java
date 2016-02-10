@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Created by rajatv on 10/29/15.
  */
 public class SelectTest {
-  private static final Logger log = LoggerFactory.getLogger(MetaDataTest.class);
+  private static final Logger log = LoggerFactory.getLogger(SelectTest.class);
 
   private static final String h2Url = "jdbc:h2:mem:SelectTest;DB_CLOSE_DELAY=-1";
   private static Connection h2Connection;

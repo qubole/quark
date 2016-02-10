@@ -18,12 +18,16 @@ package com.qubole.quark.jdbc.schema;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 /**
  * Describes the root element in the JSON template.
  */
 public class RootSchema {
+  private static final Logger LOG = LoggerFactory.getLogger(RootSchema.class);
   public final List<DataSourceSchema> dataSources;
   public final RelSchema relSchema;
 
