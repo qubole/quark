@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.jdbc.schema;
+package com.qubole.quark.catalog.json;
 
 import org.apache.calcite.DataContext;
 import org.apache.calcite.linq4j.tree.Expression;

@@ -13,14 +13,13 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.jdbc.schema;
+package com.qubole.quark.catalog.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.QuarkException;
-
 import com.qubole.quark.planner.DataSourceSchema;
 import com.qubole.quark.planner.QuarkFactory;
 import com.qubole.quark.planner.QuarkFactoryResult;
@@ -69,7 +68,7 @@ public class SchemaFactory implements QuarkFactory {
 
       ImmutableList.Builder<DataSourceSchema> schemaList = new ImmutableList.Builder<>();
 
-      for (com.qubole.quark.jdbc.schema.DataSourceSchema secondary : rootSchema.dataSources) {
+      for (com.qubole.quark.catalog.json.DataSourceSchema secondary : rootSchema.dataSources) {
         schemaList.add(secondary);
       }
 
