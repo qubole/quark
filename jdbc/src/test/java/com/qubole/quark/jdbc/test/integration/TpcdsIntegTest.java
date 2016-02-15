@@ -79,13 +79,14 @@ public class TpcdsIntegTest extends IntegTest {
     String query = "select sum(wr_net_loss), dd.d_year "
         + "from canonical.public.web_returns as w "
         + "join canonical.public.date_dim as dd on w.wr_returned_date_sk = dd.d_date_sk "
-        + "group by dd.d_year";
+        + "where dd.d_moy > 6 group by dd.d_year";
+        //+ "group by dd.d_year";
 
     ResultSet rs1 = conn.createStatement().executeQuery(query);
 
     String parsedQuery = "SELECT SUM(\"TOTAL_NET_LOSS\"), \"D_YEAR\" " +
         "FROM \"PUBLIC\".\"WEB_RETURNS_CUBE\" " +
-        "WHERE \"GROUPING__ID\" = '2' " +
+        "WHERE \"D_MOY\" > 6 AND \"GROUPING__ID\" = '2' " +
         "GROUP BY \"D_YEAR\"";
 
     ResultSet rs2 = executeQuery(cubeUrl, parsedQuery);

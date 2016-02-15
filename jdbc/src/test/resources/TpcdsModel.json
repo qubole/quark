@@ -63,7 +63,7 @@
     "cubes": [
       {
         "name": "web_returns_cubes",
-        "query": "select 1 from canonical.public.web_returns as w join canonical.public.item as i on w.wr_item_sk = i.i_item_sk join canonical.public.customer as c on w.wr_refunded_cdemo_sk = c.c_customer_sk join canonical.public.date_dim as dd on w.wr_returned_date_sk = dd.d_date_sk join canonical.public.customer_demographics cd on c.c_current_cdemo_sk = cd.cd_demo_sk",
+        "query": "select 1 from canonical.public.web_returns as w join canonical.public.item as i on w.wr_item_sk = i.i_item_sk join canonical.public.customer as c on w.wr_refunded_cdemo_sk = c.c_customer_sk join canonical.public.date_dim as dd on w.wr_returned_date_sk = dd.d_date_sk join canonical.public.customer_demographics cd on c.c_current_cdemo_sk = cd.cd_demo_sk where dd.d_moy > 2",
         "dataSource": "CUBES",
         "schema": "PUBLIC",
         "table": "WEB_RETURNS_CUBE",

@@ -17,10 +17,12 @@ package com.qubole.quark.planner;
 
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.materialize.Lattice;
+import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.runtime.Utilities;
 import org.apache.calcite.util.ImmutableBitSet;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -381,8 +383,8 @@ public class QuarkCube {
       parentDimension = idToDimensionMap.get(dimension.parentId);
     }
     final QuarkCube.Dimension element = new QuarkCube.Dimension(dimension.name,
-        dimension.qualifiedCol, dimension.cubeColumn, dimension.cubeOrdinal, dimension
-        .parentId, parentDimension, dimension.childrenDimensions, false);
+        dimension.qualifiedCol, dimension.cubeColumn, dimension.cubeOrdinal,
+        dimension.parentId, parentDimension, dimension.childrenDimensions, dimension.mandatory);
 
     idToDimensionMap.put(dimension.name, element);
     // Add element as a child of it's parent jsonDimension.
@@ -408,6 +410,11 @@ public class QuarkCube {
             .auto(false)
             .algorithm(false);
 
+    final ImmutableBiMap<Integer, Integer> dimensionToCubeColumn =
+        getDimensionToCubeColumnMap(quarkTable, latticeBuilder);
+
+    validateCubeLatticeFilter(latticeBuilder, dimensionToCubeColumn);
+
     List<Lattice.Measure> measures = new ArrayList<>();
     for (QuarkCube.Measure nzMeasure : this.measures) {
       final Lattice.Measure measure =
@@ -416,7 +423,6 @@ public class QuarkCube {
           quarkTable.getFieldOrdinal(nzMeasure.cubeColumn));
       measures.add(quarkMeasure);
     }
-
 
     final Set<Set<Dimension>> dimensionSets;
     if (groups == null || groups.isEmpty()) {
@@ -444,9 +450,31 @@ public class QuarkCube {
 
       latticeBuilder.addTile(new QuarkTile(measures, columns, cubeColumns,
           quarkTable.getFieldOrdinal(this.groupingColumn), bitSetBuilder.build(),
-          this.tableName, this.alias));
+          this.tableName, this.alias, dimensionToCubeColumn));
     }
     return latticeBuilder.build();
+  }
+
+  private void validateCubeLatticeFilter(Lattice.Builder latticeBuilder,
+      ImmutableBiMap<Integer, Integer> dimensionToCubeColumn) {
+    if (latticeBuilder.filter != null) {
+      ImmutableBitSet rCols = RelOptUtil.InputFinder.bits(latticeBuilder.filter);
+      ImmutableBitSet dims = ImmutableBitSet.of(dimensionToCubeColumn.keySet());
+      if (!dims.contains(rCols)) {
+        throw new RuntimeException("Cube filter is only allowed on dimensions");
+      }
+    }
+  }
+
+  private ImmutableBiMap<Integer, Integer> getDimensionToCubeColumnMap(QuarkTable quarkTable,
+      Lattice.Builder latticeBuilder) {
+    ImmutableBiMap.Builder<Integer, Integer> builder =  ImmutableBiMap.builder();
+    for (Dimension dimension : dimensions) {
+      final Lattice.Column column = latticeBuilder.resolveColumn(dimension.qualifiedCol);
+      builder.put(column.ordinal,
+          quarkTable.getFieldOrdinal(dimension.cubeColumn));
+    }
+    return builder.build();
   }
 
   public static Set<Set<Dimension>> getDimensionSets(ImmutableSet<Dimension> dimensions) {
@@ -461,6 +489,8 @@ public class QuarkCube {
     }
     return result;
   }
+
+
 
   private static Set<Set<Dimension>> getHierarichalSet(Dimension d,
       AtomicBoolean isChildMandatory) {
