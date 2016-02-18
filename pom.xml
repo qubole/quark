@@ -20,7 +20,7 @@
 
     <groupId>com.qubole</groupId>
     <artifactId>quark-parent</artifactId>
-    <version>4.2.0</version>
+    <version>4.2.1-SNAPSHOT</version>
     <name>Quark</name>
 
     <description>
