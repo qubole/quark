@@ -19,19 +19,11 @@ package com.qubole.quark.planner;
  * Represents a column in a table.
  */
 public class QuarkColumn {
-  private String name;
-  private String type;
+  public final String name;
+  public final int  type;
 
-  public QuarkColumn(String name, String type) {
+  public QuarkColumn(String name, int type) {
     this.name = name.toUpperCase();
     this.type = type;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getType() {
-    return type;
   }
 }

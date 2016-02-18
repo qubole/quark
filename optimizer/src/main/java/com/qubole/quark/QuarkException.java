@@ -19,6 +19,10 @@ package com.qubole.quark;
  * Catch all Exception thrown by code in quark-calcite.
  */
 public class QuarkException extends Exception {
+  public QuarkException(String message) {
+    super(message);
+  }
+
   public QuarkException(Throwable cause) {
     super(cause);
   }

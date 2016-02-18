@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,14 +56,14 @@ public class SchemaTest {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
       QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("I", "int"));
+        add(new QuarkColumn("I", Types.INTEGER));
       }});
       builder.put("SIMPLE", simple);
 
       QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("I", "int"));
-        add(new QuarkColumn("J", "int"));
-        add(new QuarkColumn("K", "string"));
+        add(new QuarkColumn("I", Types.INTEGER));
+        add(new QuarkColumn("J", Types.INTEGER));
+        add(new QuarkColumn("K", Types.VARCHAR));
       }});
       builder.put("MANY_COLUMNS", many_columns);
 
@@ -95,72 +96,72 @@ public class SchemaTest {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
       QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("N_NATIONKEY", "int"));
-        add(new QuarkColumn("N_NAME", "string"));
-        add(new QuarkColumn("N_REGIONKEY", "int"));
-        add(new QuarkColumn("N_COMMENT", "string"));
+        add(new QuarkColumn("N_NATIONKEY", Types.INTEGER));
+        add(new QuarkColumn("N_NAME", Types.VARCHAR));
+        add(new QuarkColumn("N_REGIONKEY", Types.INTEGER));
+        add(new QuarkColumn("N_COMMENT", Types.VARCHAR));
       }});
       builder.put("NATION", simple);
 
       QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("R_REGIONKEY", "int"));
-        add(new QuarkColumn("R_NAME", "string"));
-        add(new QuarkColumn("R_COMMENT", "string"));
+        add(new QuarkColumn("R_REGIONKEY", Types.INTEGER));
+        add(new QuarkColumn("R_NAME", Types.VARCHAR));
+        add(new QuarkColumn("R_COMMENT", Types.VARCHAR));
       }});
       builder.put("REGION", many_columns);
 
       QuarkTable part = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("P_PARTKEY", "int"));
-        add(new QuarkColumn("P_NAME", "string"));
-        add(new QuarkColumn("P_MFGR", "string"));
-        add(new QuarkColumn("P_BRAND", "string"));
-        add(new QuarkColumn("P_TYPE", "string"));
-        add(new QuarkColumn("P_SIZE", "int"));
-        add(new QuarkColumn("P_CONTAINER", "string"));
-        add(new QuarkColumn("P_RETAILPRICE", "double"));
-        add(new QuarkColumn("P_COMMENT", "string"));
+        add(new QuarkColumn("P_PARTKEY", Types.INTEGER));
+        add(new QuarkColumn("P_NAME", Types.VARCHAR));
+        add(new QuarkColumn("P_MFGR", Types.VARCHAR));
+        add(new QuarkColumn("P_BRAND", Types.VARCHAR));
+        add(new QuarkColumn("P_TYPE", Types.VARCHAR));
+        add(new QuarkColumn("P_SIZE", Types.INTEGER));
+        add(new QuarkColumn("P_CONTAINER", Types.VARCHAR));
+        add(new QuarkColumn("P_RETAILPRICE", Types.DOUBLE));
+        add(new QuarkColumn("P_COMMENT", Types.VARCHAR));
       }});
       builder.put("PART", part);
 
       QuarkTable part_comp1 = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("P_PARTKEY", "int"));
-        add(new QuarkColumn("P_NAME", "string"));
-        add(new QuarkColumn("P_MFGR", "string"));
-        add(new QuarkColumn("P_BRAND", "string"));
-        add(new QuarkColumn("P_TYPE", "string"));
-        add(new QuarkColumn("P_SIZE", "int"));
-        add(new QuarkColumn("P_CONTAINER", "string"));
-        add(new QuarkColumn("P_RETAILPRICE", "double"));
-        add(new QuarkColumn("P_COMMENT", "string"));
+        add(new QuarkColumn("P_PARTKEY", Types.INTEGER));
+        add(new QuarkColumn("P_NAME", Types.VARCHAR));
+        add(new QuarkColumn("P_MFGR", Types.VARCHAR));
+        add(new QuarkColumn("P_BRAND", Types.VARCHAR));
+        add(new QuarkColumn("P_TYPE", Types.VARCHAR));
+        add(new QuarkColumn("P_SIZE", Types.INTEGER));
+        add(new QuarkColumn("P_CONTAINER", Types.VARCHAR));
+        add(new QuarkColumn("P_RETAILPRICE", Types.DOUBLE));
+        add(new QuarkColumn("P_COMMENT", Types.VARCHAR));
       }});
       builder.put("PART_COMP1", part_comp1);
 
       QuarkTable part_100 = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("P_PARTKEY", "int"));
-        add(new QuarkColumn("P_NAME", "string"));
-        add(new QuarkColumn("P_MFGR", "string"));
-        add(new QuarkColumn("P_BRAND", "string"));
-        add(new QuarkColumn("P_TYPE", "string"));
-        add(new QuarkColumn("P_SIZE", "int"));
-        add(new QuarkColumn("P_CONTAINER", "string"));
-        add(new QuarkColumn("P_RETAILPRICE", "double"));
-        add(new QuarkColumn("P_COMMENT", "string"));
+        add(new QuarkColumn("P_PARTKEY", Types.INTEGER));
+        add(new QuarkColumn("P_NAME", Types.VARCHAR));
+        add(new QuarkColumn("P_MFGR", Types.VARCHAR));
+        add(new QuarkColumn("P_BRAND", Types.VARCHAR));
+        add(new QuarkColumn("P_TYPE", Types.VARCHAR));
+        add(new QuarkColumn("P_SIZE", Types.INTEGER));
+        add(new QuarkColumn("P_CONTAINER", Types.VARCHAR));
+        add(new QuarkColumn("P_RETAILPRICE", Types.DOUBLE));
+        add(new QuarkColumn("P_COMMENT", Types.VARCHAR));
       }});
       builder.put("PART_100", part_100);
 
       QuarkTable sales = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("P_SALESID", "int"));
-        add(new QuarkColumn("P_PRODUCTKEY", "int"));
-        add(new QuarkColumn("P_SALEDATE", "date"));
-        add(new QuarkColumn("P_NATION", "string"));
+        add(new QuarkColumn("P_SALESID", Types.INTEGER));
+        add(new QuarkColumn("P_PRODUCTKEY", Types.INTEGER));
+        add(new QuarkColumn("P_SALEDATE", Types.DATE));
+        add(new QuarkColumn("P_NATION", Types.VARCHAR));
       }});
       builder.put("SALES", sales);
 
       QuarkTable sales_greater0610215 = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("P_SALESID", "int"));
-        add(new QuarkColumn("P_PRODUCTKEY", "int"));
-        add(new QuarkColumn("P_SALEDATE", "date"));
-        add(new QuarkColumn("P_NATION", "string"));
+        add(new QuarkColumn("P_SALESID", Types.INTEGER));
+        add(new QuarkColumn("P_PRODUCTKEY", Types.INTEGER));
+        add(new QuarkColumn("P_SALEDATE", Types.DATE));
+        add(new QuarkColumn("P_NATION", Types.VARCHAR));
       }});
       builder.put("SALES_greater0610215", sales_greater0610215);
 

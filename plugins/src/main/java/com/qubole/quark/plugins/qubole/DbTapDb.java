@@ -30,9 +30,7 @@ import com.qubole.qds.sdk.java.entities.SchemaList;
 import com.qubole.qds.sdk.java.entities.SchemaListDescribed;
 import com.qubole.qds.sdk.java.entities.SchemaOrdinal;
 
-import com.qubole.quark.plugins.jdbc.MysqlDb;
-import com.qubole.quark.plugins.jdbc.RedShiftDb;
-
+import java.sql.Types;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +44,12 @@ public class DbTapDb extends QuboleDB {
   protected int dbTapid;
   private String productName = null;
   private String defaultSchema = null;
+  private static final ImmutableMap<String, Integer> REDSHIFT_TYPES =
+      new ImmutableMap.Builder<String, Integer>()
+          .put("character varying\\([0-9]+\\)", Types.VARCHAR)
+          .put("timestamp without time zone", Types.TIMESTAMP)
+          .put("double precision", Types.DOUBLE)
+          .put("character\\([0-9]+\\)", Types.FLOAT).build();
 
   public DbTapDb(Map<String, Object> properties) {
     super(properties);
@@ -75,14 +79,11 @@ public class DbTapDb extends QuboleDB {
   }
 
   @Override
-  protected ImmutableMap<String, String> getDataTypes() {
+  protected ImmutableMap<String, Integer> getDataTypes() {
     String type = this.getProductName();
     switch (type.toUpperCase()) {
       case "REDSHIFT":
-        return  RedShiftDb.DATATYPES;
-      case "SQLSERVER":
-      case "MYSQL":
-        return MysqlDb.DATATYPES;
+        return REDSHIFT_TYPES;
       default:
         return ImmutableMap.of();
     }

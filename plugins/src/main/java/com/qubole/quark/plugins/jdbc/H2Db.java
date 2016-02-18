@@ -29,7 +29,7 @@ import java.util.Properties;
  * Support H2 database as a {@link com.qubole.quark.plugin.DataSource}
  */
 public class H2Db extends JdbcDB {
-  private final String catalogSql = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE "
+  private final String catalogSql = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, TYPE_NAME "
       + "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA != 'INFORMATION_SCHEMA' "
       + "ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION";
 
@@ -78,11 +78,6 @@ public class H2Db extends JdbcDB {
   @Override
   public String getProductName() {
     return productName;
-  }
-
-  @Override
-  public ImmutableMap<String, String> getDataTypes() {
-    return DATA_TYPES;
   }
 
   @Override

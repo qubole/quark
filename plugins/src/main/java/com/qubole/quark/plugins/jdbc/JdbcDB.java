@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -52,7 +53,6 @@ public abstract class JdbcDB implements Executor {
 
   public abstract Connection getConnection() throws ClassNotFoundException, SQLException;
   protected abstract String getCatalogSql();
-  protected abstract ImmutableMap<String, String> getDataTypes();
 
   protected final String url;
   protected final String user;
@@ -81,7 +81,7 @@ public abstract class JdbcDB implements Executor {
       conn = this.getConnection();
       stmt = conn.createStatement();
       ResultSet rs = stmt.executeQuery(this.getCatalogSql());
-      ImmutableMap<String, Schema> schemaMap = getSchemaFromResultSet(rs);
+      ImmutableMap<String, Schema> schemaMap = getSchemaFromResultSet(rs, this.getTypes(conn));
       rs.close();
       return schemaMap;
     } catch (ClassNotFoundException | SQLException s) {
@@ -102,16 +102,29 @@ public abstract class JdbcDB implements Executor {
     }
   }
 
+  protected ImmutableMap<String, Integer> getTypes(Connection connection) throws SQLException {
+    DatabaseMetaData databaseMetaData = connection.getMetaData();
+    ResultSet rs = databaseMetaData.getTypeInfo();
+    ImmutableMap.Builder<String, Integer> builder = new ImmutableMap.Builder<>();
+    while (rs.next()) {
+      LOG.debug("Registering data type '" + rs.getString("TYPE_NAME") + "'");
+      builder.put(rs.getString("TYPE_NAME").toUpperCase(), rs.getInt("DATA_TYPE"));
+    }
+
+    return builder.build();
+  }
+
   //Assuming rs.getString(1) => schemaname, rs.getString(2) => tableName,
   // rs.getString(3) => columnName, rs.getString(4) => columnType
-  private ImmutableMap<String, Schema> getSchemaFromResultSet(ResultSet rs)
+  private ImmutableMap<String, Schema> getSchemaFromResultSet(ResultSet rs,
+                                                              ImmutableMap<String, Integer>
+                                                                  dataTypes)
       throws SQLException {
     if (rs == null || !rs.next()) {
       return ImmutableMap.of();
     }
     ImmutableMap.Builder<String, Schema> schemaBuilder = new ImmutableMap.Builder<>();
 
-    ImmutableMap<String, String> dataTypes = this.getDataTypes();
     while (!rs.isAfterLast()) {
       String currentSchema = rs.getString(1);
       ImmutableMap.Builder<String, Table> tableBuilder = new ImmutableMap.Builder<>();
@@ -120,16 +133,19 @@ public abstract class JdbcDB implements Executor {
             new ImmutableList.Builder<>();
         String currentTable = rs.getString(2);
         while (rs.getString(2).equals(currentTable)) {
-          String dataType = rs.getString(4);
+          String columnName = rs.getString(3);
+          if (!this.isCaseSensitive()) {
+            columnName = columnName.toUpperCase();
+          }
+          Integer dataType = null;
           for (String key: dataTypes.keySet()) {
-            if (rs.getString(4).matches(key)) {
+            if (rs.getString(4).toUpperCase().matches(key)) {
               dataType = dataTypes.get(key);
               break;
             }
           }
-          String columnName = rs.getString(3);
-          if (!this.isCaseSensitive()) {
-            columnName = columnName.toUpperCase();
+          if (dataType == null) {
+            throw new SQLException("DataType `" + rs.getString(4) + "` is not supported");
           }
           columnBuilder.add(new QuarkColumn(columnName, dataType));
           LOG.debug("Adding column:  " + rs.getString(1) + " : " + rs.getString(2)
