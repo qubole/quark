@@ -12,30 +12,29 @@
  * See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-
-package com.qubole.quark.jdbc.schema;
+package com.qubole.quark.catalog.db;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-
 /**
- * Describes the root element in the JSON template.
+ * Stores the credentials of database provided in the JSON template.
  */
-public class RootSchema {
-  private static final Logger LOG = LoggerFactory.getLogger(RootSchema.class);
-  public final List<DataSourceSchema> dataSources;
-  public final RelSchema relSchema;
+public class DbCredentials {
+  public final String url;
+  public final String username;
+  public final String password;
+  public final String encryptionKey;
 
   @JsonCreator
-  public RootSchema(@JsonProperty("version") String version,
-                    @JsonProperty("dataSources") List<DataSourceSchema> dataSources,
-                    @JsonProperty("relSchema") RelSchema relSchema) {
-    this.dataSources = dataSources;
-    this.relSchema = relSchema;
+  public DbCredentials(@JsonProperty("url") String url,
+                       @JsonProperty("username") String username,
+                       @JsonProperty("password") String password,
+                       @JsonProperty("encrypt_key") String encrpytionKey) {
+    this.url = url;
+    this.username = username;
+    this.password = password;
+    this.encryptionKey = encrpytionKey;
   }
 }
+

@@ -353,6 +353,7 @@
         <module>optimizer</module>
         <module>plugins</module>
         <module>jdbc</module>
+        <module>catalog</module>
     </modules>
 
 </project>

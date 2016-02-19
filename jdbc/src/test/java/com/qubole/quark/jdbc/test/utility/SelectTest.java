@@ -13,11 +13,9 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.jdbc.test;
-
+package com.qubole.quark.jdbc.test.utility;
 
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -35,35 +33,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by rajatv on 10/29/15.
  */
-public class SelectTest {
+public abstract class SelectTest {
   private static final Logger log = LoggerFactory.getLogger(SelectTest.class);
 
-  private static final String h2Url = "jdbc:h2:mem:SelectTest;DB_CLOSE_DELAY=-1";
   private static Connection h2Connection;
-  private static final Properties props;
+  protected static String h2Url = "jdbc:h2:mem:SelectTest;DB_CLOSE_DELAY=-1";
+  protected static Properties props;
 
-  static {
-    props = new Properties();
-    String jsonTestString =
-        "{" +
-            "\"dataSources\":" +
-            " [" +
-            "   {" +
-            "     \"type\":\"H2\"," +
-            "     \"url\":\"" + h2Url + "\"," +
-            "     \"factory\":\"com.qubole.quark.plugins.jdbc.JdbcFactory\"," +
-            "     \"username\":\"sa\"," +
-            "     \"password\":\"\"," +
-            "     \"default\":\"true\"," +
-            "     \"name\":\"H2\"" +
-            "   }" +
-            " ]" +
-            "}";
-    props.put("model", jsonTestString);
-  }
-
-  @BeforeClass
-  public static void setUpClass() throws Exception {
+  public static void setUpClass(String h2Url) throws Exception {
     Class.forName("com.qubole.quark.jdbc.QuarkDriver");
     Class.forName("org.h2.Driver");
 
@@ -88,6 +65,8 @@ public class SelectTest {
   public static void tearDownClass() throws SQLException {
     h2Connection.close();
   }
+
+
 
   @Test
   public void testSimpleSelect() throws SQLException {

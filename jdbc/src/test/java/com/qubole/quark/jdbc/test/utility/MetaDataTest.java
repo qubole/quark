@@ -13,13 +13,13 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.jdbc.test;
+package com.qubole.quark.jdbc.test.utility;
 
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import java.sql.Connection;
 import java.sql.Driver;
@@ -38,35 +38,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by rajatv on 10/28/15.
  */
-public class MetaDataTest {
+public abstract class MetaDataTest {
   private static final Logger log = LoggerFactory.getLogger(MetaDataTest.class);
 
-  private static final String h2Url = "jdbc:h2:mem:MetaDataTest;DB_CLOSE_DELAY=-1";
+  protected static String h2Url;
   private static Connection h2Connection;
-  private static final Properties props;
+  protected static Properties props;
 
-  static {
-    props = new Properties();
-    String jsonTestString =
-        "{" +
-            "\"dataSources\":" +
-            " [" +
-            "   {" +
-            "     \"type\":\"H2\"," +
-            "     \"url\":\"" + h2Url + "\"," +
-            "     \"factory\":\"com.qubole.quark.plugins.jdbc.JdbcFactory\"," +
-            "     \"username\":\"sa\"," +
-            "     \"password\":\"\"," +
-            "     \"default\":\"true\"," +
-            "     \"name\":\"H2\"" +
-            "   }" +
-            " ]" +
-            "}";
-    props.put("model", jsonTestString);
-  }
-
-  @BeforeClass
-  public static void setUpClass() throws Exception {
+  public static void setUpClass(String h2Url) throws Exception {
     Class.forName("com.qubole.quark.jdbc.QuarkDriver");
     Class.forName("org.h2.Driver");
 
@@ -86,6 +65,8 @@ public class MetaDataTest {
   public static void tearDownClass() throws SQLException {
     h2Connection.close();
   }
+
+
 
   @Test
   public void testDriverRegistered() throws SQLException {
