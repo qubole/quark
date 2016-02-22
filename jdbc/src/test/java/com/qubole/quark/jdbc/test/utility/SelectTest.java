@@ -37,19 +37,19 @@ public abstract class SelectTest {
   private static final Logger log = LoggerFactory.getLogger(SelectTest.class);
 
   private static Connection h2Connection;
-  protected static String h2Url = "jdbc:h2:mem:SelectTest;DB_CLOSE_DELAY=-1";
+  protected static String dbUrl = "jdbc:h2:mem:SelectTest;DB_CLOSE_DELAY=-1";
   protected static Properties props;
 
-  public static void setUpClass(String h2Url) throws Exception {
+  public static void setUpClass(String dbUrl) throws Exception {
     Class.forName("com.qubole.quark.jdbc.QuarkDriver");
     Class.forName("org.h2.Driver");
 
     Properties connInfo = new Properties();
-    connInfo.setProperty("url", h2Url);
+    connInfo.setProperty("url", dbUrl);
     connInfo.setProperty("user", "sa");
     connInfo.setProperty("password", "");
 
-    h2Connection = DriverManager.getConnection(h2Url, connInfo);
+    h2Connection = DriverManager.getConnection(dbUrl, connInfo);
 
     Statement stmt = h2Connection.createStatement();
     String sql = "create table simple (i int, j int);"
@@ -69,7 +69,8 @@ public abstract class SelectTest {
 
 
   @Test
-  public void testSimpleSelect() throws SQLException {
+  public void testSimpleSelect() throws SQLException, ClassNotFoundException {
+    Class.forName("com.qubole.quark.jdbc.QuarkDriver");
     Connection connection =
         DriverManager.getConnection("jdbc:quark:", props);
 

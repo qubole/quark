@@ -32,7 +32,7 @@ public class DbSelectTest extends SelectTest {
   private static final String dbSchemaUrl = "jdbc:h2:mem:DbSelectTest;DB_CLOSE_DELAY=-1";
   private static Connection dbConnection;
   static {
-    h2Url = "jdbc:h2:mem:SelectTest2;DB_CLOSE_DELAY=-1";
+    dbUrl = "jdbc:h2:mem:SelectTest2;DB_CLOSE_DELAY=-1";
     props = new Properties();
     String jsonTestString =
             "   {" +
@@ -47,7 +47,7 @@ public class DbSelectTest extends SelectTest {
 
   @BeforeClass
   public static void setUpDb() throws Exception {
-    SelectTest.setUpClass(h2Url);
+    SelectTest.setUpClass(dbUrl);
     Flyway flyway = new Flyway();
     flyway.setDataSource(dbSchemaUrl, "sa", "");
     flyway.migrate();
@@ -55,7 +55,7 @@ public class DbSelectTest extends SelectTest {
     // Encrypting url, username and password before storing in db
     MysqlAES mysqlAES = MysqlAES.getInstance();
     mysqlAES.setKey("easy");
-    String url = mysqlAES.convertToDatabaseColumn(h2Url);
+    String url = mysqlAES.convertToDatabaseColumn(dbUrl);
     String username = mysqlAES.convertToDatabaseColumn("sa");
     String password = mysqlAES.convertToDatabaseColumn("");
 

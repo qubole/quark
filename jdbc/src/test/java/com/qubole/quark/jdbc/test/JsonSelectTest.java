@@ -26,7 +26,7 @@ import java.util.Properties;
 public class JsonSelectTest extends SelectTest {
 
   static {
-    h2Url = "jdbc:h2:mem:SelectTest1;DB_CLOSE_DELAY=-1";
+    dbUrl = "jdbc:h2:mem:SelectTest1;DB_CLOSE_DELAY=-1";
     props = new Properties();
     String jsonTestString =
         "{" +
@@ -34,7 +34,7 @@ public class JsonSelectTest extends SelectTest {
             " [" +
             "   {" +
             "     \"type\":\"H2\"," +
-            "     \"url\":\"" + h2Url + "\"," +
+            "     \"url\":\"" + dbUrl + "\"," +
             "     \"factory\":\"com.qubole.quark.plugins.jdbc.JdbcFactory\"," +
             "     \"username\":\"sa\"," +
             "     \"password\":\"\"," +
@@ -48,6 +48,6 @@ public class JsonSelectTest extends SelectTest {
 
   @BeforeClass
   public static void setUpClass() throws Exception {
-    SelectTest.setUpClass(h2Url);
+    SelectTest.setUpClass(dbUrl);
   }
 }
