@@ -76,11 +76,6 @@ public class OracleDb extends JdbcDB {
   }
 
   @Override
-  protected ImmutableMap<String, String> getDataTypes() {
-    return DATATYPES;
-  }
-
-  @Override
   public String getDefaultSchema() {
     return defaultSchema;
   }

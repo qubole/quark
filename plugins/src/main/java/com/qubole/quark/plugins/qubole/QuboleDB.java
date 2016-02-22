@@ -15,6 +15,7 @@
 
 package com.qubole.quark.plugins.qubole;
 
+import org.apache.calcite.linq4j.tree.Primitive;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Table;
 
@@ -41,6 +42,7 @@ import com.qubole.quark.plugins.SimpleSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,9 +58,29 @@ public abstract class QuboleDB implements Executor {
   private static final Logger LOG = LoggerFactory.getLogger(QuboleDB.class.getName());
   private static final String ROW_DELIMETER = "\r\n";
   private static final String COLUMN_DELIMETER = "\t";
+
+  protected static final ImmutableMap<String, Integer> DATA_TYPES =
+      new ImmutableMap.Builder<String, Integer>()
+          .put("string", Types.VARCHAR)
+          .put("character varying", Types.VARCHAR)
+          .put("character", Types.CHAR)
+          .put("integer", Types.INTEGER)
+          .put("smallint", Types.SMALLINT)
+          .put("bigint", Types.BIGINT)
+          .put("tinyint", Types.TINYINT)
+          .put(Primitive.BYTE.primitiveClass.getSimpleName(), Types.TINYINT)
+          .put(Primitive.CHAR.primitiveClass.getSimpleName(), Types.TINYINT)
+          .put(Primitive.SHORT.primitiveClass.getSimpleName(), Types.SMALLINT)
+          .put(Primitive.INT.primitiveClass.getSimpleName(), Types.INTEGER)
+          .put(Primitive.LONG.primitiveClass.getSimpleName(), Types.BIGINT)
+          .put(Primitive.FLOAT.primitiveClass.getSimpleName(), Types.FLOAT)
+          .put(Primitive.DOUBLE.primitiveClass.getSimpleName(), Types.DOUBLE)
+          .put("date", Types.DATE)
+          .put("time", Types.TIMESTAMP).build();
+
   protected abstract Map<String, List<SchemaOrdinal>>
                         getSchemaListDescribed() throws ExecutionException, InterruptedException;
-  protected abstract ImmutableMap<String, String> getDataTypes();
+  protected abstract ImmutableMap<String, Integer> getDataTypes();
   public abstract boolean isCaseSensitive();
 
   protected String token;
@@ -79,8 +101,19 @@ public abstract class QuboleDB implements Executor {
             + "to be defined for Qubole Data Source in JSON");
   }
 
-  @Override
-  public void cleanup() throws Exception {
+  private Integer getType(String dataType) throws QuarkException {
+    if (DATA_TYPES.containsKey(dataType)) {
+      return DATA_TYPES.get(dataType);
+    } else {
+      ImmutableMap<String, Integer> dataTypes = this.getDataTypes();
+      for (String key : dataTypes.keySet()) {
+        if (dataType.matches(key)) {
+          return dataTypes.get(key);
+        }
+      }
+    }
+
+    throw new QuarkException("Unknown DataType `" + dataType + "`");
   }
 
   protected QdsClient getQdsClient() {
@@ -89,10 +122,10 @@ public abstract class QuboleDB implements Executor {
   }
 
   @Override
+  public void cleanup() throws Exception {}
+
+  @Override
   public ImmutableMap<String, Schema> getSchemas() throws QuarkException {
-
-    ImmutableMap<String, String> dataTypes = this.getDataTypes();
-
     Map<String, List<SchemaOrdinal>> schemas = null;
     try {
       schemas = getSchemaListDescribed();
@@ -119,18 +152,11 @@ public abstract class QuboleDB implements Executor {
         ImmutableList.Builder<QuarkColumn> columnBuilder =
             new ImmutableList.Builder<>();
         for (NameAndType column : columns) {
-          String dataType = column.getType();
-          for (String key : dataTypes.keySet()) {
-            if (dataType.matches(key)) {
-              dataType = dataTypes.get(key);
-              break;
-            }
-          }
           String columnName = column.getName();
           if (!this.isCaseSensitive()) {
             columnName = columnName.toUpperCase();
           }
-          columnBuilder.add(new QuarkColumn(columnName, dataType));
+          columnBuilder.add(new QuarkColumn(columnName, getType(column.getType())));
         }
         String tableName = table.getTable_name();
         if (!this.isCaseSensitive()) {

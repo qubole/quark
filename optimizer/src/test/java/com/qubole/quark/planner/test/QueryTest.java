@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,14 +63,14 @@ public class QueryTest {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
       QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("I", "int"));
+        add(new QuarkColumn("I", Types.INTEGER));
       }});
       builder.put("SIMPLE", simple);
 
       QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
-        add(new QuarkColumn("I", "int"));
-        add(new QuarkColumn("J", "int"));
-        add(new QuarkColumn("K", "string"));
+        add(new QuarkColumn("I", Types.INTEGER));
+        add(new QuarkColumn("J", Types.INTEGER));
+        add(new QuarkColumn("K", Types.VARCHAR));
       }});
       builder.put("MANY_COLUMNS", many_columns);
 
