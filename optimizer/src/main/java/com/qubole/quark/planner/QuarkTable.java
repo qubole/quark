@@ -95,13 +95,13 @@ public class QuarkTable extends AbstractTable
     final List<String> names = new ArrayList<>();
     final List<RelDataType> types = new ArrayList<>();
     for (QuarkColumn col : this.columns) {
-      final FieldType fieldType = FieldType.of(col.getType());
+      final FieldType fieldType = FieldType.of(col.type);
       if (fieldType == null) {
-        LOG.error("Field Type is null for " + col.getType());
+        LOG.error("Field Type is null for " + col.type);
       }
       final RelDataType type = fieldType.toType((JavaTypeFactory) typeFactory);
       types.add(type);
-      names.add(col.getName());
+      names.add(col.name);
     }
     return typeFactory.createStructType(Pair.zip(names, types));
   }
@@ -113,7 +113,7 @@ public class QuarkTable extends AbstractTable
   public int getFieldOrdinal(String columnName) {
     int count = 0;
     for (QuarkColumn column : columns) {
-      if (columnName.equals(column.getName())) {
+      if (columnName.equals(column.name)) {
         return count;
       }
       count++;

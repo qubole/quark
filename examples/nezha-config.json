@@ -27,7 +27,7 @@
       {
         "name": "store_sales_partition",
         "query": "select * from hive.tpcds_orc_500.store_sales where ss_sold_date_sk >= 2452640 and ss_customer_sk > 3 and ss_customer_sk < 20",
-        "destination": "REDSHIFT",
+        "dataSource": "REDSHIFT",
         "schema": "PUBLIC",
         "table": "STORE_SALES_PARTITION"
       }
@@ -36,7 +36,7 @@
       {
         "name": "store_sales_cube",
         "query": "select 1 from hive.tpcds_orc_500.store_sales_2002_plus join hive.tpcds_orc_500.customer on ss_customer_sk = c_customer_sk join hive.tpcds_orc_500.date_dim on ss_sold_date_sk = d_date_sk join hive.tpcds_orc_500.customer_demographics on ss_cdemo_sk = cd_demo_sk join hive.tpcds_orc_500.promotion on ss_promo_sk = p_promo_sk join hive.tpcds_orc_500.household_demographics on ss_hdemo_sk = hd_demo_sk join hive.tpcds_orc_500.store on ss_store_sk = s_store_sk join hive.tpcds_orc_500.time_dim on ss_sold_time_sk = t_time_sk",
-        "destination": "REDSHIFT",
+        "dataSource": "REDSHIFT",
         "schema": "PUBLIC",
         "table": "STORE_SALES_CUBE",
         "groupingColumn": "grouping__id",

@@ -102,14 +102,19 @@ public class QuarkDriver extends UnregisteredDriver {
   }
 
   public String getSchemaFactoryPath() {
-    return "com.qubole.quark.jdbc.schema.SchemaFactory";
+    return "com.qubole.quark.catalog.json.SchemaFactory";
   }
 
   public Connection connect(String url, Properties info) throws SQLException {
     if (!acceptsURL(url)) {
       return null;
     }
-    if (info.getProperty("model") == null) {
+
+    if (info.getProperty("schemaFactory") == null) {
+      info.setProperty("schemaFactory", getSchemaFactoryPath());
+    }
+
+    if (info.getProperty("model") == null && info.getProperty("dbCredentials") == null) {
       final String prefix = getConnectStringPrefix();
       final String urlSuffix = url.substring(prefix.length());
       try {
@@ -119,7 +124,7 @@ public class QuarkDriver extends UnregisteredDriver {
         throw new SQLException(e.getMessage());
       }
     }
-    info.setProperty("schemaFactory", getSchemaFactoryPath());
+
     return super.connect(url, info);
   }
 

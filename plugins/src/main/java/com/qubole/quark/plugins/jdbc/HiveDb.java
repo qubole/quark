@@ -15,6 +15,7 @@
 
 package com.qubole.quark.plugins.jdbc;
 
+import org.apache.calcite.linq4j.tree.Primitive;
 import org.apache.calcite.sql.SqlDialect;
 
 import com.google.common.collect.ImmutableMap;
@@ -22,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Map;
 
 /**
@@ -48,13 +50,30 @@ public class HiveDb extends JdbcDB {
   private final String defaultSchema = "DEFAULT";
   private final String productName = "HIVE";
 
-  private static final ImmutableMap<String, String> DATA_TYPES =
-      new ImmutableMap.Builder<String, String>()
-        .put("character varying\\([0-9]+\\)", "character varying")
-        .put("varchar\\([0-9]+\\)", "character varying")
-        .put("char\\([0-9]+\\)", "character")
-        .put("character\\([0-9]+\\)", "character")
-        .put("decimal\\([0-9]+,[0-9]+\\)", "double").build();
+  protected static final ImmutableMap<String, Integer> DATA_TYPES =
+      new ImmutableMap.Builder<String, Integer>()
+          .put("STRING", Types.VARCHAR)
+          .put("CHARACTER VARYING", Types.VARCHAR)
+          .put("CHARACTER", Types.CHAR)
+          .put("INTEGER", Types.INTEGER)
+          .put("SMALLINT", Types.SMALLINT)
+          .put("BIGINT", Types.BIGINT)
+          .put("TINYINT", Types.TINYINT)
+          .put(Primitive.BYTE.primitiveClass.getSimpleName(), Types.TINYINT)
+          .put(Primitive.CHAR.primitiveClass.getSimpleName(), Types.TINYINT)
+          .put(Primitive.SHORT.primitiveClass.getSimpleName(), Types.SMALLINT)
+          .put(Primitive.INT.primitiveClass.getSimpleName(), Types.INTEGER)
+          .put(Primitive.LONG.primitiveClass.getSimpleName(), Types.BIGINT)
+          .put(Primitive.FLOAT.primitiveClass.getSimpleName(), Types.FLOAT)
+          .put(Primitive.DOUBLE.primitiveClass.getSimpleName(), Types.DOUBLE)
+          .put("DATE", Types.DATE)
+          .put("TIME", Types.TIME)
+          .put("TIMESTAMP", Types.TIMESTAMP)
+          .put("CHARACTER VARYING\\([0-9]+\\)", Types.VARCHAR)
+          .put("VARCHAR\\([0-9]+\\)", Types.VARCHAR)
+          .put("CHAR\\([0-9]+\\)", Types.CHAR)
+          .put("CHARACTER\\([0-9]+\\)", Types.CHAR)
+          .put("DECIMAL\\([0-9]+,[0-9]+\\)", Types.DOUBLE).build();
 
   public HiveDb(Map<String, Object> properties) {
     super(properties);
@@ -62,6 +81,11 @@ public class HiveDb extends JdbcDB {
 
   public Connection getConnection() throws ClassNotFoundException, SQLException {
     return DriverManager.getConnection(url, user, password);
+  }
+
+  @Override
+  protected ImmutableMap<String, Integer> getTypes(Connection connection) {
+    return DATA_TYPES;
   }
 
   @Override
@@ -77,11 +101,6 @@ public class HiveDb extends JdbcDB {
   @Override
   public String getProductName() {
     return productName;
-  }
-
-  @Override
-  public ImmutableMap<String, String> getDataTypes() {
-    return DATA_TYPES;
   }
 
   @Override

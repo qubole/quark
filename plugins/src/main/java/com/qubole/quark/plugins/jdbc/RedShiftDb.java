@@ -15,6 +15,7 @@
 
 package com.qubole.quark.plugins.jdbc;
 
+import org.apache.calcite.linq4j.tree.Primitive;
 import org.apache.calcite.sql.SqlDialect;
 
 import com.google.common.collect.ImmutableMap;
@@ -22,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Map;
 import java.util.Properties;
 
@@ -35,12 +37,28 @@ public class RedShiftDb extends JdbcDB {
   private final String defaultSchema = "PUBLIC";
   private final String productName = "REDSHIFT";
 
-  public static final ImmutableMap<String, String> DATATYPES =
-      new ImmutableMap.Builder<String, String>()
-        .put("character varying\\([0-9]+\\)", "character varying")
-        .put("timestamp without time zone", "timestamp")
-        .put("double precision", "float")
-        .put("character\\([0-9]+\\)", "character").build();
+  protected static final ImmutableMap<String, Integer> DATA_TYPES =
+      new ImmutableMap.Builder<String, Integer>()
+          .put("STRING", Types.VARCHAR)
+          .put("INTEGER", Types.INTEGER)
+          .put("SMALLINT", Types.SMALLINT)
+          .put("BIGINT", Types.BIGINT)
+          .put("TINYINT", Types.TINYINT)
+          .put("CHARACTER VARYING", Types.VARCHAR)
+          .put("CHARACTER", Types.CHAR)
+          .put(Primitive.BYTE.primitiveClass.getSimpleName(), Types.TINYINT)
+          .put(Primitive.CHAR.primitiveClass.getSimpleName(), Types.TINYINT)
+          .put(Primitive.SHORT.primitiveClass.getSimpleName(), Types.SMALLINT)
+          .put(Primitive.INT.primitiveClass.getSimpleName(), Types.INTEGER)
+          .put(Primitive.LONG.primitiveClass.getSimpleName(), Types.BIGINT)
+          .put(Primitive.FLOAT.primitiveClass.getSimpleName(), Types.FLOAT)
+          .put(Primitive.DOUBLE.primitiveClass.getSimpleName(), Types.DOUBLE)
+          .put("DATE", Types.DATE)
+          .put("TIME", Types.TIMESTAMP)
+          .put("CHARACTER VARYING\\([0-9]+\\)", Types.VARCHAR)
+          .put("TIMESTAMP WITHOUT TIME ZONE", Types.TIMESTAMP)
+          .put("DOUBLE PRECISION", Types.DOUBLE)
+          .put("CHARACTER\\([0-9]+\\)", Types.CHAR).build();
 
   public RedShiftDb(Map<String, Object> properties) {
     super(properties);
@@ -56,6 +74,11 @@ public class RedShiftDb extends JdbcDB {
   }
 
   @Override
+  protected ImmutableMap<String, Integer> getTypes(Connection connection) {
+    return DATA_TYPES;
+  }
+
+  @Override
   public String getCatalogSql() {
     return catalogSql;
   }
@@ -68,11 +91,6 @@ public class RedShiftDb extends JdbcDB {
   @Override
   public String getProductName() {
     return productName;
-  }
-
-  @Override
-  public ImmutableMap<String, String> getDataTypes() {
-    return DATATYPES;
   }
 
   @Override

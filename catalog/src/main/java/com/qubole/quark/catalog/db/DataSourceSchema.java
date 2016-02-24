@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.jdbc.schema;
+package com.qubole.quark.catalog.db;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,20 +56,20 @@ public class MetricsTest {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
       QuarkTable metrics = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
-          .add(new QuarkColumn("NAME", "string"))
-          .add(new QuarkColumn("VALUE", "double"))
-          .add(new QuarkColumn("QUERY_HISTS_ID", "int"))
-          .add(new QuarkColumn("CREATED_AT", "timestamp"))
-          .add(new QuarkColumn("CREATED_AT_DATE", "date")).build());
+          .add(new QuarkColumn("NAME", Types.VARCHAR))
+          .add(new QuarkColumn("VALUE", Types.DOUBLE))
+          .add(new QuarkColumn("QUERY_HISTS_ID", Types.INTEGER))
+          .add(new QuarkColumn("CREATED_AT", Types.TIMESTAMP))
+          .add(new QuarkColumn("CREATED_AT_DATE", Types.DATE)).build());
 
       builder.put("METRICS", metrics);
 
       QuarkTable metrics_s3 = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
-          .add(new QuarkColumn("NAME", "string"))
-          .add(new QuarkColumn("VALUE", "double"))
-          .add(new QuarkColumn("QUERY_HISTS_ID", "int"))
-          .add(new QuarkColumn("CREATED_AT", "timestamp"))
-          .add(new QuarkColumn("CREATED_AT_DATE", "date")).build());
+          .add(new QuarkColumn("NAME", Types.VARCHAR))
+          .add(new QuarkColumn("VALUE", Types.DOUBLE))
+          .add(new QuarkColumn("QUERY_HISTS_ID", Types.INTEGER))
+          .add(new QuarkColumn("CREATED_AT", Types.TIMESTAMP))
+          .add(new QuarkColumn("CREATED_AT_DATE", Types.DATE)).build());
 
       builder.put("METRICS_S3", metrics_s3);
 

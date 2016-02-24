@@ -13,10 +13,11 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.jdbc.schema;
+package com.qubole.quark.catalog.json.schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.qubole.quark.catalog.json.RootSchema;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

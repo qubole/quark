@@ -25,6 +25,7 @@ import com.qubole.qds.sdk.java.entities.ResultValue;
 import com.qubole.qds.sdk.java.entities.SchemaListDescribed;
 import com.qubole.qds.sdk.java.entities.SchemaOrdinal;
 
+import java.sql.Types;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +40,14 @@ public class HiveDb extends QuboleDB {
   private final String productName = "HIVE";
   private final boolean isCaseSensitive = false;
 
-  private static final ImmutableMap<String, String> DATA_TYPES =
-          new ImmutableMap.Builder<String, String>()
-                  .put("character varying\\([0-9]+\\)", "character varying")
-                  .put("varchar\\([0-9]+\\)", "character varying")
-                  .put("char\\([0-9]+\\)", "character")
-                  .put("character\\([0-9]+\\)", "character")
-                  .put("decimal\\([0-9]+,[0-9]+\\)", "double").build();
+  private static final ImmutableMap<String, Integer> HIVE_DATA_TYPES =
+          new ImmutableMap.Builder<String, Integer>()
+                  .put("character varying\\([0-9]+\\)", Types.VARCHAR)
+                  .put("varchar\\([0-9]+\\)", Types.VARCHAR)
+                  .put("char\\([0-9]+\\)", Types.CHAR)
+                  .put("character\\([0-9]+\\)", Types.CHAR)
+                  .put("decimal\\([0-9]+,[0-9]+\\)", Types.DECIMAL)
+                  .put("timestamp", Types.TIMESTAMP).build();
 
   public HiveDb(Map<String, Object> properties) {
     super(properties);
@@ -71,8 +73,8 @@ public class HiveDb extends QuboleDB {
   }
 
   @Override
-  protected ImmutableMap<String, String> getDataTypes() {
-    return DATA_TYPES;
+  protected ImmutableMap<String, Integer> getDataTypes() {
+    return HIVE_DATA_TYPES;
   }
 
   @Override

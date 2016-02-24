@@ -31,7 +31,7 @@ import java.util.Map;
 public class MysqlDb extends JdbcDB {
 
   private final String catalogSql = "select table_schema, "
-      + "table_name, column_name, column_type from "
+      + "table_name, column_name, data_type from "
       + "information_schema.columns order by "
       + "table_schema, table_name, ordinal_position;";
 
@@ -70,11 +70,6 @@ public class MysqlDb extends JdbcDB {
   @Override
   protected String getCatalogSql() {
     return catalogSql;
-  }
-
-  @Override
-  protected ImmutableMap<String, String> getDataTypes() {
-    return DATATYPES;
   }
 
   @Override
