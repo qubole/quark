@@ -236,6 +236,58 @@ public class Tpcds extends TestSchema {
         );
 
     builder.put("STORE_SALES_CUBE", store_sales_cube);
+
+    QuarkTable store_sales_cube_partial = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+        .add(new QuarkColumn("i_item_id", Types.VARCHAR))
+        .add(new QuarkColumn("c_customer_id", Types.VARCHAR))
+        .add(new QuarkColumn("d_year", Types.INTEGER))
+        .add(new QuarkColumn("d_moy", Types.INTEGER))
+        .add(new QuarkColumn("d_dom", Types.INTEGER))
+        .add(new QuarkColumn("cd_gender", Types.VARCHAR))
+        .add(new QuarkColumn("cd_marital_status", Types.VARCHAR))
+        .add(new QuarkColumn("cd_education_status", Types.VARCHAR))
+        .add(new QuarkColumn("grouping_id", Types.VARCHAR))
+        .add(new QuarkColumn("sum_sales_price", Types.DOUBLE))
+        .add(new QuarkColumn("sum_extended_sales_price", Types.DOUBLE)).build()
+    );
+
+    builder.put("STORE_SALES_CUBE_PARTIAL", store_sales_cube_partial);
+
+    QuarkTable store_sales_cube_daily = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+        .add(new QuarkColumn("d_year", Types.INTEGER))
+        .add(new QuarkColumn("d_moy", Types.INTEGER))
+        .add(new QuarkColumn("d_dom", Types.INTEGER))
+        .add(new QuarkColumn("cd_gender", Types.VARCHAR))
+        .add(new QuarkColumn("grouping_id", Types.VARCHAR))
+        .add(new QuarkColumn("sum_sales_price", Types.DOUBLE))
+        .add(new QuarkColumn("sum_extended_sales_price", Types.DOUBLE)).build()
+    );
+
+    builder.put("STORE_SALES_CUBE_DAILY", store_sales_cube_daily);
+
+    QuarkTable store_sales_cube_weekly = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+        .add(new QuarkColumn("d_year", Types.INTEGER))
+        .add(new QuarkColumn("d_moy", Types.INTEGER))
+        .add(new QuarkColumn("d_week_seq", Types.INTEGER))
+        .add(new QuarkColumn("cd_gender", Types.VARCHAR))
+        .add(new QuarkColumn("grouping_id", Types.VARCHAR))
+        .add(new QuarkColumn("sum_sales_price", Types.DOUBLE))
+        .add(new QuarkColumn("sum_extended_sales_price", Types.DOUBLE)).build()
+    );
+
+    builder.put("STORE_SALES_CUBE_WEEKLY", store_sales_cube_weekly);
+
+    QuarkTable store_sales_cube_monthly = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+        .add(new QuarkColumn("d_year", Types.INTEGER))
+        .add(new QuarkColumn("d_moy", Types.INTEGER))
+        .add(new QuarkColumn("cd_gender", Types.VARCHAR))
+        .add(new QuarkColumn("grouping_id", Types.VARCHAR))
+        .add(new QuarkColumn("sum_sales_price", Types.DOUBLE))
+        .add(new QuarkColumn("sum_extended_sales_price", Types.DOUBLE)).build()
+    );
+
+    builder.put("STORE_SALES_CUBE_MONTHLY", store_sales_cube_monthly);
+
     return builder.build();
   }
 }

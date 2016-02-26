@@ -63,6 +63,12 @@ public class QuarkTestUtil {
     assertEquals(expectedSql, finalQuery);
   }
 
+  public static void checkParsedSql(String sql, Parser parser, String expectedSql)
+      throws QuarkException, SQLException {
+    String finalQuery = parser.parse(sql).getParsedSql();
+    assertEquals(expectedSql, finalQuery);
+  }
+
   public static void checkSqlParsing(String sql, Properties info, String expectedSql,
       SqlDialect dialect)
       throws QuarkException, SqlParseException {
@@ -79,6 +85,25 @@ public class QuarkTestUtil {
                                           ImmutableList<String> unexpected)
       throws QuarkException, SQLException {
     Parser parser = new Parser(info);
+    RelNode relNode = parser.parse(sql).getRelNode();
+    String relStr = RelOptUtil.toString(relNode);
+
+    for (String expectedPlan : expected) {
+      assertTrue("Final Plan should use table " + expectedPlan,
+          relStr.contains(expectedPlan));
+    }
+
+    for (String unexpectedPlan : unexpected) {
+      assertFalse("Final Plan should not use table " + unexpectedPlan,
+          relStr.contains(unexpectedPlan));
+    }
+  }
+
+  public static void checkParsedRelString(String sql,
+                                          Parser parser,
+                                          ImmutableList<String> expected,
+                                          ImmutableList<String> unexpected)
+      throws QuarkException, SQLException {
     RelNode relNode = parser.parse(sql).getRelNode();
     String relStr = RelOptUtil.toString(relNode);
 
