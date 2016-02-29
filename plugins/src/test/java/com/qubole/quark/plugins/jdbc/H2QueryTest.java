@@ -57,11 +57,11 @@ public class H2QueryTest {
     createTables();
 /*    DriverConnection h2DriverConnection = new DriverConnection(
         DriverType.H2,
-        "jdbc:h2:mem:H2QueryTest", "", "sa", "");
+        "fatjdbc:h2:mem:H2QueryTest", "", "sa", "");
     //TODO : check as to why is this needed
-    Class.forName("com.qubole.quark.jdbc.QuarkDriver");
+    Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
     calciteConnection =
-        DriverManager.getConnection("jdbc:quark:", h2DriverConnection.getProperties());*/
+        DriverManager.getConnection("fatjdbc:quark:", h2DriverConnection.getProperties());*/
   }
 
   @AfterClass
