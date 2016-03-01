@@ -15,22 +15,81 @@
 
 package com.qubole.quark.catalog.db.dao;
 
+import com.qubole.quark.catalog.db.encryption.MysqlAES;
 import com.qubole.quark.catalog.db.mapper.DataSourceMapper;
 import com.qubole.quark.catalog.db.pojo.DataSource;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.Transaction;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
  * DAO for {@link DataSource}
  */
 @RegisterMapper(DataSourceMapper.class)
-public interface DataSourceDAO {
+public abstract class DataSourceDAO {
   @SqlQuery("select id, name, type, datasource_type, url, ds_set_id from data_sources "
       + "where ds_set_id = :ds_set_id")
-  List<DataSource> findByDSSetId(@Bind("ds_set_id") long dsSetId);
+  public abstract List<DataSource> findByDSSetId(@Bind("ds_set_id") long dsSetId);
 
+  @GetGeneratedKeys
+  @SqlUpdate("insert into data_sources(name, type, url, ds_set_id, datasource_type) "
+      + "values(:name, :type, :url, :ds_set_id, :datasource_type)")
+  protected abstract int insert(@Bind("name") String name, @Bind("type") String type,
+      @Bind("url") String url, @Bind("ds_set_id") long dsSetId,
+      @Bind("datasource_type") String dataSourcetype);
+
+  @GetGeneratedKeys
+  @SqlUpdate("update data_sources set name = :d.name,"
+      + " type = :d.type, datasource_type = :d.datasourceType,"
+      + " url = :d.url, ds_set_id = :d.dsSetId where id = :d.id")
+  public abstract int update(@BindBean("d") DataSource ds);
+
+  @SqlUpdate("delete from data_sources where id = :id")
+  public abstract void delete(@Bind("id") int id);
+
+  public int insertJDBC(String name, String type, String url, long dsSetId,
+      String dataSourcetype, JdbcSourceDAO jdbcDao, String username, String password,
+      String key) {
+    if (key != null) {
+      try {
+        MysqlAES mysqlAES = MysqlAES.getInstance();
+        mysqlAES.setKey(key);
+        url = mysqlAES.convertToDatabaseColumn(url);
+        username = mysqlAES.convertToDatabaseColumn(username);
+        password = mysqlAES.convertToDatabaseColumn(password);
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    int id = insert(name, type, url, dsSetId, dataSourcetype);
+    jdbcDao.insert(id, username, password);
+    return id;
+  }
+
+  @Transaction
+  public int insertQuboleDB(String name, String type, String url, long dsSetId,
+      String dataSourcetype, QuboleDbSourceDAO quboleDao, int dbTapId, String authToken,
+      String key) {
+    if (key != null) {
+      try {
+        MysqlAES mysqlAES = MysqlAES.getInstance();
+        mysqlAES.setKey(key);
+        url = mysqlAES.convertToDatabaseColumn(url);
+        authToken = mysqlAES.convertToDatabaseColumn(authToken);
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    int id = insert(name, type, url, dsSetId, dataSourcetype);
+    quboleDao.insert(id, dbTapId, authToken);
+    return id;
+  }
 }

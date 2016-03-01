@@ -22,4 +22,5 @@ limitations under the License.
   <!-- Add files here on which checkstyle needs to be suppressed. -->
 
 <suppress checks=".*" files="src[/\\]test[/\\]java[/\\]"/>
+<suppress checks="Header" files="jdbc/src/main/java/com/qubole/quark/jdbc/QuarkResultSet.java"/>
 </suppressions>

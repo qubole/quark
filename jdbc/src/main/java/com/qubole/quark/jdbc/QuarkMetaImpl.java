@@ -15,10 +15,10 @@
 
 package com.qubole.quark.jdbc;
 
-
-import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.DataContext;
 import org.apache.calcite.avatica.AvaticaParameter;
 import org.apache.calcite.avatica.AvaticaPreparedStatement;
+import org.apache.calcite.avatica.AvaticaStatement;
 import org.apache.calcite.avatica.AvaticaUtils;
 import org.apache.calcite.avatica.ColumnMetaData;
 import org.apache.calcite.avatica.Meta;
@@ -27,21 +27,22 @@ import org.apache.calcite.avatica.NoSuchStatementException;
 import org.apache.calcite.avatica.QueryState;
 import org.apache.calcite.avatica.SqlType;
 import org.apache.calcite.avatica.remote.TypedValue;
+import org.apache.calcite.jdbc.CalcitePrepare;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Linq4j;
-import org.apache.calcite.linq4j.Ord;
 import org.apache.calcite.linq4j.function.Function1;
 import org.apache.calcite.linq4j.function.Functions;
 import org.apache.calcite.linq4j.function.Predicate1;
-import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.runtime.FlatLists;
 import org.apache.calcite.schema.Table;
+import org.apache.calcite.sql.SqlJdbcFunctionCall;
+import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.Util;
 
@@ -51,18 +52,15 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
-import com.qubole.quark.planner.DataSourceSchema;
-import com.qubole.quark.planner.Parser;
-import com.qubole.quark.plugins.Executor;
-import com.qubole.quark.plugins.jdbc.EMRDb;
-import com.qubole.quark.plugins.jdbc.JdbcDB;
+import com.qubole.quark.jdbc.executor.PlanExecutorFactory;
+import com.qubole.quark.planner.parser.ParserResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -76,7 +74,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -172,20 +169,6 @@ public class QuarkMetaImpl extends MetaImpl {
         .build();
   }
 
-  QuarkConnectionImpl getConnection() {
-    return (QuarkConnectionImpl) connection;
-  }
-
-  @Override
-  public Meta.StatementHandle prepare(Meta.ConnectionHandle ch, String sql,
-                                      long maxRowCount) {
-    final Meta.StatementHandle h = createStatement(ch);
-    final QuarkConnectionImpl quarkConnection = getConnection();
-
-    QuarkJdbcStatement statement = quarkConnection.server.getStatement(h);
-    statement.setSignature(h.signature);
-    return h;
-  }
 
   static <T extends Named> Predicate1<T> namedMatcher(final Pat pattern) {
     if (pattern.s == null || pattern.s.equals("%")) {
@@ -211,10 +194,8 @@ public class QuarkMetaImpl extends MetaImpl {
     };
   }
 
-  /**
-   * Converts a LIKE-style pattern (where '%' represents a wild-card, escaped
-   * using '\') to a Java regex.
-   */
+  /** Converts a LIKE-style pattern (where '%' represents a wild-card, escaped
+   * using '\') to a Java regex. */
   public static Pattern likeToRegex(Pat pattern) {
     StringBuilder buf = new StringBuilder("^");
     char[] charArray = pattern.s.toCharArray();
@@ -247,6 +228,122 @@ public class QuarkMetaImpl extends MetaImpl {
   }
 
   @Override
+  public StatementHandle createStatement(ConnectionHandle ch) {
+    final StatementHandle h = super.createStatement(ch);
+    final QuarkConnectionImpl quarkConnection = getConnection();
+    quarkConnection.server.addStatement(quarkConnection, h);
+    return h;
+  }
+
+  @Override
+  public void closeStatement(StatementHandle h) {
+    final QuarkConnectionImpl quarkConnection = getConnection();
+    QuarkJdbcStatement stmt = quarkConnection.server.getStatement(h);
+    // stmt.close(); // TODO: implement
+    quarkConnection.server.removeStatement(h);
+  }
+
+  private <E> MetaResultSet createResultSet(Enumerable<E> enumerable,
+      Class clazz, String... names) {
+    final List<ColumnMetaData> columns = new ArrayList<>();
+    final List<Field> fields = new ArrayList<>();
+    final List<String> fieldNames = new ArrayList<>();
+    for (String name : names) {
+      final int index = fields.size();
+      final String fieldName = AvaticaUtils.toCamelCase(name);
+      final Field field;
+      try {
+        field = clazz.getField(fieldName);
+      } catch (NoSuchFieldException e) {
+        throw new RuntimeException(e);
+      }
+      columns.add(columnMetaData(name, index, field.getType()));
+      fields.add(field);
+      fieldNames.add(fieldName);
+    }
+    //noinspection unchecked
+    final Iterable<Object> iterable = (Iterable<Object>) (Iterable) enumerable;
+    return createResultSet(Collections.<String, Object>emptyMap(),
+        columns, CursorFactory.record(clazz, fields, fieldNames),
+        new Frame(0, true, iterable));
+  }
+
+  @Override protected <E> MetaResultSet
+  createEmptyResultSet(final Class<E> clazz) {
+    final List<ColumnMetaData> columns = fieldMetaData(clazz).columns;
+    final CursorFactory cursorFactory = CursorFactory.deduce(columns, clazz);
+    return createResultSet(Collections.<String, Object>emptyMap(), columns,
+        cursorFactory, Frame.EMPTY);
+  }
+
+  protected MetaResultSet createResultSet(
+      Map<String, Object> internalParameters, List<ColumnMetaData> columns,
+      CursorFactory cursorFactory, final Frame firstFrame) {
+    try {
+      final QuarkConnectionImpl connection = getConnection();
+      final AvaticaStatement statement = connection.createStatement();
+      final CalcitePrepare.CalciteSignature<Object> signature =
+          new CalcitePrepare.CalciteSignature<Object>("",
+              ImmutableList.<AvaticaParameter>of(), internalParameters, null,
+              columns, cursorFactory, ImmutableList.<RelCollation>of(), -1,
+              null, Meta.StatementType.SELECT) {
+            @Override public Enumerable<Object> enumerable(
+                DataContext dataContext) {
+              return Linq4j.asEnumerable(firstFrame.rows);
+            }
+          };
+      return MetaResultSet.create(connection.id, statement.getId(), true,
+          signature, firstFrame);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  QuarkConnectionImpl getConnection() {
+    return (QuarkConnectionImpl) connection;
+  }
+
+  @Override public Map<DatabaseProperty, Object> getDatabaseProperties(ConnectionHandle ch) {
+    final ImmutableMap.Builder<DatabaseProperty, Object> builder =
+        ImmutableMap.builder();
+    for (DatabaseProperty p : DatabaseProperty.values()) {
+      addProperty(builder, p);
+    }
+    return builder.build();
+  }
+
+  private ImmutableMap.Builder<DatabaseProperty, Object> addProperty(
+      ImmutableMap.Builder<DatabaseProperty, Object> builder,
+      DatabaseProperty p) {
+    switch (p) {
+      case GET_S_Q_L_KEYWORDS:
+        return builder.put(p,
+            SqlParser.create("").getMetadata().getJdbcKeywords());
+      case GET_NUMERIC_FUNCTIONS:
+        return builder.put(p, SqlJdbcFunctionCall.getNumericFunctions());
+      case GET_STRING_FUNCTIONS:
+        return builder.put(p, SqlJdbcFunctionCall.getStringFunctions());
+      case GET_SYSTEM_FUNCTIONS:
+        return builder.put(p, SqlJdbcFunctionCall.getSystemFunctions());
+      case GET_TIME_DATE_FUNCTIONS:
+        return builder.put(p, SqlJdbcFunctionCall.getTimeDateFunctions());
+      default:
+        return builder;
+    }
+  }
+
+  @Override
+  public Meta.StatementHandle prepare(Meta.ConnectionHandle ch, String sql,
+                                      long maxRowCount) {
+    final Meta.StatementHandle h = createStatement(ch);
+    final QuarkConnectionImpl quarkConnection = getConnection();
+
+    QuarkJdbcStatement statement = quarkConnection.server.getStatement(h);
+    statement.setSignature(h.signature);
+    return h;
+  }
+
+  @Override
   public Meta.ExecuteResult prepareAndExecute(Meta.StatementHandle h,
                                               String sql,
                                               long maxRowCount,
@@ -255,60 +352,11 @@ public class QuarkMetaImpl extends MetaImpl {
       MetaResultSet metaResultSet = null;
       synchronized (callback.getMonitor()) {
         callback.clear();
-        Parser.ParserResult result = getConnection().quarkParser.parse(sql);
-        QuarkJdbcStatement stmt = getConnection().server.getStatement(h);
-        final DataSourceSchema dataSourceSchema = result.getDataSource();
-        if (dataSourceSchema != null) {
-          Connection conn;
-          final String id = dataSourceSchema.getName();
-          Iterator<Object> iterator = null;
-          Executor executor = (Executor) dataSourceSchema.getDataSource();
-          String parsedSql = result.getParsedSql();
-          LOG.info("Execute query[" + parsedSql + "]");
-          if (executor instanceof JdbcDB) {
-            conn = getExecutorConnection(id, executor);
-            Statement statement = conn.createStatement();
-            try {
-              statement.setQueryTimeout(QUERY_TIMEOUT);
-            } catch (Exception e) {
-              LOG.warn("Couldnot set Query Timeout to " + QUERY_TIMEOUT + " seconds", e);
-            }
-            ResultSet resultSet = statement.executeQuery(parsedSql);
-            metaResultSet =
-                QuarkMetaResultSet.create(h.connectionId, h.id, resultSet, maxRowCount);
-          } else {
-            iterator = executor.executeQuery(parsedSql);
-            final JavaTypeFactory typeFactory =
-                getConnection().quarkParser.getTypeFactory();
-            final RelDataType x;
-            switch (result.getKind()) {
-              case INSERT:
-              case EXPLAIN:
-                x = RelOptUtil.createDmlRowType(result.getKind(), typeFactory);
-                break;
-              default:
-                x = result.getRelNode().getRowType();
-            }
-            RelDataType jdbcType = makeStruct(typeFactory, x);
-            final List<ColumnMetaData> columns =
-                getColumnMetaDataList(typeFactory, x, jdbcType);
-            Meta.Signature signature = new Meta.Signature(columns,
-                sql,
-                new ArrayList<AvaticaParameter>(),
-                new HashMap<String, Object>(),
-                CursorFactory.ARRAY,
-                StatementType.SELECT);
-            stmt.setSignature(signature);
-            stmt.setResultSet(iterator);
-            if (signature.statementType.canUpdate()) {
-              metaResultSet = MetaResultSet.count(h.connectionId, h.id,
-                  ((Number) iterator.next()).intValue());
-            } else {
-              metaResultSet =
-                  QuarkMetaResultSet.create(h.connectionId, h.id, iterator, maxRowCount, signature);
-            }
-          }
-        }
+        ParserResult result = getConnection().parse(sql);
+        metaResultSet = PlanExecutorFactory
+            .buildPlanExecutor(result.getKind(), h, getConnection(),
+                connectionCache, maxRowCount)
+            .execute(result);
         callback.assign(metaResultSet.signature, metaResultSet.firstFrame,
             metaResultSet.updateCount);
       }
@@ -316,159 +364,6 @@ public class QuarkMetaImpl extends MetaImpl {
       return new ExecuteResult(ImmutableList.of(metaResultSet));
     } catch (Exception e) {
       throw propagate(e);
-    }
-  }
-
-  private Connection getExecutorConnection(String id, Executor executor)
-      throws SQLException, ClassNotFoundException {
-    Connection conn;
-    if (executor instanceof EMRDb) {
-      if (this.connectionCache.asMap().containsKey(id)) {
-        conn = this.connectionCache.getIfPresent(id);
-        if (conn.isClosed()) {
-          conn = ((EMRDb) executor).getConnectionExec();
-          this.connectionCache.put(id, conn);
-        }
-      } else {
-        conn = ((EMRDb) executor).getConnectionExec();
-        this.connectionCache.put(id, conn);
-      }
-    } else {
-      if (this.connectionCache.asMap().containsKey(id)) {
-        conn = this.connectionCache.getIfPresent(id);
-        if (conn.isClosed()) {
-          conn = ((JdbcDB) executor).getConnection();
-          this.connectionCache.put(id, conn);
-        }
-      } else {
-        conn = ((JdbcDB) executor).getConnection();
-        this.connectionCache.put(id, conn);
-      }
-    }
-    return conn;
-  }
-
-  private static RelDataType makeStruct(
-      RelDataTypeFactory typeFactory,
-      RelDataType type) {
-    if (type.isStruct()) {
-      return type;
-    }
-    return typeFactory.builder().add("$0", type).build();
-  }
-
-  private List<ColumnMetaData> getColumnMetaDataList(
-      JavaTypeFactory typeFactory, RelDataType x, RelDataType jdbcType) {
-    final List<ColumnMetaData> columns = new ArrayList<>();
-    for (Ord<RelDataTypeField> pair : Ord.zip(jdbcType.getFieldList())) {
-      final RelDataTypeField field = pair.e;
-      final RelDataType type = field.getType();
-      final RelDataType fieldType =
-          x.isStruct() ? x.getFieldList().get(pair.i).getType() : type;
-      columns.add(
-          metaData(typeFactory, columns.size(), field.getName(), type,
-              fieldType, null));
-    }
-    return columns;
-  }
-
-  private ColumnMetaData metaData(JavaTypeFactory typeFactory, int ordinal,
-                                  String fieldName, RelDataType type, RelDataType fieldType,
-                                  List<String> origins) {
-    final ColumnMetaData.AvaticaType avaticaType =
-        avaticaType(typeFactory, type, fieldType);
-    return new ColumnMetaData(
-        ordinal,
-        false,
-        true,
-        false,
-        false,
-        type.isNullable()
-            ? DatabaseMetaData.columnNullable
-            : DatabaseMetaData.columnNoNulls,
-        true,
-        type.getPrecision(),
-        fieldName,
-        origin(origins, 0),
-        origin(origins, 2),
-        getPrecision(type),
-        getScale(type),
-        origin(origins, 1),
-        null,
-        avaticaType,
-        true,
-        false,
-        false,
-        avaticaType.columnClassName());
-  }
-
-  private ColumnMetaData.AvaticaType avaticaType(JavaTypeFactory typeFactory,
-                                                 RelDataType type, RelDataType fieldType) {
-    final String typeName = getTypeName(type);
-    if (type.getComponentType() != null) {
-      final ColumnMetaData.AvaticaType componentType =
-          avaticaType(typeFactory, type.getComponentType(), null);
-      final Type clazz = typeFactory.getJavaClass(type.getComponentType());
-      final ColumnMetaData.Rep rep = ColumnMetaData.Rep.of(clazz);
-      assert rep != null;
-      return ColumnMetaData.array(componentType, typeName, rep);
-    } else {
-      final int typeOrdinal = getTypeOrdinal(type);
-      switch (typeOrdinal) {
-        case Types.STRUCT:
-          final List<ColumnMetaData> columns = new ArrayList<>();
-          for (RelDataTypeField field : type.getFieldList()) {
-            columns.add(
-                metaData(typeFactory, field.getIndex(), field.getName(),
-                    field.getType(), null, null));
-          }
-          return ColumnMetaData.struct(columns);
-        default:
-          final Type clazz =
-              typeFactory.getJavaClass(Util.first(fieldType, type));
-          final ColumnMetaData.Rep rep = ColumnMetaData.Rep.of(clazz);
-          assert rep != null;
-          return ColumnMetaData.scalar(typeOrdinal, typeName, rep);
-      }
-    }
-  }
-
-  private static String origin(List<String> origins, int offsetFromEnd) {
-    return origins == null || offsetFromEnd >= origins.size()
-        ? null
-        : origins.get(origins.size() - 1 - offsetFromEnd);
-  }
-
-  private int getTypeOrdinal(RelDataType type) {
-    return type.getSqlTypeName().getJdbcOrdinal();
-  }
-
-  private static int getScale(RelDataType type) {
-    return type.getScale() == RelDataType.SCALE_NOT_SPECIFIED
-        ? 0
-        : type.getScale();
-  }
-
-  private static int getPrecision(RelDataType type) {
-    return type.getPrecision() == RelDataType.PRECISION_NOT_SPECIFIED
-        ? 0
-        : type.getPrecision();
-  }
-
-  private static String getTypeName(RelDataType type) {
-    SqlTypeName sqlTypeName = type.getSqlTypeName();
-    if (type instanceof RelDataTypeFactoryImpl.JavaType) {
-      // We'd rather print "INTEGER" than "JavaType(int)".
-      return sqlTypeName.getName();
-    }
-    switch (sqlTypeName) {
-      case INTERVAL_YEAR_MONTH:
-      case INTERVAL_DAY_TIME:
-        // e.g. "INTERVAL_MONTH" or "INTERVAL_YEAR_MONTH"
-        return "INTERVAL_"
-            + type.getIntervalQualifier().toString().replace(' ', '_');
-      default:
-        return type.toString(); // e.g. "VARCHAR(10)", "INTEGER ARRAY"
     }
   }
 
@@ -511,75 +406,6 @@ public class QuarkMetaImpl extends MetaImpl {
     } finally {
       connectionCache.invalidate(ch.id);
     }
-  }
-
-  @Override
-  public StatementHandle createStatement(ConnectionHandle ch) {
-//    try {
-//      final Connection conn = getConnection(ch.id);
-//      final Statement statement = conn.createStatement();
-//      final int id = statementIdGenerator.getAndIncrement();
-//      statementCache.put(id, new StatementInfo(statement));
-//      StatementHandle h = new StatementHandle(ch.id, id, null);
-//      if (LOG.isTraceEnabled()) {
-//        LOG.trace("created statement " + h);
-//      }
-//      return h;
-//    } catch (SQLException e) {
-//      throw propagate(e);
-//    }
-
-    final StatementHandle h = super.createStatement(ch);
-    final QuarkConnectionImpl quarkConnection = getConnection();
-    quarkConnection.server.addStatement(quarkConnection, h);
-    return h;
-  }
-
-  @Override
-  public void closeStatement(StatementHandle h) {
-    StatementInfo info = statementCache.getIfPresent(h.id);
-    if (info == null || info.statement == null) {
-      LOG.debug("client requested close unknown statement " + h);
-      return;
-    }
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("closing statement " + h);
-    }
-    try {
-      if (info.resultSet != null) {
-        info.resultSet.close();
-      }
-      info.statement.close();
-    } catch (SQLException e) {
-      throw propagate(e);
-    } finally {
-      statementCache.invalidate(h.id);
-    }
-  }
-
-  private <E> MetaResultSet createResultSet(Enumerable<E> enumerable,
-                                            Class clazz, String... names) {
-    final List<ColumnMetaData> columns = new ArrayList<>();
-    final List<Field> fields = new ArrayList<>();
-    final List<String> fieldNames = new ArrayList<>();
-    for (String name : names) {
-      final int index = fields.size();
-      final String fieldName = AvaticaUtils.toCamelCase(name);
-      final Field field;
-      try {
-        field = clazz.getField(fieldName);
-      } catch (NoSuchFieldException e) {
-        throw new RuntimeException(e);
-      }
-      columns.add(columnMetaData(name, index, field.getType()));
-      fields.add(field);
-      fieldNames.add(fieldName);
-    }
-    //noinspection unchecked
-    final Iterable<Object> iterable = (Iterable<Object>) (Iterable) enumerable;
-    return createResultSet(Collections.<String, Object>emptyMap(),
-        columns, CursorFactory.record(clazz, fields, fieldNames),
-        new Frame(0, true, iterable));
   }
 
   public MetaResultSet getTables(ConnectionHandle ch,
@@ -692,29 +518,6 @@ public class QuarkMetaImpl extends MetaImpl {
         "SOURCE_DATA_TYPE",
         "IS_AUTOINCREMENT",
         "IS_GENERATEDCOLUMN");
-  }
-
-  @Override
-  public MetaResultSet getSchemas(ConnectionHandle ch, String catalog, Pat schemaPattern) {
-    final Predicate1<MetaSchema> schemaMatcher = namedMatcher(schemaPattern);
-    return createResultSet(schemas(catalog).where(schemaMatcher),
-        MetaSchema.class,
-        "TABLE_SCHEM",
-        "TABLE_CATALOG");
-  }
-
-  @Override
-  public MetaResultSet getCatalogs(ConnectionHandle ch) {
-    return createResultSet(catalogs(),
-        MetaCatalog.class,
-        "TABLE_CAT");
-  }
-
-
-  public MetaResultSet getTableTypes(ConnectionHandle ch) {
-    return createResultSet(tableTypes(),
-        MetaTableType.class,
-        "TABLE_TYPE");
   }
 
   Enumerable<MetaCatalog> catalogs() {
@@ -884,7 +687,50 @@ public class QuarkMetaImpl extends MetaImpl {
             });
   }
 
-  @Override public Frame fetch(StatementHandle h, long offset, int fetchMaxRowCount) {
+  @Override
+  public MetaResultSet getSchemas(ConnectionHandle ch, String catalog, Pat schemaPattern) {
+    final Predicate1<MetaSchema> schemaMatcher = namedMatcher(schemaPattern);
+    return createResultSet(schemas(catalog).where(schemaMatcher),
+        MetaSchema.class,
+        "TABLE_SCHEM",
+        "TABLE_CATALOG");
+  }
+
+  @Override
+  public MetaResultSet getCatalogs(ConnectionHandle ch) {
+    return createResultSet(catalogs(),
+        MetaCatalog.class,
+        "TABLE_CAT");
+  }
+
+
+  public MetaResultSet getTableTypes(ConnectionHandle ch) {
+    return createResultSet(tableTypes(),
+        MetaTableType.class,
+        "TABLE_TYPE");
+  }
+
+//  @Override
+//  public Iterable<Object> createIterable(StatementHandle handle, QueryState state,
+//      Signature signature, List<TypedValue> parameterValues, Frame firstFrame) {
+//    // Drop QueryState
+//    return _createIterable(handle, signature, parameterValues, firstFrame);
+//  }
+//
+//  Iterable<Object> _createIterable(StatementHandle handle,
+//      Signature signature, List<TypedValue> parameterValues, Frame firstFrame) {
+//    try {
+//      //noinspection unchecked
+//      final CalcitePrepare.CalciteSignature<Object> calciteSignature =
+//          (CalcitePrepare.CalciteSignature<Object>) signature;
+//      return getConnection().enumerable(handle, calciteSignature);
+//    } catch (SQLException e) {
+//      throw new RuntimeException(e.getMessage());
+//    }
+//  }
+
+  @Override
+  public Frame fetch(StatementHandle h, long offset, int fetchMaxRowCount) {
     final QuarkConnectionImpl calciteConnection = getConnection();
     QuarkJdbcStatement stmt = calciteConnection.server.getStatement(h);
     final Signature signature = stmt.getSignature();
@@ -959,6 +805,33 @@ public class QuarkMetaImpl extends MetaImpl {
       throw propagate(e);
     }
   }
+
+//  @Override
+//  public ExecuteResult execute(StatementHandle h,
+//      List<TypedValue> parameterValues, long maxRowCount) {
+//    final QuarkConnectionImpl calciteConnection = getConnection();
+//    QuarkJdbcStatement stmt = calciteConnection.server.getStatement(h);
+//    final Signature signature = stmt.getSignature();
+//
+//    MetaResultSet metaResultSet;
+//    if (signature.statementType.canUpdate()) {
+//      final Iterable<Object> iterable =
+//          _createIterable(h, signature, parameterValues, null);
+//      final Iterator<Object> iterator = iterable.iterator();
+//      stmt.setResultSet(iterator);
+//      metaResultSet = MetaResultSet.count(h.connectionId, h.id,
+//          ((Number) iterator.next()).intValue());
+//    } else {
+//      // Don't populate the first frame.
+//      // It's not worth saving a round-trip, since we're local.
+//      final Meta.Frame frame =
+//          new Meta.Frame(0, false, Collections.emptyList());
+//      metaResultSet =
+//          MetaResultSet.create(h.connectionId, h.id, false, signature, frame);
+//    }
+//
+//    return new ExecuteResult(ImmutableList.of(metaResultSet));
+//  }
 
   public boolean syncResults(StatementHandle h, QueryState state, long offset)
       throws NoSuchStatementException {

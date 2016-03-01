@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
 import com.qubole.quark.planner.MetadataSchema;
-import com.qubole.quark.planner.Parser;
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.QuarkCube;
 import com.qubole.quark.planner.QuarkCube.Dimension;
 import com.qubole.quark.planner.QuarkSchema;
@@ -27,7 +27,6 @@ import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,7 @@ import java.util.Properties;
  */
 public class LayeredCubeTest {
   private static final Logger log = LoggerFactory.getLogger(LayeredCubeTest.class);
-  private static Parser parser;
+  private static SqlQueryParser parser;
 
   public static class CubeSchema extends MetadataSchema {
     CubeSchema() {}
@@ -151,7 +150,7 @@ public class LayeredCubeTest {
     final ObjectMapper mapper = new ObjectMapper();
 
     info.put("defaultSchema", mapper.writeValueAsString(defaultSchema));
-    parser = new Parser(info);
+    parser = new SqlQueryParser(info);
   }
 
   @Test

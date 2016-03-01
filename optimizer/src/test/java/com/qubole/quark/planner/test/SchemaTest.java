@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.qubole.quark.QuarkException;
 import com.qubole.quark.planner.*;
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
 import org.apache.calcite.rel.RelNode;
@@ -233,7 +234,7 @@ public class SchemaTest {
 
   @Test
   public void testSimple() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     List<String> usedTables =
         parser.getTables(parser.parse("select * from simple").getRelNode());
 
@@ -250,7 +251,7 @@ public class SchemaTest {
 
   @Test
   public void testTpchNation() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     RelNode relNode = parser.parse("select * from tpch.nation").getRelNode();
     List<String> usedTables = parser.getTables(relNode);
 
@@ -261,7 +262,7 @@ public class SchemaTest {
   public void testTpchAsDefault() throws QuarkException, SQLException, JsonProcessingException {
     info.put("defaultSchema", QuarkTestUtil.toJson("TPCH"));
     try {
-      Parser parser = new Parser(info);
+      SqlQueryParser parser = new SqlQueryParser(info);
       RelNode relNode = parser.parse("select * from nation").getRelNode();
       List<String> usedTables = parser.getTables(relNode);
       assertThat(usedTables).contains("TPCH.NATION");
@@ -272,7 +273,7 @@ public class SchemaTest {
 
   @Test
   public void testDefaultNation() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     RelNode relNode = parser.parse("select * from tpch.nation").getRelNode();
     List<String> usedTables = parser.getTables(relNode);
 

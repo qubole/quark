@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.planner;
+package com.qubole.quark.planner.parser;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.config.CalciteConnectionConfig;
@@ -42,6 +42,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 
 import com.qubole.quark.QuarkException;
+import com.qubole.quark.planner.DataSourceSchema;
+import com.qubole.quark.planner.QuarkTable;
+import com.qubole.quark.planner.QuarkTile;
+import com.qubole.quark.planner.QuarkTileScan;
+import com.qubole.quark.planner.QuarkViewScan;
+import com.qubole.quark.planner.QuarkViewTable;
 import com.qubole.quark.sql.QueryContext;
 import com.qubole.quark.sql.SqlWorker;
 import com.qubole.quark.utilities.RelToSqlConverter;
@@ -59,14 +65,16 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Entry point to the Quark planner.
+ * Parser to compile Sql statements of type {@link org.apache.calcite.sql.SqlKind#QUERY}
+ * or {@link org.apache.calcite.sql.SqlKind#SET_QUERY} to Plan
+ * {@link SqlQueryParserResult}
  */
-public class Parser {
-  private static final Logger LOG = LoggerFactory.getLogger(Parser.class);
+public class SqlQueryParser implements Parser {
+  private static final Logger LOG = LoggerFactory.getLogger(SqlQueryParser.class);
   private final QueryContext context;
   private final SqlWorker worker;
 
-  public Parser(Properties info) throws QuarkException {
+  public SqlQueryParser(Properties info) throws QuarkException {
     this.context = new QueryContext(info);
     this.worker = new SqlWorker(this.context);
   }
@@ -130,13 +138,13 @@ public class Parser {
     return result.replace("\n", " ");
   }
 
-  public ParserResult parse(String sql) throws SQLException {
+  public SqlQueryParserResult parse(String sql) throws SQLException {
     DataSourceSchema dataSource = this.context.getDefaultDataSource();
     final AtomicBoolean foundNonQuarkScan = new AtomicBoolean(false);
     final ImmutableSet.Builder<DataSourceSchema> dsBuilder = new ImmutableSet.Builder<>();
     try {
       final SqlKind kind = getSqlParser(sql).parseQuery().getKind();
-      ParserResult result = new ParserResult(stripNamespace(sql, dataSource),
+      SqlQueryParserResult result = new SqlQueryParserResult(stripNamespace(sql, dataSource),
           dataSource, kind, null, false);
       RelNode relNode = parseInternal(sql);
       if (context.getDefaultDataSource() != null) {
@@ -209,19 +217,19 @@ public class Parser {
         final DataSourceSchema newDataSource = dataSources.asList().get(0);
         final SqlDialect dialect = newDataSource.getDataSource().getSqlDialect();
         final String parsedSql = getParsedSql(relNode, dialect);
-        result = new ParserResult(parsedSql, newDataSource, kind, relNode, true);
+        result = new SqlQueryParserResult(parsedSql, newDataSource, kind, relNode, true);
       } else if (foundNonQuarkScan.get() && dataSources.size() == 1) {
         /**
          * Check if its not optimized
          */
         final DataSourceSchema newDataSource = dataSources.asList().get(0);
         final String stripNamespace = stripNamespace(sql, newDataSource);
-        result = new ParserResult(stripNamespace, newDataSource, kind, relNode, true);
+        result = new SqlQueryParserResult(stripNamespace, newDataSource, kind, relNode, true);
       } else if (this.context.isUnitTestMode()) {
         String parsedSql =
             getParsedSql(relNode,
                 new SqlDialect(SqlDialect.DatabaseProduct.UNKNOWN, "UNKNOWN", null, true));
-        result = new ParserResult(parsedSql, null, kind, relNode, true);
+        result = new SqlQueryParserResult(parsedSql, null, kind, relNode, true);
       } else if (dataSources.size() > 1) {
         /**
          * Check if it's partially optimized, i.e., tablescans of multiple datasources
@@ -240,43 +248,19 @@ public class Parser {
   }
 
   /**
-   * Parsed Result of the Parser
+   * Parsed Result of the SqlQueryParser
    */
-  public class ParserResult {
-    private final String parsedSql;
+  public class SqlQueryParserResult extends ParserResult {
     private final DataSourceSchema dataSource;
-    private SqlKind kind;
 
-    private final RelNode relNode;
-    private final boolean parseResult; // true if succeeded, else false
-
-    public ParserResult(String parsedSql, DataSourceSchema dataSource,
-                        SqlKind kind, RelNode relNode, boolean parseResult) {
-      this.parsedSql = parsedSql;
+    public SqlQueryParserResult(String parsedSql, DataSourceSchema dataSource,
+                                SqlKind kind, RelNode relNode, boolean parseResult) {
+      super(parsedSql, kind, relNode, parseResult);
       this.dataSource = dataSource;
-      this.kind = kind;
-      this.relNode = relNode;
-      this.parseResult = parseResult;
-    }
-
-    public String getParsedSql() {
-      return parsedSql;
     }
 
     public DataSourceSchema getDataSource() {
       return dataSource;
-    }
-
-    public SqlKind getKind() {
-      return kind;
-    }
-
-    public RelNode getRelNode() {
-      return relNode;
-    }
-
-    public boolean isParseResult() {
-      return parseResult;
     }
   }
 

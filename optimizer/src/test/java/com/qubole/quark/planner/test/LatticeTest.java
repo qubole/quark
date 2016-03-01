@@ -22,7 +22,7 @@ import com.qubole.quark.planner.QuarkCube;
 import com.qubole.quark.planner.QuarkCube.Dimension;
 import com.qubole.quark.planner.MetadataSchema;
 import com.qubole.quark.planner.QuarkSchema;
-import com.qubole.quark.planner.Parser;
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
@@ -171,8 +171,8 @@ public class LatticeTest {
 
   @Test
   public void testSimple() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
-    Parser.ParserResult result = parser.parse("select * from account");
+    SqlQueryParser parser = new SqlQueryParser(info);
+    SqlQueryParser.SqlQueryParserResult result = parser.parse("select * from account");
     List<String> usedTables = parser.getTables(result.getRelNode());
 
     assertThat(usedTables).contains("FOODMART.ACCOUNT");

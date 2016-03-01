@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
-import com.qubole.quark.planner.Parser;
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.sql.SqlDialect;
@@ -53,7 +53,7 @@ public class QuarkTestUtil {
 
   public static String getParsedSql(String sql, Properties info)
       throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     return parser.parse(sql).getParsedSql();
   }
 
@@ -63,7 +63,7 @@ public class QuarkTestUtil {
     assertEquals(expectedSql, finalQuery);
   }
 
-  public static void checkParsedSql(String sql, Parser parser, String expectedSql)
+  public static void checkParsedSql(String sql, SqlQueryParser parser, String expectedSql)
       throws QuarkException, SQLException {
     String finalQuery = parser.parse(sql).getParsedSql();
     assertEquals(expectedSql, finalQuery);
@@ -72,7 +72,7 @@ public class QuarkTestUtil {
   public static void checkSqlParsing(String sql, Properties info, String expectedSql,
       SqlDialect dialect)
       throws QuarkException, SqlParseException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     SqlParser sqlParser = parser.getSqlParser(sql);
     SqlNode sqlNode = sqlParser.parseQuery();
     String finalQuery = sqlNode.toSqlString(dialect).getSql();
@@ -84,7 +84,7 @@ public class QuarkTestUtil {
                                           ImmutableList<String> expected,
                                           ImmutableList<String> unexpected)
       throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     RelNode relNode = parser.parse(sql).getRelNode();
     String relStr = RelOptUtil.toString(relNode);
 
@@ -100,7 +100,7 @@ public class QuarkTestUtil {
   }
 
   public static void checkParsedRelString(String sql,
-                                          Parser parser,
+                                          SqlQueryParser parser,
                                           ImmutableList<String> expected,
                                           ImmutableList<String> unexpected)
       throws QuarkException, SQLException {

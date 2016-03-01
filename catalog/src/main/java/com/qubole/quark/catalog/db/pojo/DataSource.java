@@ -89,7 +89,7 @@ public class DataSource {
     return dsSetId;
   }
 
-  public void setDsSetId(int dsSetId) {
+  public void setDsSetId(long dsSetId) {
     this.dsSetId = dsSetId;
   }
 

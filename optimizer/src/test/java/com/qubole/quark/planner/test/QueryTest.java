@@ -15,6 +15,7 @@
 
 package com.qubole.quark.planner.test;
 
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.TestFactory;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.schema.Table;
@@ -28,7 +29,6 @@ import com.qubole.quark.QuarkException;
 import com.qubole.quark.planner.QuarkColumn;
 import com.qubole.quark.planner.QuarkSchema;
 import com.qubole.quark.planner.QuarkTable;
-import com.qubole.quark.planner.Parser;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 
 import org.slf4j.Logger;
@@ -114,7 +114,7 @@ public class QueryTest {
 
   @Test
   public void testParse() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     RelNode relNode = parser.parse("select * from simple").getRelNode();
     List<String> usedTables = parser.getTables(relNode);
 
@@ -123,9 +123,9 @@ public class QueryTest {
 
   @Test
   public void testFilter() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
 
-    Parser.ParserResult result =
+    SqlQueryParser.SqlQueryParserResult result =
         parser.parse("select count(*) from test.many_columns where many_columns.j > 100");
     List<String> usedTables = parser.getTables(result.getRelNode());
     assertThat(usedTables).contains("TEST.MANY_COLUMNS");
@@ -138,9 +138,9 @@ public class QueryTest {
 
   @Test
   public void testTwoFilter() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
 
-    Parser.ParserResult result =
+    SqlQueryParser.SqlQueryParserResult result =
         parser.parse("select count(*) from test.many_columns where " +
             "test.many_columns.j > 100 and test.many_columns.i = 10");
 
@@ -156,7 +156,7 @@ public class QueryTest {
 
   @Test
   public void testSyntaxError() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     try {
       parser.parse("select count(*) test.many_columns where " +
           "test.many_columns.j > 100 and test.many_columns.i = 10");
@@ -168,7 +168,7 @@ public class QueryTest {
 
   @Test
   public void testSemanticError() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
+    SqlQueryParser parser = new SqlQueryParser(info);
     try {
       parser.parse("select count(*) from test.many_colum where " +
           "test.many_columns.j > 100 and test.many_columns.i = 10");

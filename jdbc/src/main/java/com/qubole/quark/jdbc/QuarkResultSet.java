@@ -1,28 +1,33 @@
 /*
- * Copyright (c) 2015. Qubole Inc
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- *    limitations under the License.
+ * limitations under the License.
  */
 
 package com.qubole.quark.jdbc;
 
 import org.apache.calcite.avatica.AvaticaResultSet;
+import org.apache.calcite.avatica.AvaticaResultSetMetaData;
 import org.apache.calcite.avatica.AvaticaStatement;
 import org.apache.calcite.avatica.ColumnMetaData;
 import org.apache.calcite.avatica.Handler;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.util.Cursor;
+import org.apache.calcite.jdbc.CalcitePrepare;
 import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.linq4j.Linq4j;
+import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.runtime.ArrayEnumeratorCursor;
 import org.apache.calcite.runtime.ObjectEnumeratorCursor;
 
@@ -74,8 +79,20 @@ public class QuarkResultSet extends AvaticaResultSet {
       columnMetaDataList =
           ImmutableList.of(ColumnMetaData.dummy(elementType, false));
     }
-    final Cursor cursor = this.createCursor(elementType, iterable);
-    return this.execute2(cursor, columnMetaDataList);
+    final CalcitePrepare.CalciteSignature signature =
+        (CalcitePrepare.CalciteSignature) this.signature;
+    final CalcitePrepare.CalciteSignature<Object> newSignature =
+        new CalcitePrepare.CalciteSignature<>(signature.sql,
+            signature.parameters, signature.internalParameters,
+            signature.rowType, columnMetaDataList, Meta.CursorFactory.ARRAY,
+            ImmutableList.<RelCollation>of(), -1, null);
+    ResultSetMetaData subResultSetMetaData =
+        new AvaticaResultSetMetaData(statement, null, newSignature);
+    final QuarkResultSet resultSet =
+        new QuarkResultSet(statement, signature, subResultSetMetaData,
+            localCalendar.getTimeZone(), new Meta.Frame(0, true, iterable));
+    final Cursor cursor = resultSet.createCursor(elementType, iterable);
+    return resultSet.execute2(cursor, columnMetaDataList);
   }
 
   private Cursor createCursor(ColumnMetaData.AvaticaType elementType,

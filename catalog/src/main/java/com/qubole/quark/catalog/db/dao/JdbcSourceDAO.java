@@ -15,22 +15,62 @@
 
 package com.qubole.quark.catalog.db.dao;
 
+import com.qubole.quark.catalog.db.encryption.MysqlAES;
 import com.qubole.quark.catalog.db.mapper.JdbcSourceMapper;
 import com.qubole.quark.catalog.db.pojo.JdbcSource;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.Transaction;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
  * DAO for {@link JdbcSource}
  */
 @RegisterMapper(JdbcSourceMapper.class)
-public interface JdbcSourceDAO {
+public abstract class JdbcSourceDAO {
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
       + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
       + "where ds.ds_set_id = :ds_set_id")
-  List<JdbcSource> findByDSSetId(@Bind("ds_set_id") long dsSetId);
+  public abstract List<JdbcSource> findByDSSetId(@Bind("ds_set_id") long dsSetId);
+
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
+      + "where ds.id = :id")
+  public abstract JdbcSource find(@Bind("id") int id);
+
+  @SqlUpdate("insert into jdbc_sources(id, username, password) values(:id, :username, :password)")
+  abstract void insert(@Bind("id") long id, @Bind("username") String username,
+      @Bind("password") String password);
+
+  @GetGeneratedKeys
+  @SqlUpdate("update jdbc_sources set username = :j.username,"
+      + " password = :j.password where id = :j.id")
+  protected abstract int updateJdbc(@BindBean("j") JdbcSource source);
+
+  @SqlUpdate("delete from jdbc_sources where id = :id")
+  public abstract void delete(@Bind("id") int id);
+
+  @Transaction
+  public int update(JdbcSource source, DataSourceDAO dao, String key) {
+    if (key != null) {
+      try {
+        MysqlAES mysqlAES = MysqlAES.getInstance();
+        mysqlAES.setKey(key);
+        source.setUrl(mysqlAES.convertToDatabaseColumn(source.getUrl()));
+        source.setUsername(mysqlAES.convertToDatabaseColumn(source.getUsername()));
+        source.setPassword(mysqlAES.convertToDatabaseColumn(source.getPassword()));
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    updateJdbc(source);
+    return dao.update(source);
+  }
 }

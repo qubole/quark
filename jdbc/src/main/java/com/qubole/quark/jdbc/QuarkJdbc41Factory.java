@@ -102,9 +102,6 @@ public class QuarkJdbc41Factory extends QuarkJdbcFactory {
                                        Meta.Frame firstFrame) {
     final ResultSetMetaData metaData =
         newResultSetMetaData(statement, signature);
-    /* This throws exception
-    final CalcitePrepare.CalciteSignature calciteSignature =
-      (CalcitePrepare.CalciteSignature) signature;*/
     return new QuarkResultSet(statement, signature, metaData, timeZone,
         firstFrame);
   }

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.QuarkException;
-import com.qubole.quark.planner.Parser;
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 
 import org.junit.BeforeClass;
@@ -37,9 +37,9 @@ import java.util.Properties;
  */
 @RunWith(Enclosed.class)
 public class PartialCubeTest {
-  private static Parser parser;
+  private static SqlQueryParser parser;
 
-  protected static Parser getParser(String filter) throws JsonProcessingException, QuarkException {
+  protected static SqlQueryParser getParser(String filter) throws JsonProcessingException, QuarkException {
     Properties info = new Properties();
     info.put("unitTestMode", "true");
     info.put("schemaFactory", "com.qubole.quark.planner.test.PartialCubeSchemaFactory");
@@ -49,7 +49,7 @@ public class PartialCubeTest {
 
     info.put("defaultSchema", mapper.writeValueAsString(defaultSchema));
     info.put("filter", filter);
-    return new Parser(info);
+    return new SqlQueryParser(info);
   }
 
   public static class SingleDayFilter {
