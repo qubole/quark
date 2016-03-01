@@ -19,11 +19,11 @@
     <parent>
         <artifactId>quark-parent</artifactId>
         <groupId>com.qubole</groupId>
-        <version>4.3.1</version>
+        <version>4.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>quark-optimizer</artifactId>
-    <version>4.3.1</version>
+    <version>4.4.0-SNAPSHOT</version>
     <name>Quark Optimizer</name>
 
     <properties>
