@@ -54,6 +54,8 @@ public class RuleSets {
       ImmutableList.of(
           AggStarRule.INSTANCE,
           AggStarRule.INSTANCE2,
+          FilterAggStarRule.INSTANCE,
+          FilterAggStarRule.INSTANCE2,
           TableScanRule.INSTANCE,
           COMMUTE
               ? JoinAssociateRule.INSTANCE

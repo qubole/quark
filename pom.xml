@@ -20,7 +20,7 @@
 
     <groupId>com.qubole</groupId>
     <artifactId>quark-parent</artifactId>
-    <version>4.2.1-SNAPSHOT</version>
+    <version>4.4.0-SNAPSHOT</version>
     <name>Quark</name>
 
     <description>
@@ -63,7 +63,7 @@
         <joda.time.version>2.7</joda.time.version>
         <jackson.asl.version>1.9.13</jackson.asl.version>
         <jackson.version>2.4.0</jackson.version>
-        <calcite.version>1.5.0-qds-r8</calcite.version>
+        <calcite.version>1.5.0-qds-r10</calcite.version>
         <assertj.version>2.3.0</assertj.version>
         <!-- check if there is a better way -->
         <project.rootdir>${basedir}</project.rootdir>

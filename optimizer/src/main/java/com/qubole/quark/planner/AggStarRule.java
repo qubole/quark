@@ -108,6 +108,9 @@ public class AggStarRule extends RelOptRule {
     final RelOptCluster cluster = scan.getCluster();
     final RelOptTable table = scan.getTable();
     final RelOptLattice lattice = call.getPlanner().getLattice(table);
+    if (lattice.lattice.filter != null) {
+      return;
+    }
     final List<Lattice.Measure> measures =
         lattice.lattice.toMeasures(aggregate.getAggCallList());
     final Pair<CalciteSchema.TableEntry, TileKey> pair =
