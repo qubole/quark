@@ -18,36 +18,27 @@
 
 package com.qubole.quark.jdbc;
 
-import org.apache.calcite.avatica.DriverVersion;
-
 /**
- * QuarkDriver for Quark thin client.
+ * Utility for Quark thin clients.
  */
-public class QuarkDriver extends org.apache.calcite.avatica.remote.Driver {
+public final class ThinClientUtil {
+  private static final String DEFAULT_SERIALIZATION = "PROTOBUF";
 
-  public static final String CONNECT_STRING_PREFIX = "jdbc:quark:thin:";
+  private ThinClientUtil() {}
 
-  static {
-    new QuarkDriver().register();
+  public static String getConnectionUrl(String hostname, int port) {
+    return getConnectionUrl("http", hostname, port);
   }
 
-  public QuarkDriver() {
-    super();
+  public static String getConnectionUrl(String protocol, String hostname, int port) {
+    return getConnectionUrl(protocol, hostname, port, DEFAULT_SERIALIZATION);
   }
 
-  @Override
-  protected DriverVersion createDriverVersion() {
-    return DriverVersion.load(
-        QuarkDriver.class,
-        "org-apache-calcite-jdbc.properties",
-        "Quark Thin Client JDBC QuarkDriver",
-        "unknown version",
-        "Quark",
-        "unknown version");
-  }
-
-  @Override
-  protected String getConnectStringPrefix() {
-    return CONNECT_STRING_PREFIX;
+  public static String getConnectionUrl(String protocol,
+                                        String hostname,
+                                        int port,
+                                        String serialization) {
+    String urlFmt = QuarkDriver.CONNECT_STRING_PREFIX + "url=%s://%s:%s;serialization=%s";
+    return String.format(urlFmt, protocol, hostname, port, serialization);
   }
 }

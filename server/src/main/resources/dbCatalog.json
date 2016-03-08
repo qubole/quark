@@ -1,0 +1,3 @@
+{
+  "dbCredentials" : "{\"url\" : \"jdbc:h2:mem:DbTpcds;DB_CLOSE_DELAY=-1\", \"username\" : \"sa\", \"password\" : \"\", \"encrypt_key\" : \"key\" }"
+}

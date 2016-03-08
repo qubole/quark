@@ -20,7 +20,10 @@ limitations under the License.
 -->
 <suppressions>
   <!-- Add files here on which checkstyle needs to be suppressed. -->
-
-<suppress checks=".*" files="src[/\\]test[/\\]java[/\\]"/>
-<suppress checks="Header" files="jdbc/src/main/java/com/qubole/quark/jdbc/QuarkResultSet.java"/>
+  <suppress checks=".*" files="src[/\\]test[/\\]java[/\\]"/>
+  <suppress checks="Header" files="fatjdbc/src/main/java/com/qubole/quark/fatjdbc/QuarkResultSet.java"/>
+  <suppress checks="Header" files="server/src/main/java/com/qubole/quark/server/Main.java"/>
+  <suppress checks="Header" files="server/src/main/java/com/qubole/quark/server/QuarkMetaFactoryImpl.java"/>
+  <suppress checks="Header" files="jdbc/src/main/java/com/qubole/quark/jdbc/QuarkDriver.java"/>
+  <suppress checks="Header" files="jdbc/src/main/java/com/qubole/quark/jdbc/ThinClientUtil.java"/>
 </suppressions>
