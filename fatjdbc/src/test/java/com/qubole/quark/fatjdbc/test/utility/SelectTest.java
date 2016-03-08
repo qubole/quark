@@ -72,7 +72,7 @@ public abstract class SelectTest {
   public void testSimpleSelect() throws SQLException, ClassNotFoundException {
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
 
     Statement statement = connection.createStatement();
     ResultSet rows =

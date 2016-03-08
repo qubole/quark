@@ -83,7 +83,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetCatalogs() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
 
     ResultSet catalogs =
         connection.getMetaData().getCatalogs();
@@ -105,7 +105,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetSchemas() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
 
     ResultSet schemas =
         connection.getMetaData().getSchemas();
@@ -130,7 +130,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetTables() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
 
     ResultSet tables =
         connection.getMetaData().getTables(null, null, null, null);
@@ -151,7 +151,7 @@ public abstract class MetaDataTest {
   @Test
   public void testSearchTable() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
 
     ResultSet tables =
         connection.getMetaData().getTables(null, null, "SIMPLE", null);
@@ -172,7 +172,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetColumns() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
 
     ResultSet columns =
         connection.getMetaData().getColumns(null, "PUBLIC", "SIMPLE", null);

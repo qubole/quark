@@ -60,7 +60,7 @@ public class ConnectionTest {
         testName + ".json");
     java.nio.file.Path resPath = java.nio.file.Paths.get(url.toURI());
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat" + resPath.toString(), props);
+        DriverManager.getConnection("jdbc:quark:fat:" + resPath.toString(), props);
 
     Statement statement = connection.createStatement();
     ResultSet rows =

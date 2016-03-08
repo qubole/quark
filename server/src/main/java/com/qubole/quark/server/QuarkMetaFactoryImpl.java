@@ -38,7 +38,7 @@ import java.util.Properties;
  */
 public class QuarkMetaFactoryImpl implements Meta.Factory {
   protected static final Log LOG = LogFactory.getLog(Main.class);
-  public static CatalogDetail catalogDetail;
+  public static ServerConfig serverConfig;
   // invoked via reflection
   public QuarkMetaFactoryImpl() {
     super();
@@ -46,26 +46,20 @@ public class QuarkMetaFactoryImpl implements Meta.Factory {
 
   @Override
   public Meta create(List<String> args) {
-    Properties props = new Properties();
-    String url = "jdbc:quark:fat";
+    String url = "jdbc:quark:fat:";
+
     try {
       if (args.size() == 1) {
         String filePath = args.get(0);
         ObjectMapper objectMapper = new ObjectMapper();
-        catalogDetail = objectMapper.readValue(new File(filePath), CatalogDetail.class);
+        serverConfig = objectMapper.readValue(new File(filePath), ServerConfig.class);
 
-        // If dbCredentials are not present, than json Catalog is present in file
-        if (catalogDetail.dbCredentials == null) {
-          url = url + filePath;
-        } else if (catalogDetail.dbCredentials != null) {
-          props.put("dbCredentials", catalogDetail.dbCredentials);
-        }
-
+        url = url + filePath;
       } else {
         throw new RuntimeException(
             "1 argument expected. Received " + Arrays.toString(args.toArray()));
       }
-      return new JdbcMeta(url, props);
+      return new JdbcMeta(url, new Properties());
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }

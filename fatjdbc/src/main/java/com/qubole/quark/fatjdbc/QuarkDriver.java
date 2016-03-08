@@ -26,7 +26,9 @@ import org.apache.calcite.avatica.UnregisteredDriver;
 import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.jdbc.CalciteRootSchema;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qubole.quark.fatjdbc.impl.QuarkHandler;
+import com.qubole.quark.fatjdbc.utility.CatalogDetail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,10 +43,10 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Main class of Apache Drill JDBC driver.
+ * Main class of Quark JDBC driver.
  */
 public class QuarkDriver extends UnregisteredDriver {
-  public static final String CONNECT_STRING_PREFIX = "jdbc:quark:fat";
+  public static final String CONNECT_STRING_PREFIX = "jdbc:quark:fat:";
 
   static {
     new QuarkDriver().register();
@@ -114,21 +116,29 @@ public class QuarkDriver extends UnregisteredDriver {
       return null;
     }
 
-    if (info.getProperty("dbCredentials") == null) {
-      info.setProperty("schemaFactory", getJsonSchemaFactoryPath());
-    } else {
-      info.setProperty("schemaFactory", getDbSchemaFactoryPath());
-    }
-
     if (info.getProperty("model") == null && info.getProperty("dbCredentials") == null) {
       final String prefix = getConnectStringPrefix();
       final String urlSuffix = url.substring(prefix.length());
       try {
         byte[] encoded = Files.readAllBytes(Paths.get(urlSuffix));
-        info.setProperty("model", new String(encoded, StandardCharsets.UTF_8));
+        ObjectMapper objectMapper = new ObjectMapper();
+        CatalogDetail catalogDetail = objectMapper.readValue(encoded, CatalogDetail.class);
+
+        if (catalogDetail.dbCredentials != null) {
+          info.put("dbCredentials",
+              objectMapper.writeValueAsString(catalogDetail.dbCredentials));
+        } else {
+          info.setProperty("model", new String(encoded, StandardCharsets.UTF_8));
+        }
       } catch (IOException e) {
         throw new SQLException(e.getMessage());
       }
+    }
+
+    if (info.getProperty("dbCredentials") == null) {
+      info.setProperty("schemaFactory", getJsonSchemaFactoryPath());
+    } else {
+      info.setProperty("schemaFactory", getDbSchemaFactoryPath());
     }
 
     return super.connect(url, info);

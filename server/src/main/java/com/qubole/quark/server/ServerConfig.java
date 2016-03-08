@@ -20,17 +20,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by adeshr on 3/2/16.
+ * POJO for server specific configurations.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CatalogDetail {
-  public final String dbCredentials;
+public class ServerConfig {
   public final int port;
 
   @JsonCreator
-  public CatalogDetail(@JsonProperty("dbCredentials") String dbCredentials,
-                       @JsonProperty("port") int port) {
-    this.dbCredentials = dbCredentials;
+  public ServerConfig(@JsonProperty("port") int port) {
     this.port = port;
   }
 }
