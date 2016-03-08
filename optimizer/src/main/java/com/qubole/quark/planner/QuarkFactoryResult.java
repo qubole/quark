@@ -15,6 +15,8 @@
 
 package com.qubole.quark.planner;
 
+import com.qubole.quark.QuarkException;
+
 import java.util.List;
 import java.util.Properties;
 
@@ -24,10 +26,15 @@ import java.util.Properties;
 public class QuarkFactoryResult {
   public final List<DataSourceSchema> dataSourceSchemas;
   public final MetadataSchema metadataSchema;
+  public final DataSourceSchema defaultSchema;
 
   public QuarkFactoryResult(List<DataSourceSchema> dataSourceSchemas, MetadataSchema
-      metadataSchema) {
+      metadataSchema, DataSourceSchema defaultSchema) throws QuarkException {
+    if (!dataSourceSchemas.isEmpty() && defaultSchema == null) {
+      throw new QuarkException("Default Schema is required");
+    }
     this.dataSourceSchemas = dataSourceSchemas;
+    this.defaultSchema = defaultSchema;
     if (metadataSchema != null) {
       this.metadataSchema = metadataSchema;
     } else {

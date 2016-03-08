@@ -1,4 +1,3 @@
-insert into ds_sets(name, default_datasource_id) values('tpcds', 1);
 insert into data_sources(name, type, url, ds_set_id, datasource_type) values ('CANONICAL', 'H2', '087B44B33A051FD17A7EF8D204093446', 1, 'JDBC');
 insert into data_sources(name, type, url, ds_set_id, datasource_type) values ('CUBES', 'H2', '087B44B33A051FD17A7EF8D204093446', 1, 'JDBC');
 insert into data_sources(name, type, url, ds_set_id, datasource_type) values ('VIEWS', 'H2', '087B44B33A051FD17A7EF8D204093446', 1, 'JDBC');

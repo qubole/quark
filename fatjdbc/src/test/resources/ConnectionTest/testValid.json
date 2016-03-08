@@ -1,4 +1,5 @@
 {
+  "version":"2.0",
   "dataSources":[
     {
       "type":"H2",
@@ -9,5 +10,6 @@
       "default":"true",
       "name":"H2"
     }
-  ]
+  ],
+  "defaultDataSource":0
 }

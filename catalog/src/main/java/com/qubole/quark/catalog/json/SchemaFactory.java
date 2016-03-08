@@ -27,6 +27,7 @@ import com.qubole.quark.planner.QuarkFactoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -72,10 +73,14 @@ public class SchemaFactory implements QuarkFactory {
         schemaList.add(secondary);
       }
 
-      return new QuarkFactoryResult(schemaList.build(), rootSchema.relSchema);
+      List<DataSourceSchema> schemas = schemaList.build();
+      return new QuarkFactoryResult(schemas, rootSchema.relSchema,
+          rootSchema.defaultDataSource != null ? schemas.get(rootSchema.defaultDataSource)
+              : null
+      );
     } catch (java.io.IOException e) {
       LOG.error("Unexpected Exception during create", e);
-      throw new QuarkException(e.getCause());
+      throw new QuarkException(e);
     }
   }
 }

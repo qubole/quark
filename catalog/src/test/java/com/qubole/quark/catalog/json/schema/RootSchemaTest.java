@@ -37,6 +37,7 @@ public class RootSchemaTest {
   public void testOneDataSource() throws IOException {
     String jsonTestString =
         "{" +
+            "\"version\":\"2.0\"," +
             "\"dataSources\":" +
             " [" +
             "   {" +
@@ -45,10 +46,10 @@ public class RootSchemaTest {
             "     \"factory\":\"com.qubole.quark.plugins.jdbc.JdbcFactory\"," +
             "     \"username\":\"root\"," +
             "     \"password\":\"ABCDEF\"," +
-            "     \"default\":\"true\"," +
             "     \"name\":\"qubole_default\"" +
             "   }" +
-            " ]" +
+            " ]," +
+            " \"defaultDataSource\":1" +
             "}";
 
 
@@ -63,6 +64,7 @@ public class RootSchemaTest {
   public void testOnePartition() throws IOException {
     String jsonTestString =
         "{" +
+            "  \"version\":\"2.0\"," +
             "  \"relSchema\":{" +
             "    \"views\" : [" +
             "      {" +

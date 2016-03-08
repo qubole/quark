@@ -147,66 +147,64 @@ public class SqlQueryParser implements Parser {
       SqlQueryParserResult result = new SqlQueryParserResult(stripNamespace(sql, dataSource),
           dataSource, kind, null, false);
       RelNode relNode = parseInternal(sql);
-      if (context.getDefaultDataSource() != null) {
-        final RelVisitor relVisitor = new RelVisitor() {
-          @Override
-          public void visit(RelNode node, int ordinal, RelNode parent) {
-            if (node instanceof QuarkViewScan) {
-              visitQuarkViewScan((QuarkViewScan) node);
-            } else if (node instanceof QuarkTileScan) {
-              visitQuarkTileScan((QuarkTileScan) node);
-            } else if (node instanceof TableScan) {
-              visitNonQuarkScan((TableScan) node);
+      final RelVisitor relVisitor = new RelVisitor() {
+        @Override
+        public void visit(RelNode node, int ordinal, RelNode parent) {
+          if (node instanceof QuarkViewScan) {
+            visitQuarkViewScan((QuarkViewScan) node);
+          } else if (node instanceof QuarkTileScan) {
+            visitQuarkTileScan((QuarkTileScan) node);
+          } else if (node instanceof TableScan) {
+            visitNonQuarkScan((TableScan) node);
+          }
+          super.visit(node, ordinal, parent);
+        }
+
+        private void visitNonQuarkScan(TableScan node) {
+          foundNonQuarkScan.set(true);
+          final String schemaName = node.getTable().getQualifiedName().get(0);
+          CalciteSchema schema =
+              CalciteSchema.from(getRootSchma()).getSubSchema(schemaName, false);
+          dsBuilder.addAll(getDrivers(schema));
+        }
+
+        private void visitQuarkTileScan(QuarkTileScan node) {
+          QuarkTile quarkTile = node.getQuarkTile();
+          CalciteCatalogReader calciteCatalogReader = new CalciteCatalogReader(
+              CalciteSchema.from(getRootSchma()),
+              false,
+              context.getDefaultSchemaPath(),
+              getTypeFactory());
+          CalciteSchema tileSchema = calciteCatalogReader.getTable(quarkTile.tableName)
+              .unwrap(CalciteSchema.class);
+          dsBuilder.addAll(getDrivers(tileSchema));
+        }
+
+        private void visitQuarkViewScan(QuarkViewScan node) {
+          QuarkTable table = node.getQuarkTable();
+          if (table instanceof QuarkViewTable) {
+            final CalciteSchema tableSchema = ((QuarkViewTable) table).getBackupTableSchema();
+            dsBuilder.addAll(getDrivers(tableSchema));
+          }
+        }
+
+        private ImmutableSet<DataSourceSchema> getDrivers(CalciteSchema tableSchema) {
+          final ImmutableSet.Builder<DataSourceSchema> dsBuilder =
+              new ImmutableSet.Builder<>();
+          SchemaPlus tableSchemaPlus = tableSchema.plus();
+          while (tableSchemaPlus != null) {
+            Schema schema = CalciteSchema.from(tableSchemaPlus).schema;
+            if (schema instanceof DataSourceSchema) {
+              dsBuilder.add((DataSourceSchema) schema);
             }
-            super.visit(node, ordinal, parent);
+            tableSchemaPlus = tableSchemaPlus.getParentSchema();
           }
+          return dsBuilder.build();
+        }
 
-          private void visitNonQuarkScan(TableScan node) {
-            foundNonQuarkScan.set(true);
-            final String schemaName = node.getTable().getQualifiedName().get(0);
-            CalciteSchema schema =
-                CalciteSchema.from(getRootSchma()).getSubSchema(schemaName, false);
-            dsBuilder.addAll(getDrivers(schema));
-          }
+      };
 
-          private void visitQuarkTileScan(QuarkTileScan node) {
-            QuarkTile quarkTile = node.getQuarkTile();
-            CalciteCatalogReader calciteCatalogReader = new CalciteCatalogReader(
-                CalciteSchema.from(getRootSchma()),
-                false,
-                context.getDefaultSchemaPath(),
-                getTypeFactory());
-            CalciteSchema tileSchema = calciteCatalogReader.getTable(quarkTile.tableName)
-                .unwrap(CalciteSchema.class);
-            dsBuilder.addAll(getDrivers(tileSchema));
-          }
-
-          private void visitQuarkViewScan(QuarkViewScan node) {
-            QuarkTable table = node.getQuarkTable();
-            if (table instanceof QuarkViewTable) {
-              final CalciteSchema tableSchema = ((QuarkViewTable) table).getBackupTableSchema();
-              dsBuilder.addAll(getDrivers(tableSchema));
-            }
-          }
-
-          private ImmutableSet<DataSourceSchema> getDrivers(CalciteSchema tableSchema) {
-            final ImmutableSet.Builder<DataSourceSchema> dsBuilder =
-                new ImmutableSet.Builder<>();
-            SchemaPlus tableSchemaPlus = tableSchema.plus();
-            while (tableSchemaPlus != null) {
-              Schema schema = CalciteSchema.from(tableSchemaPlus).schema;
-              if (schema instanceof DataSourceSchema) {
-                dsBuilder.add((DataSourceSchema) schema);
-              }
-              tableSchemaPlus = tableSchemaPlus.getParentSchema();
-            }
-            return dsBuilder.build();
-          }
-
-        };
-
-        relVisitor.go(relNode);
-      }
+      relVisitor.go(relNode);
 
       ImmutableSet<DataSourceSchema> dataSources = dsBuilder.build();
 
@@ -243,7 +241,7 @@ public class SqlQueryParser implements Parser {
     } catch (SQLException e) {
       throw e;
     } catch (Exception e) {
-      throw new SQLException(e.getMessage(), e.getCause());
+      throw new SQLException(e);
     }
   }
 

@@ -49,6 +49,6 @@ public class DSSetTest extends DbUtility {
   public void testGet() {
     List<DSSet> dsSetList = dsSetDAO.findAll();
     assertThat(dsSetList.size(), equalTo(1));
-    assertThat(dsSetList.get(0).getName(), equalTo("tpcds"));
+    assertThat(dsSetList.get(0).getName(), equalTo("quark_default"));
   }
 }

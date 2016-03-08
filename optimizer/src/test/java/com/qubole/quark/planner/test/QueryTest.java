@@ -15,6 +15,7 @@
 
 package com.qubole.quark.planner.test;
 
+import com.google.common.collect.ImmutableList;
 import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.TestFactory;
 import org.apache.calcite.rel.RelNode;
@@ -78,15 +79,13 @@ public class QueryTest {
     }
   }
 
-  public static class SchemaFactory implements TestFactory {
+  public static class SchemaFactory extends TestFactory {
+    public SchemaFactory() {
+      super(new QueryTestSchema("TEST"));
+    }
     @Override
     public List<QuarkSchema> create(Properties info) throws QuarkException {
-      try {
-        return Collections.singletonList((QuarkSchema) new QueryTestSchema("TEST"));
-      } catch (Exception c) {
-        log.error(c.getMessage());
-        return null;
-      }
+      return ImmutableList.of(this.getDefaultSchema());
     }
   }
 

@@ -19,6 +19,7 @@ import com.qubole.quark.jdbc.ThinClientUtil;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -46,7 +47,7 @@ public class MigrationTest {
     new Thread(main).start();
   }
 
-  @Ignore
+  @Test
   public void testMigration() throws SQLException, ClassNotFoundException, InterruptedException,
       URISyntaxException, IOException {
 
@@ -64,7 +65,8 @@ public class MigrationTest {
 
     for (int i=0; i<2; i++) {
       try {
-        connection = DriverManager.getConnection(ThinClientUtil.getConnectionUrl("0.0.0.0", 8765), new Properties());
+        connection = DriverManager.getConnection(ThinClientUtil.getConnectionUrl("0.0.0.0", 8800),
+            new Properties());
       } catch (RuntimeException e) {
         if (e.getMessage().contains("Connection refused")) {
           Thread.sleep(2000);
@@ -78,6 +80,6 @@ public class MigrationTest {
     stmt = connection.createStatement();
     ResultSet version = stmt.executeQuery("select count(*) from \"schema_version\"");
     version.next();
-    assertThat(version.getInt(1), equalTo(12));
+    assertThat(version.getInt(1), equalTo(13));
   }
 }

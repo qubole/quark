@@ -77,7 +77,7 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
     try {
       sqlQueryParser = new SqlQueryParser(info);
     } catch (QuarkException e) {
-      throw new SQLException(e.getCause());
+      throw new SQLException(e);
     }
   }
 

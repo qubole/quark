@@ -1,4 +1,5 @@
 {
+  "version":"2.0",
   "dataSources":[
     {
       "type":"H2",
@@ -6,7 +7,6 @@
       "factory":"com.qubole.quark.plugins.jdbc.JdbcFactory",
       "username":"sa",
       "password":"",
-      "default":"true",
       "name":"H2"
     },
     {
@@ -15,10 +15,10 @@
       "factory":"com.qubole.quark.plugins.jdbc.JdbcFactory",
       "username":"sa",
       "password":"",
-      "default":"true",
       "name":"VIEWS"
     }
   ],
+  "defaultDataSource":0,
   "relSchema":{
     "views":[
       {

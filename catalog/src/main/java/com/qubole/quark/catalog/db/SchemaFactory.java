@@ -109,23 +109,30 @@ public class SchemaFactory implements QuarkFactory {
       List<JdbcSource> jdbcSources = jdbcSourceDAO.findByDSSetId(dsSetId);
       List<QuboleDbSource> quboleDbSources = quboleDbSourceDAO.findByDSSetId(dsSetId);
 
+      List<DataSource> dataSources = new ArrayList<>();
+      dataSources.addAll(jdbcSources);
+      dataSources.addAll(quboleDbSources);
+
       ImmutableList.Builder<com.qubole.quark.planner.DataSourceSchema> schemaList =
           new ImmutableList.Builder<>();
 
-      for (DataSource dataSource : jdbcSources) {
-        schemaList.add(new DataSourceSchema(dataSource.getProperties(defaultDataSourceId)));
-      }
+      com.qubole.quark.planner.DataSourceSchema defaultSchema = null;
 
-      for (DataSource dataSource : quboleDbSources) {
-        schemaList.add(new DataSourceSchema(dataSource.getProperties(defaultDataSourceId)));
+      for (DataSource dataSource : dataSources) {
+        com.qubole.quark.planner.DataSourceSchema dataSourceSchema = new DataSourceSchema(
+            dataSource.getProperties(defaultDataSourceId));
+        if (dataSource.getId() == defaultDataSourceId) {
+          defaultSchema = dataSourceSchema;
+        }
+        schemaList.add(dataSourceSchema);
       }
 
       RelSchema relSchema = getRelSchema(viewDAO, cubeDAO, measureDAO, dimensionDAO, dsSetId);
 
-      return new QuarkFactoryResult(schemaList.build(), relSchema);
+      return new QuarkFactoryResult(schemaList.build(), relSchema, defaultSchema);
     } catch (Exception se) {
       LOG.error(se.getMessage());
-      throw new QuarkException(se.getCause());
+      throw new QuarkException(se);
     }
   }
 
