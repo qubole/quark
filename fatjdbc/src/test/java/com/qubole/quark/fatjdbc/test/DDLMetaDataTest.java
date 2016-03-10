@@ -106,7 +106,7 @@ public class DDLMetaDataTest {
     String sql = "CREATE DATASOURCE (name, type, url, ds_set_id, username, datasource_type)" +
         " values(\"H2_new\", \"H2\", \"" + inputUrl + "\", 1, \"sa\", \"JDBC\")";
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     List<String> catalogList1 = new ArrayList<>();
     List<String> schemaList1 = new ArrayList<>();
     getSchema(connection, catalogList1, schemaList1);
@@ -131,7 +131,7 @@ public class DDLMetaDataTest {
     String sql = "CREATE DATASOURCE (name, type, url, ds_set_id, username, datasource_type)" +
         " values(\"H2_new\", \"H2\", \"" + inputUrl + "\", \"1\", \"sa\", \"JDBC\")";
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     List<String> catalogList1 = new ArrayList<>();
     List<String> schemaList1 = new ArrayList<>();
     getSchema(connection, catalogList1, schemaList1);
@@ -155,7 +155,7 @@ public class DDLMetaDataTest {
   public void testAlterJdBc() throws SQLException {
     String sql = "ALTER DATASOURCE SET name = \"H2_test\" where id = 1";
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     connection.createStatement().executeUpdate(sql);
     List<String> catalogList = new ArrayList<>();
     List<String> schemaList = new ArrayList<>();
@@ -171,7 +171,7 @@ public class DDLMetaDataTest {
     String sql1 = "CREATE DATASOURCE (name, type, url, ds_set_id, username, datasource_type)" +
         " values(\"H2_2\", \"H2\", \"" + inputUrl + "\", 1, \"sa\", \"JDBC\")";
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     List<String> catalogList1 = new ArrayList<>();
     List<String> schemaList1 = new ArrayList<>();
     getSchema(connection, catalogList1, schemaList1);
@@ -204,7 +204,7 @@ public class DDLMetaDataTest {
   public void testAlterJdBcWrongParam() throws SQLException {
     String sql = "ALTER DATASOURCE SET name = \"H2_test\" where name = 'H2'";
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     connection.createStatement().executeUpdate(sql);
     List<String> catalogList = new ArrayList<>();
     List<String> schemaList = new ArrayList<>();
@@ -219,7 +219,7 @@ public class DDLMetaDataTest {
   public void testAlterNonExistentSource() throws SQLException {
     String sql = "ALTER DATASOURCE SET name = \"H2_NonExist\" where id = 10";
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     connection.createStatement().executeUpdate(sql);
     List<String> catalogList = new ArrayList<>();
     List<String> schemaList = new ArrayList<>();
@@ -231,7 +231,7 @@ public class DDLMetaDataTest {
   @Test
   public void testDropNonExistentJdbc() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat", props);
+        DriverManager.getConnection("jdbc:quark:fat:", props);
     List<String> catalogList1 = new ArrayList<>();
     List<String> schemaList1 = new ArrayList<>();
     getSchema(connection, catalogList1, schemaList1);

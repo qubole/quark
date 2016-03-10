@@ -90,8 +90,8 @@ public final class Main implements Runnable {
       Meta meta = factory.create(Arrays.asList(args));
 
       int port = 8765;
-      if (QuarkMetaFactoryImpl.catalogDetail.port != 0) {
-        port = QuarkMetaFactoryImpl.catalogDetail.port;
+      if (QuarkMetaFactoryImpl.serverConfig.port != 0) {
+        port = QuarkMetaFactoryImpl.serverConfig.port;
       }
       LOG.debug("Listening on port " + port);
 

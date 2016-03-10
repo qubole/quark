@@ -16,7 +16,7 @@ public class MySqlTestIT {
   private static Connection getConnection() {
     try {
       Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
-      return DriverManager.getConnection("jdbc:quark:fat"
+      return DriverManager.getConnection("jdbc:quark:fat:"
               + System.getProperty("integrationTestResource") + "/mySqlModel.json",
           new Properties());
     } catch (SQLException | ClassNotFoundException e) {
