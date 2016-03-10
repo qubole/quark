@@ -23,6 +23,15 @@ import java.util.Properties;
 /**
  * Created by rajatv on 11/12/15.
  */
-public interface TestFactory {
-  List<QuarkSchema> create(Properties info) throws QuarkException;
+public abstract class TestFactory {
+  private final QuarkSchema defaultSchema;
+
+  protected TestFactory(QuarkSchema defaultSchema) {
+    this.defaultSchema = defaultSchema;
+  }
+  public abstract List<QuarkSchema> create(Properties info) throws QuarkException;
+
+  public QuarkSchema getDefaultSchema() {
+    return defaultSchema;
+  }
 }

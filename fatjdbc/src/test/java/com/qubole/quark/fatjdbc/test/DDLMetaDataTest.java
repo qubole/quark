@@ -55,7 +55,6 @@ public class DDLMetaDataTest {
             "     \"encrypt_key\":\"xyz\"" +
             "   }";
     props.put("dbCredentials", jsonTestString);
-    props.put("schemaFactory", "com.qubole.quark.catalog.db.SchemaFactory");
   }
 
   @BeforeClass
@@ -81,10 +80,10 @@ public class DDLMetaDataTest {
     final Connection dbConnection = DriverManager.getConnection(dbSchemaUrl, connInfo);
 
     Statement stmt = dbConnection.createStatement();
-    String sql = "insert into ds_sets(name, default_datasource_id) values('SelectTest', 1);"
-        + "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
+    String sql = "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
         + "('H2', 'H2', '" + url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
-        + "username, password) values(1, '" + username + "', '" + password + "');";
+        + "username, password) values(1, '" + username + "', '" + password + "');"
+        + "update ds_sets set default_datasource_id = 1 where id = 1;";
 
     stmt.execute(sql);
     stmt.close();

@@ -132,7 +132,7 @@ public abstract class QuboleDB implements Executor {
     } catch (ExecutionException | InterruptedException e) {
       LOG.error("Getting Schema metadata for " + this.endpoint
           + " failed. Error: " + e.getMessage(), e);
-      throw new QuarkException(e.getCause());
+      throw new QuarkException(e);
     }
     ImmutableMap.Builder<String, Schema> schemaBuilder = new ImmutableMap.Builder<>();
 

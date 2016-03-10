@@ -130,12 +130,14 @@ public class LayeredCubeTest {
     }
   }
 
-  public static class SchemaFactory implements TestFactory {
+  public static class SchemaFactory extends TestFactory {
+    public SchemaFactory() {
+      super(new Tpcds("TPCDS"));
+    }
     public List<QuarkSchema> create(Properties info) {
-      Tpcds tpcds = new Tpcds("TPCDS");
       CubeSchema cubeSchema = new CubeSchema();
       return new ImmutableList.Builder<QuarkSchema>()
-          .add(tpcds)
+          .add(this.getDefaultSchema())
           .add(cubeSchema).build();
     }
   }

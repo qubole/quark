@@ -43,11 +43,12 @@ public class RelToSqlConverterTest {
   private static final Logger log = LoggerFactory.getLogger(QueryTest.class);
   private static Properties info;
 
-  public static class SchemaFactory implements TestFactory {
+  public static class SchemaFactory extends TestFactory {
+    public SchemaFactory() {
+      super(new Foodmart("foodmart".toUpperCase()));
+    }
     public List<QuarkSchema> create(Properties info) {
-      return new ArrayList<QuarkSchema>() {{
-        add(new Foodmart("foodmart".toUpperCase()));
-      }};
+      return ImmutableList.of(this.getDefaultSchema());
     }
   }
 

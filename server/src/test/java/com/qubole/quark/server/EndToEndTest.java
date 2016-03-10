@@ -70,14 +70,13 @@ public abstract class EndToEndTest {
   @Test
   public void testClient() throws SQLException, ClassNotFoundException, InterruptedException {
     Class.forName("com.qubole.quark.jdbc.QuarkDriver");
-    QuarkDriver d = new QuarkDriver();
     Class.forName("org.h2.Driver");
     Connection connection = null;
 
     // Due to threading, server might not be up.
     for (int i=0; i<2; i++) {
        try {
-         connection = d.connect(ThinClientUtil.getConnectionUrl("0.0.0.0", 8765), new Properties());
+         connection = DriverManager.getConnection(ThinClientUtil.getConnectionUrl("0.0.0.0", 8765), new Properties());
        } catch (RuntimeException e) {
           if (e.getMessage().contains("Connection refused")) {
             Thread.sleep(2000);

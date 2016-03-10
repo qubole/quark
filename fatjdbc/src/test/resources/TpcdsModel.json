@@ -1,9 +1,8 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "dataSources": [
     {
       "name": "CANONICAL",
-      "default": "true",
       "password": "",
       "factory": "com.qubole.quark.plugins.jdbc.JdbcFactory",
       "type": "H2",
@@ -16,8 +15,7 @@
       "factory": "com.qubole.quark.plugins.jdbc.JdbcFactory",
       "type": "H2",
       "url": "jdbc:h2:mem:TpcdsViews;DB_CLOSE_DELAY=-1",
-      "username": "sa",
-      "default" : "false"
+      "username": "sa"
     },
     {
       "name": "CUBES",
@@ -25,10 +23,10 @@
       "factory": "com.qubole.quark.plugins.jdbc.JdbcFactory",
       "type": "H2",
       "url": "jdbc:h2:mem:TpcdsCubes;DB_CLOSE_DELAY=-1",
-      "username": "sa",
-      "default" : "false"
+      "username": "sa"
     }
   ],
+  "defaultDataSource":0,
   "relSchema": {
     "views": [
       {

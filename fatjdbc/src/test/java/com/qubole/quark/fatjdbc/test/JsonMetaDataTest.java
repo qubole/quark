@@ -34,6 +34,7 @@ public class JsonMetaDataTest extends MetaDataTest {
     props = new Properties();
     String jsonTestString =
         "{" +
+            "\"version\":\"2.0\"," +
             "\"dataSources\":" +
             " [" +
             "   {" +
@@ -45,7 +46,8 @@ public class JsonMetaDataTest extends MetaDataTest {
             "     \"default\":\"true\"," +
             "     \"name\":\"H2\"" +
             "   }" +
-            " ]" +
+            " ]," +
+            " \"defaultDataSource\":0" +
             "}";
     props.put("model", jsonTestString);
   }

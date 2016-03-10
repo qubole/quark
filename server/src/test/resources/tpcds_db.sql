@@ -1,10 +1,11 @@
-INSERT INTO `ds_sets` VALUES (1,'tpcds',1);
 INSERT INTO `data_sources` VALUES (1,'H2','C57B50F43E7DD875EB469EAB259A6920E553F7DE7DA115DD640C44545659A6E8B0AB93C9E5A76B99A17D6D9A45E6E42E',1,0,'CANONICAL','JDBC',NULL,NULL,NULL),
 (2,'H2','C57B50F43E7DD875EB469EAB259A69202424D633DAAE6B8711FAFE1BA3D1EFEBC182FDB1ADD8653EF17EF47F3B24A9F8C717530F41F320757B4AA1BFAF11C42E',1,0,'CUBES','JDBC',NULL,NULL,NULL),
 (3,'H2','C57B50F43E7DD875EB469EAB259A69200E843F21C72177830D1C00082117C5C4C182FDB1ADD8653EF17EF47F3B24A9F8C717530F41F320757B4AA1BFAF11C42E',1,0,'VIEWS','JDBC',NULL,NULL,NULL);
 INSERT INTO `jdbc_sources` VALUES (1,'C4AEED1962856B338AAB1E93E5706564','C717530F41F320757B4AA1BFAF11C42E'),
 (2,'C4AEED1962856B338AAB1E93E5706564','C717530F41F320757B4AA1BFAF11C42E'),
 (3,'C4AEED1962856B338AAB1E93E5706564','C717530F41F320757B4AA1BFAF11C42E');
+
+update ds_sets set default_datasource_id = 1 where id = 1;
 
 INSERT INTO `cubes` VALUES (1,'web_returns_cubes','Web returns',0,'select 1 from canonical.public.web_returns as w join canonical.public.item as i on w.wr_item_sk = i.i_item_sk join canonical.public.customer as c on w.wr_refunded_cdemo_sk = c.c_customer_sk join canonical.public.date_dim as dd on w.wr_returned_date_sk = dd.d_date_sk join canonical.public.customer_demographics cd on c.c_current_cdemo_sk = cd.cd_demo_sk',2,'PUBLIC','WEB_RETURNS_CUBE','GROUPING__ID',1),
 (2,'store_sales_cube','Store sales',0,'select 1 from canonical.public.store_sales as ss join canonical.public.item as i on ss.ss_item_sk = i.i_item_sk join canonical.public.customer as c on ss.ss_customer_sk = c.c_customer_sk join canonical.public.date_dim as dd on ss.ss_sold_date_sk = dd.d_date_sk join canonical.public.customer_demographics cd on ss.ss_cdemo_sk = cd.cd_demo_sk join canonical.public.promotion p on ss.ss_promo_sk = p.p_promo_sk join canonical.public.household_demographics hd on ss.ss_hdemo_sk = hd.hd_demo_sk join canonical.public.store s on ss.ss_store_sk = s.s_store_sk join canonical.public.time_dim td on ss.ss_sold_time_sk = td.t_time_sk',1,'PUBLIC','STORE_SALES_CUBE','GROUPING__ID',1),

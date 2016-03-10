@@ -30,6 +30,7 @@ public class GenericDbSelectTest extends SelectTest{
         props = new Properties();
         String jsonTestString =
                 "{" +
+                        "\"version\":\"2.0\"," +
                         "\"dataSources\":" +
                         " [" +
                         "   {" +
@@ -45,7 +46,8 @@ public class GenericDbSelectTest extends SelectTest{
                         "     \"isCaseSensitive\": \"true\"," +
                         "     \"name\":\"H2\"" +
                         "   }" +
-                        " ]" +
+                        " ]," +
+                        " \"defaultDataSource\":0" +
                         "}";
         props.put("model", jsonTestString);
     }

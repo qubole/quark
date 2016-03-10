@@ -73,6 +73,18 @@ public class ConnectionTest {
     connection.close();
 
   }
+
+  @Test
+  public void testEmptyDataSources() throws SQLException, URISyntaxException {
+    Properties props = new Properties();
+    java.net.URL url = ConnectionTest.class.getResource("/" + "ConnectionTest/" +
+        "testEmptyDataSources.json");
+    java.nio.file.Path resPath = java.nio.file.Paths.get(url.toURI());
+    Connection connection =
+        DriverManager.getConnection("jdbc:quark:fat:" + resPath.toString(), props);
+    connection.close();
+  }
+
   @Test
   public void testValid() throws SQLException, URISyntaxException {
     testValidImpl("testValid");
