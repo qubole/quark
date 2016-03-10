@@ -26,4 +26,5 @@ limitations under the License.
   <suppress checks="Header" files="server/src/main/java/com/qubole/quark/server/QuarkMetaFactoryImpl.java"/>
   <suppress checks="Header" files="jdbc/src/main/java/com/qubole/quark/jdbc/QuarkDriver.java"/>
   <suppress checks="Header" files="jdbc/src/main/java/com/qubole/quark/jdbc/ThinClientUtil.java"/>
+  <suppress checks="Header" files="fatjdbc/src/main/java/com/qubole/quark/fatjdbc/QuarkMetaImpl.java"/>
 </suppressions>
