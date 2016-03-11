@@ -23,7 +23,7 @@ public class JdbcFactoryValidationTest {
     props.put("productName", "hive");
     props.put("isCaseSensitive", "true");
     props.put("defaultSchema", "genericDbTest");
-    props.put("url", "jdbc:quark:fat:genericDbTest");
+    props.put("url", "jdbc:quark:fat:json:genericDbTest");
     props.put("username", "quark");
     props.put("password", "quark");
     factory.create(props);
@@ -33,7 +33,7 @@ public class JdbcFactoryValidationTest {
   public void testValidProps() throws QuarkException {
     Map<String, Object> props = new HashMap<>();
     props.put("type", "mysql");
-    props.put("url", "jdbc:quark:fat:test");
+    props.put("url", "jdbc:quark:fat:json:test");
     props.put("username", "quark");
     props.put("password", "quark");
     factory.create(props);
@@ -43,7 +43,7 @@ public class JdbcFactoryValidationTest {
   public void testInvalidType() throws QuarkException {
     Map<String, Object> props = new HashMap<>();
     props.put("type", "Quark");
-    props.put("url", "jdbc:quark:fat:test");
+    props.put("url", "jdbc:quark:fat:json:test");
     props.put("username", "quark");
     props.put("password", "quark");
     factory.create(props);
@@ -52,7 +52,7 @@ public class JdbcFactoryValidationTest {
   @Test(expected = IllegalArgumentException.class)
   public void testTypeNull() throws QuarkException {
     Map<String, Object> props = new HashMap<>();
-    props.put("url", "jdbc:quark:fat:test");
+    props.put("url", "jdbc:quark:fat:json:test");
     props.put("username", "quark");
     props.put("password", "quark");
     factory.create(props);
@@ -71,7 +71,7 @@ public class JdbcFactoryValidationTest {
   public void testUsernameNull() throws QuarkException {
     Map<String, Object> props = new HashMap<>();
     props.put("type", "Quark");
-    props.put("url", "jdbc:quark:fat:test");
+    props.put("url", "jdbc:quark:fat:json:test");
     props.put("username", "quark");
     props.put("password", "quark");
     factory.create(props);
@@ -81,7 +81,7 @@ public class JdbcFactoryValidationTest {
   public void testPasswordNull() throws QuarkException {
     Map<String, Object> props = new HashMap<>();
     props.put("type", "Quark");
-    props.put("url", "jdbc:quark:fat:test");
+    props.put("url", "jdbc:quark:fat:json:test");
     props.put("username", "quark");
     factory.create(props);
   }

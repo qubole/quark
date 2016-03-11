@@ -46,7 +46,7 @@ public class QuarkMetaFactoryImpl implements Meta.Factory {
 
   @Override
   public Meta create(List<String> args) {
-    String url = "jdbc:quark:fat:";
+    String url = "jdbc:quark:fat:db:";
 
     try {
       if (args.size() == 1) {

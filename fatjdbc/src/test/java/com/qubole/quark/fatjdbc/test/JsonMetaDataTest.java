@@ -56,4 +56,9 @@ public class JsonMetaDataTest extends MetaDataTest {
   public static void setUpClass()  throws Exception {
     MetaDataTest.setUpClass(h2Url);
   }
+
+  protected String getConnectionUrl() {
+    return "jdbc:quark:fat:json:";
+  }
+
 }

@@ -15,8 +15,6 @@
 
 package com.qubole.quark.catalog.db;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
 
@@ -78,21 +76,19 @@ public class SchemaFactory implements QuarkFactory {
    */
   public QuarkFactoryResult create(Properties info) throws QuarkException {
     try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.registerModule(new GuavaModule());
-      DbCredentials dbCredentials = objectMapper
-          .readValue((String) info.getProperty("dbCredentials"), DbCredentials.class);
-
       MysqlAES mysqlAES = MysqlAES.getInstance();
-      mysqlAES.setKey(dbCredentials.encryptionKey);
+      mysqlAES.setKey(info.getProperty("encryptionKey"));
 
       DBI dbi = new DBI(
-          dbCredentials.url,
-          dbCredentials.username,
-          dbCredentials.password);
+          info.getProperty("url"),
+          info.getProperty("user"),
+          info.getProperty("password"));
 
       Flyway flyway = new Flyway();
-      flyway.setDataSource(dbCredentials.url, dbCredentials.username, dbCredentials.password);
+      flyway.setDataSource(
+          info.getProperty("url"),
+          info.getProperty("user"),
+          info.getProperty("password"));
       flyway.migrate();
 
       DSSetDAO dsSetDAO = dbi.onDemand(DSSetDAO.class);

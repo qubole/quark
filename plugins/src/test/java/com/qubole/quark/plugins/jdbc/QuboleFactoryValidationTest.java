@@ -17,7 +17,7 @@ public class QuboleFactoryValidationTest {
   public void testValidHive() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
     props.put("type", "hive");
-    props.put("endpoint", "jdbc:quark:fat:test");
+    props.put("endpoint", "jdbc:quark:fat:json:test");
     props.put("token", "quark");
     QuboleFactory factory = new QuboleFactory();
     factory.create(props);
@@ -27,7 +27,7 @@ public class QuboleFactoryValidationTest {
   public void testInvalidType() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
     props.put("type", "h4");
-    props.put("endpoint", "jdbc:quark:fat:test");
+    props.put("endpoint", "jdbc:quark:fat:json:test");
     props.put("token", "quark");
     QuboleFactory factory = new QuboleFactory();
     factory.create(props);
@@ -36,7 +36,7 @@ public class QuboleFactoryValidationTest {
   @Test(expected = IllegalArgumentException.class)
   public void testTypeNull() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
-    props.put("endpoint", "jdbc:quark:fat:test");
+    props.put("endpoint", "jdbc:quark:fat:json:test");
     props.put("token", "quark");
     QuboleFactory factory = new QuboleFactory();
     factory.create(props);
@@ -55,7 +55,7 @@ public class QuboleFactoryValidationTest {
   public void testTokenNull() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
     props.put("type", "h2");
-    props.put("endpoint", "jdbc:quark:fat:test");
+    props.put("endpoint", "jdbc:quark:fat:json:test");
     QuboleFactory factory = new QuboleFactory();
     factory.create(props);
   }
@@ -64,7 +64,7 @@ public class QuboleFactoryValidationTest {
   public void testValidDbTap() throws QuarkException{
     Map<String, Object> props = new HashMap<>();
     props.put("type", "dbtap");
-    props.put("endpoint", "jdbc:quark:fat:test");
+    props.put("endpoint", "jdbc:quark:fat:json:test");
     props.put("token", "quark");
     props.put("dbtapid", "7676");
     QuboleFactory factory = new QuboleFactory();

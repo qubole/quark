@@ -28,12 +28,7 @@ import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlNumericLiteral;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
-import org.apache.calcite.util.Pair;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-
-import com.qubole.quark.catalog.db.DbCredentials;
 import com.qubole.quark.catalog.db.dao.DataSourceDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
 import com.qubole.quark.catalog.db.dao.QuboleDbSourceDAO;
@@ -120,10 +115,10 @@ public class DDLPlanExecutor implements PlanExecutor {
 
   public int executeAlterDataSource(SqlAlterQuark sqlNode) throws SQLException {
     int idToUpdate = parseCondition(sqlNode.getCondition());
-    Pair<DbCredentials, DBI> pair = getDBI();
-    DataSourceDAO dataSourceDAO = pair.right.onDemand(DataSourceDAO.class);
-    JdbcSourceDAO jdbcDAO = pair.right.onDemand(JdbcSourceDAO.class);
-    QuboleDbSourceDAO quboleDAO = pair.right.onDemand(QuboleDbSourceDAO.class);
+    DBI dbi = getDBI();
+    DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
+    JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
+    QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
     DataSource dataSource = jdbcDAO.find(idToUpdate);
     if (dataSource == null) {
       dataSource = quboleDAO.find(idToUpdate);
@@ -193,40 +188,26 @@ public class DDLPlanExecutor implements PlanExecutor {
 
     if (dataSource instanceof JdbcSource) {
       return jdbcDAO.update((JdbcSource) dataSource, dataSourceDAO,
-          pair.left.encryptionKey);
+          connection.getProperties().getProperty("encryptionKey"));
     } else {
       return quboleDAO.update((QuboleDbSource) dataSource, dataSourceDAO,
-          pair.left.encryptionKey);
+          connection.getProperties().getProperty("encryptionKey"));
     }
   }
 
-  private Pair<DbCredentials, DBI> getDBI() {
+  private DBI getDBI() {
     Properties info = connection.getProperties();
-    if (info.getProperty("dbCredentials") != null) {
-      ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.registerModule(new GuavaModule());
-      DbCredentials dbCredentials;
-      try {
-        dbCredentials = objectMapper
-            .readValue((String) info.getProperty("dbCredentials"), DbCredentials.class);
-      } catch (Exception e) {
-        throw new RuntimeException("Error in parsing property 'dbCredentials'", e);
-      }
-
-      return Pair.of(dbCredentials, new DBI(
-          dbCredentials.url,
-          dbCredentials.username,
-          dbCredentials.password));
-    } else {
-      throw new RuntimeException("Cannot create DataSource. Provide property 'dbCredentials'");
-    }
+    return new DBI(
+          info.getProperty("url"),
+          info.getProperty("user"),
+          info.getProperty("password"));
   }
 
   public int executeCreateDataSource(SqlCreateQuark sqlNode) throws SQLException {
-    Pair<DbCredentials, DBI> pair = getDBI();
+    DBI dbi = getDBI();
     Map<String, Object> commonColumns = new HashMap<>();
     Map<String, Object> dbSpecificColumns = new HashMap<>();
-    DataSourceDAO dataSourceDAO = pair.right.onDemand(DataSourceDAO.class);
+    DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcSourceDAO = null;
     QuboleDbSourceDAO quboleDbSourceDAO = null;
     SqlNode source = sqlNode.getSource();
@@ -255,9 +236,9 @@ public class DDLPlanExecutor implements PlanExecutor {
               break;
             case "datasource_type":
               if (rowCall.operand(i).toString().toUpperCase().equals("JDBC")) {
-                jdbcSourceDAO = pair.right.onDemand(JdbcSourceDAO.class);
+                jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
               } else if (rowCall.operand(i).toString().toUpperCase().equals("QUBOLEDB")) {
-                quboleDbSourceDAO = pair.right.onDemand(QuboleDbSourceDAO.class);
+                quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
               } else {
                 throw new SQLException("Incorrect argument type to variable"
                     + " 'datasource_type'");
@@ -305,7 +286,7 @@ public class DDLPlanExecutor implements PlanExecutor {
             (String) dbSpecificColumns.get("username"),
             (dbSpecificColumns.get("password") == null) ? ""
                 : (String) dbSpecificColumns.get("password"),
-            pair.left.encryptionKey);
+            connection.getProperties().getProperty("encryptionKey"));
       } else {
         return dataSourceDAO.insertQuboleDB((String) commonColumns.get("name"),
             (String) commonColumns.get("type"),
@@ -315,7 +296,7 @@ public class DDLPlanExecutor implements PlanExecutor {
             quboleDbSourceDAO,
             (int) dbSpecificColumns.get("dbtap_id"),
             (String) dbSpecificColumns.get("auth_token"),
-            pair.left.encryptionKey);
+            connection.getProperties().getProperty("encryptionKey"));
       }
     } else {
       throw new RuntimeException("Incorrect DDL Statement to create Datasources");
@@ -323,10 +304,10 @@ public class DDLPlanExecutor implements PlanExecutor {
   }
   private void executeDeleteOnDataSource(SqlDropQuark node) throws SQLException {
     int id = parseCondition(node.getCondition());
-    Pair<DbCredentials, DBI> pair = getDBI();
-    DataSourceDAO dataSourceDAO = pair.right.onDemand(DataSourceDAO.class);
-    JdbcSourceDAO jdbcDao = pair.right.onDemand(JdbcSourceDAO.class);
-    QuboleDbSourceDAO quboleDao = pair.right.onDemand(QuboleDbSourceDAO.class);
+    DBI dbi = getDBI();
+    DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
+    JdbcSourceDAO jdbcDao = dbi.onDemand(JdbcSourceDAO.class);
+    QuboleDbSourceDAO quboleDao = dbi.onDemand(QuboleDbSourceDAO.class);
     jdbcDao.delete(id);
     quboleDao.delete(id);
     dataSourceDAO.delete(id);

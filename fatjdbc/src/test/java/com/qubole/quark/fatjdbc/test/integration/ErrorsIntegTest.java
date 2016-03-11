@@ -33,7 +33,7 @@ public class ErrorsIntegTest extends IntegTest {
     setupTables(viewUrl, "tpcds_views.sql");
 
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
-    conn = DriverManager.getConnection("jdbc:quark:fat:"
+    conn = DriverManager.getConnection("jdbc:quark:fat:json:"
         + TpcdsIntegTest.class.getResource("/ErrorsModel.json").getPath(), new Properties());
   }
 

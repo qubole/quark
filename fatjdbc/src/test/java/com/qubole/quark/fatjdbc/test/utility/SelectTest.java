@@ -40,6 +40,8 @@ public abstract class SelectTest {
   protected static String dbUrl = "jdbc:h2:mem:SelectTest;DB_CLOSE_DELAY=-1";
   protected static Properties props;
 
+  protected abstract String getConnectionUrl();
+
   public static void setUpClass(String dbUrl) throws Exception {
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
     Class.forName("org.h2.Driver");
@@ -66,13 +68,11 @@ public abstract class SelectTest {
     h2Connection.close();
   }
 
-
-
   @Test
   public void testSimpleSelect() throws SQLException, ClassNotFoundException {
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:", props);
+        DriverManager.getConnection(getConnectionUrl(), props);
 
     Statement statement = connection.createStatement();
     ResultSet rows =
