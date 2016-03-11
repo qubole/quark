@@ -15,23 +15,49 @@
 
 package com.qubole.quark.catalog.db.dao;
 
-import com.qubole.quark.catalog.db.RelSchema;
 import com.qubole.quark.catalog.db.mapper.ViewMapper;
+import com.qubole.quark.catalog.db.pojo.View;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 
 import java.util.List;
 
 /**
- * DAO for {@link com.qubole.quark.catalog.db.RelSchema.DbView}
+ * DAO for {@link View}
  */
 @RegisterMapper(ViewMapper.class)
 public interface ViewDAO {
 
-  @SqlQuery("select p.name , p.query, p.table_name, p.schema_name, ds.name as destination "
-      + "from data_sources ds join partitions p on p.destination_id = ds.id "
-      + "where ds.ds_set_id = :ds_set_id")
-  List<RelSchema.DbView> findByDSSetId(@Bind("ds_set_id")long dsSetId);
+  @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
+      + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
+      + "partitions p on p.destination_id = ds.id where ds.ds_set_id = :ds_set_id")
+  List<View> findByDSSetId(@Bind("ds_set_id")long dsSetId);
+
+  @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
+      + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
+      + "partitions p on p.destination_id = ds.id where p.id = :id")
+  View find(@Bind("id")long id);
+
+  @GetGeneratedKeys
+  @SqlUpdate("insert into partitions(name, description, query, cost, destination_id, "
+      + "schema_name, table_name, ds_set_id) values(:name, :description, :query, :cost, "
+      + ":destination_id, :schema_name, :table_name, :ds_set_id)")
+  int insert(@Bind("name") String name, @Bind("description") String description,
+             @Bind("query") String query, @Bind("cost") long cost,
+             @Bind("destination_id") long destinationId, @Bind("schema_name") String schemaName,
+             @Bind("table_name") String tableName, @Bind("ds_set_id") long dsSetId);
+
+  @GetGeneratedKeys
+  @SqlUpdate("update partitions set name = :v.name, description = :v.description, "
+      + "query = :v.query, cost = :v.cost, schema_name = :v.schema, ds_set_id = :v.dsSetId, "
+      + "table_name = :v.table, destination_id = :v.destinationId where id = :v.id")
+  int update(@BindBean("v") View view);
+
+  @SqlUpdate("delete from partitions where id = :id")
+  void delete(@Bind("id") int id);
 }

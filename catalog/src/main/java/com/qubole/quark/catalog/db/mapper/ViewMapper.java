@@ -15,7 +15,7 @@
 
 package com.qubole.quark.catalog.db.mapper;
 
-import com.qubole.quark.catalog.db.RelSchema;
+import com.qubole.quark.catalog.db.pojo.View;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
@@ -24,11 +24,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Mapper for {@link com.qubole.quark.catalog.db.RelSchema.DbView}
+ * Mapper for {@link View}
  */
-public class ViewMapper implements ResultSetMapper<RelSchema.DbView> {
-  public RelSchema.DbView map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-    return new RelSchema.DbView(r.getString("name"), r.getString("query"),
-        r.getString("table_name"), r.getString("schema_name"), r.getString("destination"));
+public class ViewMapper implements ResultSetMapper<View> {
+  public View map(int index, ResultSet r, StatementContext ctx) throws SQLException {
+    return new View(r.getLong("id"), r.getString("name"), r.getString("description"),
+        r.getString("query"), r.getLong("cost"), r.getString("table_name"),
+        r.getString("schema_name"), r.getLong("destination_id"), r.getString("destination"),
+        r.getLong("ds_set_id"));
   }
 }
