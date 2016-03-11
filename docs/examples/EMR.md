@@ -1,20 +1,3 @@
-<!--
-{% comment %}
-  Copyright (c) 2015. Qubole Inc
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License. See accompanying LICENSE file.
-{% endcomment %}
--->
-
 Prerequisites
 =============
 * [Start](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-hive.html) an EMR
@@ -24,7 +7,9 @@ Prerequisites
 
 Load data in Hive
 =================
-Execute the SQL in the file `create-hive-tables.sql` on your Apache Hive Cluster.
+Execute the SQL in the file 
+[create-hive-tables.sql](https://github.com/qubole/quark/blob/master/docs/examples/create-hive-tables.sql) 
+on your Apache Hive Cluster.
       
       
 Load data into Redshift
@@ -131,8 +116,9 @@ jar and copy it to the `sqlline` directory.
 
 Quark JDBC Jar Configuration
 ============================
-Edit `quark-config.json` and fill in credentials for AWS RedShift and Apache Hive in 
-`dataSources` array. Store the file in a location accessible by the Quark JDBC driver.
+Edit [quark-config.json](https://github.com/qubole/quark/blob/master/docs/examples/quark-config.json)
+ and fill in credentials for AWS RedShift and Apache Hive in `dataSources` array. Store the file 
+ in a location accessible by the Quark JDBC driver.
 
 Start up Sqlline
 ================
