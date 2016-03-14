@@ -16,7 +16,6 @@
 package com.qubole.quark.catalog.json.schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.qubole.quark.catalog.json.RootSchema;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -54,7 +53,6 @@ public class RootSchemaTest {
 
 
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new GuavaModule());
     RootSchema rootSchema = objectMapper.readValue(jsonTestString, RootSchema.class);
 
     assertThat(rootSchema.dataSources.size()).isEqualTo(1);
@@ -79,7 +77,6 @@ public class RootSchemaTest {
             "  }" +
             "}";
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new GuavaModule());
     RootSchema rootSchema = objectMapper.readValue(jsonTestString, RootSchema.class);
 
     assertThat(rootSchema.relSchema.getViews().size()).isEqualTo(1);
