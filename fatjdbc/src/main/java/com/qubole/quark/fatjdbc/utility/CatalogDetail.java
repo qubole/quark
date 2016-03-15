@@ -34,7 +34,7 @@ public class CatalogDetail {
   /**
    * Store database credentials
    */
-  private static class DbCredentials {
+  public static class DbCredentials {
     public final String url;
     public final String username;
     public final String password;

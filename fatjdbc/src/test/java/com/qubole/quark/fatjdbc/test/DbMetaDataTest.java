@@ -39,14 +39,10 @@ public class DbMetaDataTest extends MetaDataTest {
   static {
     h2Url = "jdbc:h2:mem:MetaDataTest2;DB_CLOSE_DELAY=-1";
     props = new Properties();
-    String jsonTestString =
-        "   {" +
-            "     \"url\":\"" + dbSchemaUrl + "\"," +
-            "     \"username\":\"sa\"," +
-            "     \"password\":\"\"," +
-            "     \"encrypt_key\":\"easy\"" +
-            "   }";
-    props.put("dbCredentials", jsonTestString);
+    props.put("url", dbSchemaUrl);
+    props.put("user", "sa");
+    props.put("password", "");
+    props.put("encryptionKey", "easy");
   }
 
   @BeforeClass
@@ -78,5 +74,9 @@ public class DbMetaDataTest extends MetaDataTest {
 
     stmt.execute(sql);
     stmt.close();
+  }
+
+  protected String getConnectionUrl() {
+    return "jdbc:quark:fat:db:";
   }
 }

@@ -19,7 +19,7 @@ public class HiveTestIT {
   private static Connection getConnection() {
     try {
       Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
-      return DriverManager.getConnection("jdbc:quark:fat:"
+      return DriverManager.getConnection("jdbc:quark:fat:json:"
           + System.getProperty("integrationTestResource") + "/hiveModel.json",
           new Properties());
     } catch (SQLException | ClassNotFoundException e) {

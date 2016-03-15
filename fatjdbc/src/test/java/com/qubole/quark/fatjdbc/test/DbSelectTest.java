@@ -34,14 +34,10 @@ public class DbSelectTest extends SelectTest {
   static {
     dbUrl = "jdbc:h2:mem:SelectTest2;DB_CLOSE_DELAY=-1";
     props = new Properties();
-    String jsonTestString =
-            "   {" +
-            "     \"url\":\"" + dbSchemaUrl + "\"," +
-            "     \"username\":\"sa\"," +
-            "     \"password\":\"\"," +
-            "     \"encrypt_key\":\"easy\"" +
-            "   }";
-    props.put("dbCredentials", jsonTestString);
+    props.put("url", dbSchemaUrl);
+    props.put("user", "sa");
+    props.put("password", "");
+    props.put("encryptionKey", "easy");
   }
 
   @BeforeClass
@@ -73,5 +69,9 @@ public class DbSelectTest extends SelectTest {
 
     stmt.execute(sql);
     stmt.close();
+  }
+
+  protected String getConnectionUrl() {
+    return "jdbc:quark:fat:db:";
   }
 }

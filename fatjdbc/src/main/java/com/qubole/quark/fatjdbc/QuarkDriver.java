@@ -15,7 +15,6 @@
 
 package com.qubole.quark.fatjdbc;
 
-import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.avatica.BuiltInConnectionProperty;
 import org.apache.calcite.avatica.ConnectionProperty;
@@ -24,7 +23,6 @@ import org.apache.calcite.avatica.Handler;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.UnregisteredDriver;
 import org.apache.calcite.config.CalciteConnectionProperty;
-import org.apache.calcite.jdbc.CalciteRootSchema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qubole.quark.fatjdbc.impl.QuarkHandler;
@@ -47,6 +45,11 @@ import java.util.Properties;
  */
 public class QuarkDriver extends UnregisteredDriver {
   public static final String CONNECT_STRING_PREFIX = "jdbc:quark:fat:";
+  private static final String DB_SCHEMA_FACTORY = "com.qubole.quark.catalog.db.SchemaFactory";
+  private static final String DB_PREFIX = "db:";
+
+  private static final String JSON_SCHEMA_FACTORY = "com.qubole.quark.catalog.json.SchemaFactory";
+  private static final String JSON_PREFIX = "json:";
 
   static {
     new QuarkDriver().register();
@@ -103,54 +106,45 @@ public class QuarkDriver extends UnregisteredDriver {
         ((QuarkConnectionImpl) connection).getProperties());
   }
 
-  public String getJsonSchemaFactoryPath() {
-    return "com.qubole.quark.catalog.json.SchemaFactory";
-  }
-
-  public String getDbSchemaFactoryPath() {
-    return "com.qubole.quark.catalog.db.SchemaFactory";
-  }
-
   public Connection connect(String url, Properties info) throws SQLException {
     if (!acceptsURL(url)) {
       return null;
     }
 
-    if (info.getProperty("model") == null && info.getProperty("dbCredentials") == null) {
-      final String prefix = getConnectStringPrefix();
-      final String urlSuffix = url.substring(prefix.length());
-      try {
-        byte[] encoded = Files.readAllBytes(Paths.get(urlSuffix));
-        ObjectMapper objectMapper = new ObjectMapper();
-        CatalogDetail catalogDetail = objectMapper.readValue(encoded, CatalogDetail.class);
+    final String prefix = getConnectStringPrefix();
+    final String urlSuffix = url.substring(prefix.length());
 
-        if (catalogDetail.dbCredentials != null) {
-          info.put("dbCredentials",
-              objectMapper.writeValueAsString(catalogDetail.dbCredentials));
-        } else {
-          info.setProperty("model", new String(encoded, StandardCharsets.UTF_8));
+    if (urlSuffix.startsWith(DB_PREFIX)) {
+      info.setProperty("schemaFactory",  DB_SCHEMA_FACTORY);
+      final String path = urlSuffix.substring(DB_PREFIX.length());
+      if (!path.isEmpty()) {
+        try {
+          byte[] encoded = Files.readAllBytes(Paths.get(path));
+          ObjectMapper objectMapper = new ObjectMapper();
+          CatalogDetail catalogDetail = objectMapper.readValue(encoded, CatalogDetail.class);
+          info.setProperty("url", catalogDetail.dbCredentials.url);
+          info.setProperty("user", catalogDetail.dbCredentials.username);
+          info.setProperty("password", catalogDetail.dbCredentials.password);
+          info.setProperty("encryptionKey", catalogDetail.dbCredentials.encryptionKey);
+        } catch (IOException e) {
+          throw new SQLException(e);
         }
-      } catch (IOException e) {
-        throw new SQLException(e.getMessage());
       }
-    }
-
-    if (info.getProperty("dbCredentials") == null) {
-      info.setProperty("schemaFactory", getJsonSchemaFactoryPath());
+    } else if (urlSuffix.startsWith(JSON_PREFIX)) {
+      info.setProperty("schemaFactory",  JSON_SCHEMA_FACTORY);
+      final String path = urlSuffix.substring(JSON_PREFIX.length());
+      if (!path.isEmpty()) {
+        try {
+          byte[] encoded = Files.readAllBytes(Paths.get(path));
+          info.setProperty("model", new String(encoded, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+          throw new SQLException(e);
+        }
+      }
     } else {
-      info.setProperty("schemaFactory", getDbSchemaFactoryPath());
+      throw new SQLException("URL is malformed. Specify catalog type with 'db:' or 'json:'");
     }
 
     return super.connect(url, info);
-  }
-
-  /**
-   * Creates an internal connection.
-   */
-  QuarkConnection connect(CalciteRootSchema rootSchema,
-                          JavaTypeFactory typeFactory) throws SQLException {
-    return (QuarkConnection) ((QuarkJdbcFactory) factory)
-        .newConnection(this, (QuarkJdbcFactory) factory, CONNECT_STRING_PREFIX, new Properties(),
-            rootSchema, typeFactory);
   }
 }

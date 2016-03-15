@@ -45,6 +45,8 @@ public abstract class MetaDataTest {
   private static Connection h2Connection;
   protected static Properties props;
 
+  protected abstract String getConnectionUrl();
+
   public static void setUpClass(String h2Url) throws Exception {
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
     Class.forName("org.h2.Driver");
@@ -83,7 +85,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetCatalogs() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:", props);
+        DriverManager.getConnection(getConnectionUrl(), props);
 
     ResultSet catalogs =
         connection.getMetaData().getCatalogs();
@@ -105,7 +107,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetSchemas() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:", props);
+        DriverManager.getConnection(getConnectionUrl(), props);
 
     ResultSet schemas =
         connection.getMetaData().getSchemas();
@@ -130,7 +132,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetTables() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:", props);
+        DriverManager.getConnection(getConnectionUrl(), props);
 
     ResultSet tables =
         connection.getMetaData().getTables(null, null, null, null);
@@ -151,7 +153,7 @@ public abstract class MetaDataTest {
   @Test
   public void testSearchTable() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:", props);
+        DriverManager.getConnection(getConnectionUrl(), props);
 
     ResultSet tables =
         connection.getMetaData().getTables(null, null, "SIMPLE", null);
@@ -172,7 +174,7 @@ public abstract class MetaDataTest {
   @Test
   public void testGetColumns() throws SQLException {
     Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:", props);
+        DriverManager.getConnection(getConnectionUrl(), props);
 
     ResultSet columns =
         connection.getMetaData().getColumns(null, "PUBLIC", "SIMPLE", null);

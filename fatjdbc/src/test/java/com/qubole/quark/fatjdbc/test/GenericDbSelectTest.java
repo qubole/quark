@@ -56,4 +56,8 @@ public class GenericDbSelectTest extends SelectTest{
     public static void setUpClass() throws Exception {
         SelectTest.setUpClass(dbUrl);
     }
+
+  protected String getConnectionUrl() {
+    return "jdbc:quark:fat:json:";
+  }
 }

@@ -41,7 +41,7 @@ public class MigrationTest {
   @BeforeClass
   public static void setUp() {
     String[] args = new String[1];
-    args[0] = JsonEndToEndTest.class.getResource("/migrationTest.json").getPath();
+    args[0] = MigrationTest.class.getResource("/migrationTest.json").getPath();
     main = new Main(args);
 
     new Thread(main).start();
