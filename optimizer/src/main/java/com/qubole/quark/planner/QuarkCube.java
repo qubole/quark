@@ -306,29 +306,29 @@ public class QuarkCube {
    */
   public final Object sql;
   public final List<Measure> measures;
-  public final ImmutableSet<Dimension> dimensions;
-  public final ImmutableList<String> tableName;
-  public final ImmutableList<String> alias;
+  public final Set<Dimension> dimensions;
+  public final List<String> tableName;
+  public final List<String> alias;
   public final String groupingColumn;
   public final Set<Set<Dimension>> groups;
 
   public QuarkCube(String name, Object sql, List<Measure> measures,
-                   ImmutableList<Dimension> dimensionList,
+                   List<Dimension> dimensionList,
                    List<String> tableName, String groupingColumn) {
     this(name, sql, measures, dimensionList, ImmutableList.<Group>of(),
         tableName, groupingColumn, tableName);
   }
 
   public QuarkCube(String name, Object sql, List<Measure> measures,
-                   ImmutableList<Dimension> dimensionList,
-                   ImmutableList<Group> groupList,
+                   List<Dimension> dimensionList,
+                   List<Group> groupList,
                    List<String> tableName, String groupingColumn) {
     this(name, sql, measures, dimensionList, groupList, tableName, groupingColumn, tableName);
   }
 
   public QuarkCube(String name, Object sql, List<Measure> measures,
-                   ImmutableList<Dimension> dimensionList,
-                   ImmutableList<Group> groupList,
+                   List<Dimension> dimensionList,
+                   List<Group> groupList,
                    List<String> tableName, String groupingColumn,
                    List<String> alias) {
     this.name = name;
@@ -347,12 +347,12 @@ public class QuarkCube {
         Ordering.natural().immutableSortedCopy(idToDimensionMap.values()));
   }
 
-  private void buildGroups(ImmutableList<Dimension> dimensions,
-                           ImmutableList<Group> groupList,
+  private void buildGroups(List<Dimension> dimensions,
+                           List<Group> groupList,
                            Map<String, Set<Dimension>> groupToDimensionMap,
                            Map<String, Dimension> idToDimensionMap) {
 
-    ImmutableList<Dimension> dimToBeAdded = dimensions;
+    List<Dimension> dimToBeAdded = dimensions;
     //code below makes sure that for heirarichal dimension,
     // parent dimension is created before child
     while (!dimToBeAdded.isEmpty()) {
@@ -375,7 +375,7 @@ public class QuarkCube {
   }
 
   private void addDimension(Map<String, Set<QuarkCube.Dimension>> groupToDimensionMap,
-                            ImmutableList<Group> groupList,
+                            List<Group> groupList,
                             Map<String, QuarkCube.Dimension> idToDimensionMap,
                             Dimension dimension) {
     Dimension parentDimension = null;
@@ -477,7 +477,7 @@ public class QuarkCube {
     return builder.build();
   }
 
-  public static Set<Set<Dimension>> getDimensionSets(ImmutableSet<Dimension> dimensions) {
+  public static Set<Set<Dimension>> getDimensionSets(Set<Dimension> dimensions) {
     Set<Set<Dimension>> result = Sets.newHashSet();
     result.add(new HashSet<Dimension>());
     for (Dimension d : dimensions) {

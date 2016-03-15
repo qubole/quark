@@ -16,7 +16,6 @@
 package com.qubole.quark.catalog.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.QuarkException;
@@ -64,7 +63,6 @@ public class SchemaFactory implements QuarkFactory {
   public QuarkFactoryResult create(Properties info) throws QuarkException {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.registerModule(new GuavaModule());
       RootSchema rootSchema = objectMapper.readValue((String) info.get("model"), RootSchema.class);
 
       ImmutableList.Builder<DataSourceSchema> schemaList = new ImmutableList.Builder<>();
