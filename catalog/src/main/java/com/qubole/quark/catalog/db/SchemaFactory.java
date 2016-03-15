@@ -31,6 +31,8 @@ import com.qubole.quark.catalog.db.pojo.DSSet;
 import com.qubole.quark.catalog.db.pojo.DataSource;
 import com.qubole.quark.catalog.db.pojo.JdbcSource;
 import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
+import com.qubole.quark.catalog.db.pojo.View;
+
 import com.qubole.quark.planner.QuarkFactory;
 import com.qubole.quark.planner.QuarkFactoryResult;
 
@@ -138,7 +140,14 @@ public class SchemaFactory implements QuarkFactory {
                                  DimensionDAO dimensionDAO,
                                  long dsSetId) {
 
-    List<RelSchema.DbView> dbViews = viewDAO.findByDSSetId(dsSetId);
+    List<View> views = viewDAO.findByDSSetId(dsSetId);
+    List<RelSchema.DbView> dbViews = new ArrayList<RelSchema.DbView>();
+
+    for (View view : views) {
+      dbViews.add(new RelSchema.DbView(view.getName(), view.getQuery(),
+          view.getTable(), view.getSchema(), view.getDestination()));
+    }
+
     List<Cube> cubes = cubeDAO.findByDSSetId(dsSetId);
     List<RelSchema.DbCube> dbCubes = new ArrayList<RelSchema.DbCube>();
 

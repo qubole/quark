@@ -48,7 +48,7 @@ public class ViewTest extends DbUtility {
 
   @Test
   public void testGet() {
-    List<RelSchema.DbView> views = viewDAO.findByDSSetId(1);
+    List<View> views = viewDAO.findByDSSetId(1);
     assertThat(views.size(), equalTo(4));
   }
 }
