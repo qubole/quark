@@ -1,0 +1,33 @@
+{
+  "version":"2.0",
+  "dataSources":[
+    {
+      "type":"H2",
+      "url":"jdbc:h2:mem:ConnectionTest;DB_CLOSE_DELAY=-1",
+      "factory":"com.qubole.quark.plugins.jdbc.JdbcFactory",
+      "username":"sa",
+      "password":"",
+      "name":"H2"
+    },
+    {
+      "type":"H2",
+      "url":"jdbc:h2:mem:ConnectionViews;DB_CLOSE_DELAY=-1",
+      "factory":"com.qubole.quark.plugins.jdbc.JdbcFactory",
+      "username":"sa",
+      "password":"",
+      "name":"VIEWS"
+    }
+  ],
+  "defaultDataSource":0,
+  "relSchema":{
+    "views":[
+      {
+        "name":"warehouse_part",
+        "query":"select * from h2.public.warehouse as wr where  wr.w_warehouse_sq_ft > 100",
+        "dataSource":"VIEWS",
+        "schema":"PUBLIC",
+        "table":"WAREHOUSE_PARTITION"
+      }
+    ]
+  }
+}

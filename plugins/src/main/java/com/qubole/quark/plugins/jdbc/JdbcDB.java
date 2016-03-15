@@ -85,7 +85,7 @@ public abstract class JdbcDB implements Executor {
       rs.close();
       return schemaMap;
     } catch (ClassNotFoundException | SQLException s) {
-      throw new QuarkException(s.getCause());
+      throw new QuarkException(s);
     } finally {
       try {
         if (stmt != null) {

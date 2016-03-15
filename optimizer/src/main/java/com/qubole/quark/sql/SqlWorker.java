@@ -66,7 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Default Parser and planner for String sql.
+ * Default SqlQueryParser and planner for String sql.
  */
 public class SqlWorker {
   private static final org.slf4j.Logger LOGGER =

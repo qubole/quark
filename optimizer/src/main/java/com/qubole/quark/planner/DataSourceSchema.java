@@ -37,7 +37,6 @@ import java.util.Map;
  * It never holds any tables.
  */
 public abstract class DataSourceSchema extends QuarkSchema {
-  public final boolean isDefault;
   public final Map<String, Object> properties;
   protected ImmutableMap<String, Schema> subSchemaMap;
   private final DataSourceFactory dataSourceFactory;
@@ -46,7 +45,6 @@ public abstract class DataSourceSchema extends QuarkSchema {
   public DataSourceSchema(Map<String, Object> properties) {
     super((String) properties.get("name"));
     this.properties = properties;
-    this.isDefault = Boolean.parseBoolean((String) properties.get("default"));
     final String factoryPath = (String) properties.get("factory");
     if (factoryPath == null) {
       throw new RuntimeException("Specify attribute in user "
@@ -76,10 +74,6 @@ public abstract class DataSourceSchema extends QuarkSchema {
   @Override
   public void initialize(QueryContext queryContext) throws QuarkException {
     subSchemaMap = this.getDataSource().getSchemas();
-  }
-
-  public boolean isDefault() {
-    return isDefault;
   }
 
   @Override

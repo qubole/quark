@@ -16,7 +16,6 @@
 package com.qubole.quark.catalog.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.QuarkException;
@@ -27,6 +26,7 @@ import com.qubole.quark.planner.QuarkFactoryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -63,7 +63,6 @@ public class SchemaFactory implements QuarkFactory {
   public QuarkFactoryResult create(Properties info) throws QuarkException {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.registerModule(new GuavaModule());
       RootSchema rootSchema = objectMapper.readValue((String) info.get("model"), RootSchema.class);
 
       ImmutableList.Builder<DataSourceSchema> schemaList = new ImmutableList.Builder<>();
@@ -72,10 +71,14 @@ public class SchemaFactory implements QuarkFactory {
         schemaList.add(secondary);
       }
 
-      return new QuarkFactoryResult(schemaList.build(), rootSchema.relSchema);
+      List<DataSourceSchema> schemas = schemaList.build();
+      return new QuarkFactoryResult(schemas, rootSchema.relSchema,
+          rootSchema.defaultDataSource != null ? schemas.get(rootSchema.defaultDataSource)
+              : null
+      );
     } catch (java.io.IOException e) {
       LOG.error("Unexpected Exception during create", e);
-      throw new QuarkException(e.getCause());
+      throw new QuarkException(e);
     }
   }
 }

@@ -9,14 +9,10 @@ Welcome to Quark's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+  :maxdepth: 2
+  :titlesonly:
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+  quick-start-guide/index.rst
+  examples/index.rst
+  json_model/index.rst
+  developer/index.rst

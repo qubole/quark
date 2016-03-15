@@ -55,4 +55,12 @@ public class QuboleDbSource extends DataSource {
   public String getAuthToken() {
     return authToken;
   }
+
+  public void setDbTapId(long dbTapId) {
+    this.dbTapId = dbTapId;
+  }
+
+  public void setAuthToken(String authToken) {
+    this.authToken = authToken;
+  }
 }

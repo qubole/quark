@@ -105,12 +105,14 @@ public class MetricsTest {
     }
   }
 
-  public static class SchemaFactory implements TestFactory {
+  public static class SchemaFactory extends TestFactory {
+    public SchemaFactory() {
+      super(new MetricsSchema("metrics_schema".toUpperCase()));
+    }
     public List<QuarkSchema> create(Properties info) {
-      return new ArrayList<QuarkSchema>() {{
-        add(new MetricsSchema("metrics_schema".toUpperCase()));
-        add(new ViewSchema());
-      }};
+      return new ImmutableList.Builder<QuarkSchema>()
+        .add(this.getDefaultSchema())
+        .add(new ViewSchema()).build();
     }
   }
 

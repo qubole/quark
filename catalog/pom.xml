@@ -20,12 +20,12 @@
     <parent>
         <artifactId>quark-parent</artifactId>
         <groupId>com.qubole</groupId>
-        <version>4.4.0-SNAPSHOT</version>
+        <version>5.1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>quark-catalog</artifactId>
-    <version>4.4.0-SNAPSHOT</version>
+    <version>5.1.0-SNAPSHOT</version>
     <name>Quark Catalog</name>
     <packaging>jar</packaging>
 
@@ -37,11 +37,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-guava</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
@@ -64,12 +59,12 @@
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-optimizer</artifactId>
-            <version>4.4.0-SNAPSHOT</version>
+            <version>5.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-plugins</artifactId>
-            <version>4.4.0-SNAPSHOT</version>
+            <version>5.1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

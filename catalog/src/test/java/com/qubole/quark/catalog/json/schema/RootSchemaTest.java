@@ -16,7 +16,6 @@
 package com.qubole.quark.catalog.json.schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.qubole.quark.catalog.json.RootSchema;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -37,6 +36,7 @@ public class RootSchemaTest {
   public void testOneDataSource() throws IOException {
     String jsonTestString =
         "{" +
+            "\"version\":\"2.0\"," +
             "\"dataSources\":" +
             " [" +
             "   {" +
@@ -45,15 +45,14 @@ public class RootSchemaTest {
             "     \"factory\":\"com.qubole.quark.plugins.jdbc.JdbcFactory\"," +
             "     \"username\":\"root\"," +
             "     \"password\":\"ABCDEF\"," +
-            "     \"default\":\"true\"," +
             "     \"name\":\"qubole_default\"" +
             "   }" +
-            " ]" +
+            " ]," +
+            " \"defaultDataSource\":1" +
             "}";
 
 
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new GuavaModule());
     RootSchema rootSchema = objectMapper.readValue(jsonTestString, RootSchema.class);
 
     assertThat(rootSchema.dataSources.size()).isEqualTo(1);
@@ -63,6 +62,7 @@ public class RootSchemaTest {
   public void testOnePartition() throws IOException {
     String jsonTestString =
         "{" +
+            "  \"version\":\"2.0\"," +
             "  \"relSchema\":{" +
             "    \"views\" : [" +
             "      {" +
@@ -77,7 +77,6 @@ public class RootSchemaTest {
             "  }" +
             "}";
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new GuavaModule());
     RootSchema rootSchema = objectMapper.readValue(jsonTestString, RootSchema.class);
 
     assertThat(rootSchema.relSchema.getViews().size()).isEqualTo(1);

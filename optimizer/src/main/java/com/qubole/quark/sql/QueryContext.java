@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
 
 import com.qubole.quark.planner.DataSourceSchema;
+import com.qubole.quark.planner.MetadataSchema;
 import com.qubole.quark.planner.QuarkFactory;
 import com.qubole.quark.planner.QuarkFactoryResult;
 import com.qubole.quark.planner.QuarkSchema;
@@ -57,8 +58,6 @@ public class QueryContext {
   private DataSourceSchema defaultDataSource;
   private boolean unitTestMode;
   private final List<String> defaultSchema;
-  private final Class schemaFactoryClazz;
-  private final Properties info;
 
   public CalciteConnectionConfig getCfg() {
     return cfg;
@@ -72,28 +71,21 @@ public class QueryContext {
 
   private final JavaTypeFactory typeFactory;
 
-  private List<String> parseDefaultSchema(Properties info) {
-    final ObjectMapper mapper = new ObjectMapper();
-    List<String> defaultSchema = null;
-    try {
-      if (info.getProperty("defaultSchema") != null) {
-        defaultSchema =
-            Arrays.asList(mapper.readValue(info.getProperty("defaultSchema"), String[].class));
-      } else {
-        DataSource dataSource = defaultDataSource.getDataSource();
-        defaultSchema =
-            ImmutableList.of(defaultDataSource.getName(), dataSource.getDefaultSchema());
-      }
-    } catch (Exception e) {
-      LOG.warn("Error thrown while reading Default Schema from Property model : " + e.getMessage());
+  private List<String> parseDefaultSchema(Properties info) throws IOException, QuarkException {
+    if (info.getProperty("defaultSchema") != null) {
+      final ObjectMapper mapper = new ObjectMapper();
+      return Arrays.asList(mapper.readValue(info.getProperty("defaultSchema"), String[].class));
+    } else if (defaultDataSource != null) {
+      DataSource dataSource = defaultDataSource.getDataSource();
+      return ImmutableList.of(defaultDataSource.getName(), dataSource.getDefaultSchema());
+    } else {
+      return ImmutableList.of(MetadataSchema.NAME);
     }
-    return defaultSchema;
   }
 
   public QueryContext(Properties info) throws QuarkException {
     try {
-      schemaFactoryClazz = Class.forName(info.getProperty("schemaFactory"));
-      this.info = info;
+      Class schemaFactoryClazz = Class.forName(info.getProperty("schemaFactory"));
       this.cfg = new CalciteConnectionConfigImpl(info);
       final RelDataTypeSystem typeSystem =
           cfg.typeSystem(RelDataTypeSystem.class, RelDataTypeSystem.DEFAULT);
@@ -107,9 +99,6 @@ public class QueryContext {
         for (DataSourceSchema schema : factoryResult.dataSourceSchemas) {
           SchemaPlus schemaPlus = rootSchema.add(schema.getName(), schema);
           schema.setSchemaPlus(schemaPlus);
-          if (schema.isDefault()) {
-            defaultDataSource = schema;
-          }
         }
 
         SchemaPlus metadataPlus = rootSchema.add(factoryResult.metadataSchema.getName(),
@@ -121,6 +110,7 @@ public class QueryContext {
         }
         factoryResult.metadataSchema.initialize(this);
 
+        this.defaultDataSource = factoryResult.defaultSchema;
         defaultSchema = parseDefaultSchema(info);
       } else {
         final TestFactory schemaFactory = (TestFactory) schemaFactoryClazz.newInstance();
@@ -128,11 +118,6 @@ public class QueryContext {
         for (QuarkSchema schema : schemas) {
           SchemaPlus schemaPlus = rootSchema.add(schema.getName(), schema);
           schema.setSchemaPlus(schemaPlus);
-          if (schema instanceof DataSourceSchema) {
-            if (((DataSourceSchema) schema).isDefault()) {
-              defaultDataSource = (DataSourceSchema) schema;
-            }
-          }
         }
         for (QuarkSchema schema : schemas) {
           schema.initialize(this);
@@ -146,7 +131,7 @@ public class QueryContext {
       }
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
         | IOException e) {
-      throw new QuarkException(e.getCause());
+      throw new QuarkException(e);
     }
   }
 

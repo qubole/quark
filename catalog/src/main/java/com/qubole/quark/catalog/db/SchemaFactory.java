@@ -15,8 +15,6 @@
 
 package com.qubole.quark.catalog.db;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
 
@@ -33,6 +31,8 @@ import com.qubole.quark.catalog.db.pojo.DSSet;
 import com.qubole.quark.catalog.db.pojo.DataSource;
 import com.qubole.quark.catalog.db.pojo.JdbcSource;
 import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
+import com.qubole.quark.catalog.db.pojo.View;
+
 import com.qubole.quark.planner.QuarkFactory;
 import com.qubole.quark.planner.QuarkFactoryResult;
 
@@ -78,21 +78,19 @@ public class SchemaFactory implements QuarkFactory {
    */
   public QuarkFactoryResult create(Properties info) throws QuarkException {
     try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.registerModule(new GuavaModule());
-      DbCredentials dbCredentials = objectMapper
-          .readValue((String) info.getProperty("dbCredentials"), DbCredentials.class);
-
       MysqlAES mysqlAES = MysqlAES.getInstance();
-      mysqlAES.setKey(dbCredentials.encryptionKey);
+      mysqlAES.setKey(info.getProperty("encryptionKey"));
 
       DBI dbi = new DBI(
-          dbCredentials.url,
-          dbCredentials.username,
-          dbCredentials.password);
+          info.getProperty("url"),
+          info.getProperty("user"),
+          info.getProperty("password"));
 
       Flyway flyway = new Flyway();
-      flyway.setDataSource(dbCredentials.url, dbCredentials.username, dbCredentials.password);
+      flyway.setDataSource(
+          info.getProperty("url"),
+          info.getProperty("user"),
+          info.getProperty("password"));
       flyway.migrate();
 
       DSSetDAO dsSetDAO = dbi.onDemand(DSSetDAO.class);
@@ -109,23 +107,30 @@ public class SchemaFactory implements QuarkFactory {
       List<JdbcSource> jdbcSources = jdbcSourceDAO.findByDSSetId(dsSetId);
       List<QuboleDbSource> quboleDbSources = quboleDbSourceDAO.findByDSSetId(dsSetId);
 
+      List<DataSource> dataSources = new ArrayList<>();
+      dataSources.addAll(jdbcSources);
+      dataSources.addAll(quboleDbSources);
+
       ImmutableList.Builder<com.qubole.quark.planner.DataSourceSchema> schemaList =
           new ImmutableList.Builder<>();
 
-      for (DataSource dataSource : jdbcSources) {
-        schemaList.add(new DataSourceSchema(dataSource.getProperties(defaultDataSourceId)));
-      }
+      com.qubole.quark.planner.DataSourceSchema defaultSchema = null;
 
-      for (DataSource dataSource : quboleDbSources) {
-        schemaList.add(new DataSourceSchema(dataSource.getProperties(defaultDataSourceId)));
+      for (DataSource dataSource : dataSources) {
+        com.qubole.quark.planner.DataSourceSchema dataSourceSchema = new DataSourceSchema(
+            dataSource.getProperties(defaultDataSourceId));
+        if (dataSource.getId() == defaultDataSourceId) {
+          defaultSchema = dataSourceSchema;
+        }
+        schemaList.add(dataSourceSchema);
       }
 
       RelSchema relSchema = getRelSchema(viewDAO, cubeDAO, measureDAO, dimensionDAO, dsSetId);
 
-      return new QuarkFactoryResult(schemaList.build(), relSchema);
+      return new QuarkFactoryResult(schemaList.build(), relSchema, defaultSchema);
     } catch (Exception se) {
       LOG.error(se.getMessage());
-      throw new QuarkException(se.getCause());
+      throw new QuarkException(se);
     }
   }
 
@@ -135,7 +140,14 @@ public class SchemaFactory implements QuarkFactory {
                                  DimensionDAO dimensionDAO,
                                  long dsSetId) {
 
-    List<RelSchema.DbView> dbViews = viewDAO.findByDSSetId(dsSetId);
+    List<View> views = viewDAO.findByDSSetId(dsSetId);
+    List<RelSchema.DbView> dbViews = new ArrayList<RelSchema.DbView>();
+
+    for (View view : views) {
+      dbViews.add(new RelSchema.DbView(view.getName(), view.getQuery(),
+          view.getTable(), view.getSchema(), view.getDestination()));
+    }
+
     List<Cube> cubes = cubeDAO.findByDSSetId(dsSetId);
     List<RelSchema.DbCube> dbCubes = new ArrayList<RelSchema.DbCube>();
 

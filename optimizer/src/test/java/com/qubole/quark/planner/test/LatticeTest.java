@@ -22,7 +22,7 @@ import com.qubole.quark.planner.QuarkCube;
 import com.qubole.quark.planner.QuarkCube.Dimension;
 import com.qubole.quark.planner.MetadataSchema;
 import com.qubole.quark.planner.QuarkSchema;
-import com.qubole.quark.planner.Parser;
+import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class LatticeTest {
   private static final Logger log = LoggerFactory.getLogger(LatticeTest.class);
-  private static Properties info;
+  private static SqlQueryParser parser;
 
   public static class CubeSchema extends MetadataSchema {
     CubeSchema() {}
@@ -145,13 +145,15 @@ public class LatticeTest {
     }
   }
 
-  public static class SchemaFactory implements TestFactory {
+  public static class SchemaFactory extends TestFactory {
+    public SchemaFactory() {
+      super(new Foodmart("foodmart".toUpperCase()));
+    }
     public List<QuarkSchema> create(Properties info) {
-      Foodmart foodmart = new Foodmart("foodmart".toUpperCase());
       Tpcds tpcds = new Tpcds("TPCDS");
       CubeSchema cubeSchema = new CubeSchema();
       return new ImmutableList.Builder<QuarkSchema>()
-          .add(foodmart)
+          .add(this.getDefaultSchema())
           .add(tpcds)
           .add(cubeSchema).build();
     }
@@ -159,7 +161,7 @@ public class LatticeTest {
 
   @BeforeClass
   public static void setUpClass() throws Exception {
-    info = new Properties();
+    Properties info = new Properties();
     info.put("unitTestMode", "true");
     info.put("schemaFactory", "com.qubole.quark.planner.test.LatticeTest$SchemaFactory");
 
@@ -167,12 +169,13 @@ public class LatticeTest {
     final ObjectMapper mapper = new ObjectMapper();
 
     info.put("defaultSchema", mapper.writeValueAsString(defaultSchema));
+
+    parser = new SqlQueryParser(info);
   }
 
   @Test
   public void testSimple() throws QuarkException, SQLException {
-    Parser parser = new Parser(info);
-    Parser.ParserResult result = parser.parse("select * from account");
+    SqlQueryParser.SqlQueryParserResult result = parser.parse("select * from account");
     List<String> usedTables = parser.getTables(result.getRelNode());
 
     assertThat(usedTables).contains("FOODMART.ACCOUNT");
@@ -188,7 +191,7 @@ public class LatticeTest {
 
     QuarkTestUtil.checkParsedSql(
         sql,
-        info,
+        parser,
         "SELECT THE_YEAR, SUM(TOTAL_UNIT_SALES) "
             + "FROM FOODMART.COUNT_FACT_TILE "
             + "WHERE GROUPING_ID = '1' "
@@ -205,7 +208,7 @@ public class LatticeTest {
 
     QuarkTestUtil.checkParsedSql(
         sql,
-        info,
+        parser,
         "SELECT D_YEAR, SUM(TOTAL_NET_LOSS) "
             + "FROM TPCDS.WEB_RETURNS_CUBE "
             + "WHERE GROUPING_ID = '2' "
@@ -224,7 +227,7 @@ public class LatticeTest {
 
     QuarkTestUtil.checkParsedSql(
         sql,
-        info,
+        parser,
         "SELECT D_YEAR, D_QOY, CD_GENDER, SUM(SUM_SALES_PRICE) " +
             "FROM TPCDS.STORE_SALES_CUBE " +
             "WHERE CD_GENDER = 'M' AND GROUPING_ID = '76' " +
@@ -242,7 +245,7 @@ public class LatticeTest {
           "where cd_gender = 'M' group by d_year, d_qoy";
     QuarkTestUtil.checkParsedSql(
         sql,
-        info,
+        parser,
         "SELECT D_YEAR, D_QOY, SUM(SUM_SALES_PRICE)" +
             " FROM TPCDS.STORE_SALES_CUBE WHERE CD_GENDER = 'M'" +
             " AND GROUPING_ID = '12' GROUP BY D_YEAR, D_QOY");
@@ -259,7 +262,7 @@ public class LatticeTest {
         "where ss_quantity > 1000 group by d_year, d_qoy";
     QuarkTestUtil.checkParsedSql(
         sql,
-        info,
+        parser,
         "SELECT DATE_DIM.D_YEAR, DATE_DIM.D_QOY, SUM(t.SS_SALES_PRICE) FROM TPCDS.DATE_DIM"
             + " INNER JOIN ((SELECT * FROM TPCDS.STORE_SALES WHERE SS_QUANTITY > 1000) AS t"
             + " INNER JOIN TPCDS.CUSTOMER_DEMOGRAPHICS ON "

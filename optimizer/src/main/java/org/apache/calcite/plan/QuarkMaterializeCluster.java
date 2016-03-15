@@ -18,6 +18,8 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
 
+import com.qubole.quark.planner.parser.SqlQueryParser;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * and should be used only in {@link RelNode} of Materialized views.
  * Populating materialized views requires parsing of sql string representing
  * materialized views and this can be very expensive. To optimize, for a
- * {@link com.qubole.quark.planner.Parser} object all view Sql strings are
+ * {@link SqlQueryParser} object all view Sql strings are
  * parsed only once and cached. However, caching doesn't work as every new parse
  * creates new {@link RelOptPlanner} which does not accept cached {@link RelNode}
  * created using dofferent planner.
