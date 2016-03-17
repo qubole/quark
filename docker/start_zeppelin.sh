@@ -31,6 +31,7 @@ mkdir -p ./incubator-zeppelin/zeppelin-zengine/target/lib
 mkdir -p ./incubator-zeppelin/zeppelin-server/target/lib
 cp -r ../incubator-zeppelin/zeppelin-zengine/target/lib ./incubator-zeppelin/zeppelin-zengine/target/lib
 cp -r ../incubator-zeppelin/zeppelin-server/target/lib ./incubator-zeppelin/zeppelin-server/target/lib
+#cp ../incubator-zeppelin/zeppelin-server/target/zeppelin-server-0.6.0-incubating-SNAPSHOT.jar ./incubator-zeppelin/zeppelin-server/target
 cp -r ../incubator-zeppelin/zeppelin-server/target/*.jar ./incubator-zeppelin/zeppelin-server/target
 
 # Copy quark jar 
@@ -39,7 +40,9 @@ sudo cp /$HOME/.m2/repository/com/qubole/quark-jdbc/4.2.0/quark-jdbc-4.2.0.jar .
 # Build the image
 sudo docker build -t $1:$2 .
 
-# run with start zeppelin cmd
+# run with start zeppelin cmd -- take care container does not stop
 sudo docker run -d --name=$3 -p 0.0.0.0:8080:8080 $1:$2 tail -f /dev/null
+
+sudo docker exec -it $3 apk add bash
 
 sudo docker exec -it $3 /home/incubator-zeppelin/bin/zeppelin-daemon.sh start

@@ -1,9 +1,9 @@
-FROM ubuntu:14.04
+FROM alpine:3.3
 
 MAINTAINER Priyanka Kukreja <priyankak@qubole.com>
 
 # Installing Java
-RUN sudo apt-get -y update && sudo apt-get -y install openjdk-7-jdk && export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-amd64 && export PATH=$JAVA_HOME/bin:$PATH
+RUN apk --update add openjdk8 && export JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk && export PATH=$JAVA_HOME/bin:$PATH
 
 # COPY Zeppelin Jars
 RUN mkdir /home/incubator-zeppelin
