@@ -22,7 +22,7 @@
 #
 # Script to handle launching the query server process.
 #
-# usage: server.py [start|stop|makeWinServiceDesc] [args]
+# usage: server.py start|stop|makeWinServiceDesc json-filename [jars]
 #
 
 import datetime
@@ -59,6 +59,7 @@ quark_server_jar = getPath()
 command = None
 args = sys.argv
 
+
 if len(args) > 1:
     if args[1] == 'start':
         command = 'start'
@@ -66,13 +67,24 @@ if len(args) > 1:
         command = 'stop'
     elif args[1] == 'makeWinServiceDesc':
         command = 'makeWinServiceDesc'
-
-if command:
-    # Pull off server.py and the command
-    args = args[2:]
+    else:
+        print >> sys.stderr, "Command '" + args[1] + "' not supported. Available commands are (start, stop, makeWinServiceDesc)."
+        sys.exit(-1)
 else:
-    # Just pull off server.py
+    print >> sys.stderr, "No command given to the server. Available commands are (start, stop, makeWinServiceDesc)"
+    sys.exit(-1)
+
+args = args[2:]
+
+filename = ''
+if len(args) > 0:
+    filename = args[0]
     args = args[1:]
+# Create jar string
+jar_string = quark_server_jar
+if len(args) > 0:
+    for jar in args:
+        jar_string = jar_string + ':' + jar
 
 if os.name == 'nt':
     args = subprocess.list2cmdline(args)
@@ -92,11 +104,11 @@ else:
     java = 'java'
 
 # The command is run through subprocess so environment variables are automatically inherited
-java_cmd = '%(java)s -cp ' + quark_server_jar + \
-           " -Dproc_quarkserver" + " com.qubole.quark.server.Main " + args
+java_cmd = '%(java)s -Dproc_quarkserver -cp ' + jar_string + \
+        ' com.qubole.quark.server.Main ' + filename
 
 if command == 'makeWinServiceDesc':
-    cmd = java_cmd % {'java': java, 'root_logger': 'INFO'}
+    cmd = java_cmd % {'java': java}
     slices = cmd.split(' ')
 
     print "<service>"
@@ -113,6 +125,10 @@ if command == 'start':
         print >> sys.stderr, "daemon mode not supported on this platform"
         sys.exit(-1)
 
+    if filename == '':
+        print >> sys.stderr, "Need config file as input"
+        sys.exit(-1)
+
     # run in the background
     d = os.path.dirname(out_file_path)
     if not os.path.exists(d):
@@ -127,7 +143,8 @@ if command == 'start':
         with context:
             # this block is the main() for the forked daemon process
             child = None
-            cmd = java_cmd % {'java': java, 'root_logger': 'INFO'}
+            cmd = java_cmd % {'java': java}
+            print >> sys.stderr, cmd
 
             # notify the child when we're killed
             def handler(signum, frame):
@@ -165,6 +182,6 @@ elif command == 'stop':
     os.kill(pid, signal.SIGTERM)
 
 else:
-    cmd = java_cmd % {'java': java, 'root_logger': 'INFO'}
+    cmd = java_cmd % {'java': java}
     child = subprocess.Popen(cmd.split())
     sys.exit(child.wait())
