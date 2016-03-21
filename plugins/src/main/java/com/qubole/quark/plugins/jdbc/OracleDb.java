@@ -88,7 +88,6 @@ public class OracleDb extends JdbcDB {
   @Override
   public SqlDialect getSqlDialect() {
     final SqlDialect sqlDialect = SqlDialect.getProduct("Oracle", null).getDialect();
-    sqlDialect.setUseLimitKeyWord(true);
     return sqlDialect;
   }
 }

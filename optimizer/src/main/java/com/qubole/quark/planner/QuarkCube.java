@@ -437,7 +437,7 @@ public class QuarkCube {
     for (Set<Dimension> set : dimensionSets) {
       List<Lattice.Column> columns = new ArrayList<>();
       List<QuarkTile.Column> cubeColumns = new ArrayList<>();
-      ImmutableBitSet.Builder bitSetBuilder = new ImmutableBitSet.Builder();
+      ImmutableBitSet.Builder bitSetBuilder = ImmutableBitSet.builder();
 
       for (Dimension dimension : set) {
         final Lattice.Column column = latticeBuilder.resolveColumn(dimension.qualifiedCol);

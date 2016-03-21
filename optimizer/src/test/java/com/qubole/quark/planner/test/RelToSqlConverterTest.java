@@ -340,13 +340,12 @@ public class RelToSqlConverterTest {
     String query = "select product_id from product limit 100 offset 10";
     final SqlDialect redshiftDialect =
         SqlDialect.getProduct("REDSHIFT", null).getDialect();
-    redshiftDialect.setUseLimitKeyWord(true);
     QuarkTestUtil.checkSqlParsing(
         query,
         info,
         "SELECT \"PRODUCT_ID\" "
             + "FROM \"PRODUCT\" "
-            + "OFFSET 10 LIMIT 100",
+            + "LIMIT 100 OFFSET 10",
         redshiftDialect);
   }
 

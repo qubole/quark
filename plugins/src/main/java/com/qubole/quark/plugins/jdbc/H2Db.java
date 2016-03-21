@@ -84,7 +84,6 @@ public class H2Db extends JdbcDB {
   public SqlDialect getSqlDialect() {
     final SqlDialect h2Dialect =
         SqlDialect.getProduct("H2", null).getDialect();
-    h2Dialect.setUseLimitKeyWord(true);
     return h2Dialect;
   }
 }

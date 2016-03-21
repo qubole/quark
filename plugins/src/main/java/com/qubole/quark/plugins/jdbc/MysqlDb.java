@@ -95,7 +95,6 @@ public class MysqlDb extends JdbcDB {
   @Override
   public SqlDialect getSqlDialect() {
     final SqlDialect sqlDialect = SqlDialect.getProduct("MySQL", null).getDialect();
-    sqlDialect.setUseLimitKeyWord(true);
     return sqlDialect;
   }
 
