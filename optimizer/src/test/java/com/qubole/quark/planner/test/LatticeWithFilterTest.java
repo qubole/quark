@@ -190,8 +190,8 @@ public class LatticeWithFilterTest {
         sql,
         parser,
         "SELECT TIME_BY_DAY.THE_YEAR, SUM(SALES_FACT_1997.UNIT_SALES) "
-            + "FROM FOODMART.TIME_BY_DAY INNER JOIN FOODMART.SALES_FACT_1997 "
-            + "ON TIME_BY_DAY.TIME_ID = SALES_FACT_1997.TIME_ID "
+            + "FROM FOODMART.SALES_FACT_1997 INNER JOIN FOODMART.TIME_BY_DAY "
+            + "ON SALES_FACT_1997.TIME_ID = TIME_BY_DAY.TIME_ID "
             + "GROUP BY TIME_BY_DAY.THE_YEAR");
   }
 
@@ -221,10 +221,11 @@ public class LatticeWithFilterTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT t.THE_YEAR, SUM(SALES_FACT_1997.UNIT_SALES) " +
-            "FROM (SELECT * FROM FOODMART.TIME_BY_DAY WHERE QUARTER = 1) AS t " +
-            "INNER JOIN FOODMART.SALES_FACT_1997 ON t.TIME_ID = SALES_FACT_1997.TIME_ID " +
-            "GROUP BY t.THE_YEAR");
+        "SELECT t.THE_YEAR, SUM(SALES_FACT_1997.UNIT_SALES) "
+            + "FROM FOODMART.SALES_FACT_1997 "
+            + "INNER JOIN (SELECT * FROM FOODMART.TIME_BY_DAY WHERE QUARTER = 1) AS t "
+            + "ON SALES_FACT_1997.TIME_ID = t.TIME_ID "
+            + "GROUP BY t.THE_YEAR");
   }
 
   @Test
@@ -254,10 +255,11 @@ public class LatticeWithFilterTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT DATE_DIM.D_YEAR, SUM(WEB_RETURNS.WR_NET_LOSS) " +
-            "FROM TPCDS.DATE_DIM INNER JOIN TPCDS.WEB_RETURNS ON " +
-            "DATE_DIM.D_DATE_SK = WEB_RETURNS.WR_RETURNED_DATE_SK " +
-            "GROUP BY DATE_DIM.D_YEAR");
+        "SELECT DATE_DIM.D_YEAR, SUM(WEB_RETURNS.WR_NET_LOSS) "
+            + "FROM TPCDS.WEB_RETURNS "
+            + "INNER JOIN TPCDS.DATE_DIM "
+            + "ON WEB_RETURNS.WR_RETURNED_DATE_SK = DATE_DIM.D_DATE_SK "
+            + "GROUP BY DATE_DIM.D_YEAR");
   }
 
   /**
@@ -307,11 +309,11 @@ public class LatticeWithFilterTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT DATE_DIM.D_YEAR, DATE_DIM.D_QOY, SUM(t.SS_SALES_PRICE) FROM TPCDS.DATE_DIM"
-            + " INNER JOIN ((SELECT * FROM TPCDS.STORE_SALES WHERE SS_QUANTITY > 1000) AS t"
-            + " INNER JOIN TPCDS.CUSTOMER_DEMOGRAPHICS ON "
-            + "t.SS_CDEMO_SK = CUSTOMER_DEMOGRAPHICS.CD_DEMO_SK) "
-            + "ON DATE_DIM.D_DATE_SK = t.SS_SOLD_DATE_SK "
+        "SELECT DATE_DIM.D_YEAR, DATE_DIM.D_QOY, SUM(t.SS_SALES_PRICE) FROM "
+            + "(SELECT * FROM TPCDS.STORE_SALES WHERE SS_QUANTITY > 1000) AS t "
+            + "INNER JOIN TPCDS.CUSTOMER_DEMOGRAPHICS "
+            + "ON t.SS_CDEMO_SK = CUSTOMER_DEMOGRAPHICS.CD_DEMO_SK "
+            + "INNER JOIN TPCDS.DATE_DIM ON t.SS_SOLD_DATE_SK = DATE_DIM.D_DATE_SK "
             + "GROUP BY DATE_DIM.D_YEAR, DATE_DIM.D_QOY");
   }
 }

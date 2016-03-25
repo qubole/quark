@@ -49,8 +49,8 @@ import com.qubole.quark.planner.QuarkTileScan;
 import com.qubole.quark.planner.QuarkViewScan;
 import com.qubole.quark.planner.QuarkViewTable;
 import com.qubole.quark.sql.QueryContext;
+import com.qubole.quark.sql.ResultProcessor;
 import com.qubole.quark.sql.SqlWorker;
-import com.qubole.quark.utilities.RelToSqlConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,29 +118,9 @@ public class SqlQueryParser implements Parser {
     }
   }
 
-  /**
-   * Returns sql string for input dialect.
-   *
-   * @param dbType DataBase whose Dialect is to be used
-   * @return Sql string for input DatabaseType's dialect.
-   * @throws SQLException
-   */
-  private String getParsedSql(RelNode relNode, String dbType) throws SQLException {
-    SqlDialect dialect = SqlDialect.getProduct(dbType, null).getDialect();
-    return getParsedSql(relNode, dialect);
-  }
-
-  private String getParsedSql(RelNode relNode, SqlDialect dialect) throws SQLException {
-    RelToSqlConverter relToSqlConverter = new RelToSqlConverter(dialect);
-    RelToSqlConverter.Result res = relToSqlConverter.visitChild(0, relNode);
-    SqlNode sqlNode = res.asQuery();
-    String result = sqlNode.toSqlString(dialect, false).getSql();
-    return result.replace("\n", " ");
-  }
-
   public SqlQueryParserResult parse(String sql) throws SQLException {
     DataSourceSchema dataSource = this.context.getDefaultDataSource();
-    final AtomicBoolean foundNonQuarkScan = new AtomicBoolean(false);
+    final AtomicBoolean foundOptimizedTableScan = new AtomicBoolean(false);
     final ImmutableSet.Builder<DataSourceSchema> dsBuilder = new ImmutableSet.Builder<>();
     try {
       final SqlKind kind = getSqlParser(sql).parseQuery().getKind();
@@ -161,7 +141,6 @@ public class SqlQueryParser implements Parser {
         }
 
         private void visitNonQuarkScan(TableScan node) {
-          foundNonQuarkScan.set(true);
           final String schemaName = node.getTable().getQualifiedName().get(0);
           CalciteSchema schema =
               CalciteSchema.from(getRootSchma()).getSubSchema(schemaName, false);
@@ -169,6 +148,7 @@ public class SqlQueryParser implements Parser {
         }
 
         private void visitQuarkTileScan(QuarkTileScan node) {
+          foundOptimizedTableScan.set(true);
           QuarkTile quarkTile = node.getQuarkTile();
           CalciteCatalogReader calciteCatalogReader = new CalciteCatalogReader(
               CalciteSchema.from(getRootSchma()),
@@ -181,6 +161,7 @@ public class SqlQueryParser implements Parser {
         }
 
         private void visitQuarkViewScan(QuarkViewScan node) {
+          foundOptimizedTableScan.set(true);
           QuarkTable table = node.getQuarkTable();
           if (table instanceof QuarkViewTable) {
             final CalciteSchema tableSchema = ((QuarkViewTable) table).getBackupTableSchema();
@@ -208,15 +189,15 @@ public class SqlQueryParser implements Parser {
 
       ImmutableSet<DataSourceSchema> dataSources = dsBuilder.build();
 
-      if (!foundNonQuarkScan.get() && dataSources.size() == 1) {
+      if (foundOptimizedTableScan.get() && dataSources.size() == 1) {
         /**
          * Check if query is completely optimized for a data source
          */
         final DataSourceSchema newDataSource = dataSources.asList().get(0);
-        final SqlDialect dialect = newDataSource.getDataSource().getSqlDialect();
-        final String parsedSql = getParsedSql(relNode, dialect);
-        result = new SqlQueryParserResult(parsedSql, newDataSource, kind, relNode, true);
-      } else if (foundNonQuarkScan.get() && dataSources.size() == 1) {
+        final String parsedSql = ResultProcessor.getParsedSql(relNode, newDataSource);
+        final String stripNamespace = stripNamespace(parsedSql, newDataSource);
+        result = new SqlQueryParserResult(stripNamespace, newDataSource, kind, relNode, true);
+      } else if (!foundOptimizedTableScan.get() && dataSources.size() == 1) {
         /**
          * Check if its not optimized
          */
@@ -225,7 +206,7 @@ public class SqlQueryParser implements Parser {
         result = new SqlQueryParserResult(stripNamespace, newDataSource, kind, relNode, true);
       } else if (this.context.isUnitTestMode()) {
         String parsedSql =
-            getParsedSql(relNode, SqlDialect.DatabaseProduct.QUARK.getDialect());
+            ResultProcessor.getParsedSql(relNode, SqlDialect.DatabaseProduct.QUARK.getDialect());
         result = new SqlQueryParserResult(parsedSql, null, kind, relNode, true);
       } else if (dataSources.size() > 1) {
         /**

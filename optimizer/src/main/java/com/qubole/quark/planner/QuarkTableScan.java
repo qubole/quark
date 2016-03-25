@@ -89,4 +89,14 @@ public class QuarkTableScan extends TableScan implements EnumerableRel {
   public QuarkTable getQuarkTable() {
     return quarkTable;
   }
+
+  @Override public boolean equals(Object obj) {
+    return obj == this
+        || obj instanceof QuarkTableScan
+        && quarkTable.equals(((QuarkTableScan) obj).getQuarkTable());
+  }
+
+  @Override public int hashCode() {
+    return quarkTable.hashCode();
+  }
 }

@@ -34,7 +34,6 @@ import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.RelTraitDef;
 import org.apache.calcite.plan.RelTraitSet;
-import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.Materializer;
 import org.apache.calcite.prepare.Prepare;
@@ -45,6 +44,7 @@ import org.apache.calcite.rel.rules.ProjectTableScanRule;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.schema.Schemas;
+import org.apache.calcite.sql.fun.HiveSqlOperatorTable;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.ChainedSqlOperatorTable;
@@ -118,7 +118,8 @@ public class SqlWorker {
     traitDefs.add(RelCollationTraitDef.INSTANCE);
     final ChainedSqlOperatorTable opTab =
         new ChainedSqlOperatorTable(
-            ImmutableList.of(SqlStdOperatorTable.instance(), catalogReader));
+            ImmutableList.of(SqlStdOperatorTable.instance(),
+                HiveSqlOperatorTable.instance(), catalogReader));
     FrameworkConfig config = Frameworks.newConfigBuilder() //
         .parserConfig(SqlParser.configBuilder()
             .setQuotedCasing(Casing.UNCHANGED)
@@ -176,7 +177,7 @@ public class SqlWorker {
       planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
 
       planner.addRelTraitDef(RelCollationTraitDef.INSTANCE);
-      ((VolcanoPlanner) planner).registerAbstractRelationalRules();
+      //((VolcanoPlanner) planner).registerAbstractRelationalRules();
 
       RelOptUtil.registerAbstractRels(planner);
       for (RelOptRule rule : ruleSet) {

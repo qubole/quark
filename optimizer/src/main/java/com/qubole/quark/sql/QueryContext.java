@@ -19,6 +19,7 @@ import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
+import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.jdbc.CalcitePrepare;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
@@ -86,6 +87,9 @@ public class QueryContext {
   public QueryContext(Properties info) throws QuarkException {
     try {
       Class schemaFactoryClazz = Class.forName(info.getProperty("schemaFactory"));
+      if (!info.contains(CalciteConnectionProperty.FUN.camelName())) {
+        info.put(CalciteConnectionProperty.FUN.camelName(), "standard,hive");
+      }
       this.cfg = new CalciteConnectionConfigImpl(info);
       final RelDataTypeSystem typeSystem =
           cfg.typeSystem(RelDataTypeSystem.class, RelDataTypeSystem.DEFAULT);

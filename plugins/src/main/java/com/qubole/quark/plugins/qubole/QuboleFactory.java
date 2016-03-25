@@ -35,7 +35,8 @@ public class QuboleFactory implements DataSourceFactory {
   private static final Map<String, Class<? extends QuboleDB>> DB_PLUGINS =
       ImmutableMap.of(
           "HIVE", HiveDb.class,
-          "DBTAP", DbTapDb.class
+          "DBTAP", DbTapDb.class,
+          "SPARKSQL", SparkDb.class
       );
 
   @Override

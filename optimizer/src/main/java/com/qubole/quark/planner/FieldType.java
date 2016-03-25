@@ -31,6 +31,7 @@ public enum FieldType {
   // Refer to table 8.9.1 in
   // https://docs.oracle.com/javase/6/docs/technotes/guides/jdbc/getstart/mapping.html
   CHAR(Types.CHAR, String.class),
+  BOOLEAN(Types.BOOLEAN, Primitive.BOOLEAN),
   VARCHAR(Types.VARCHAR, String.class),
   LONGVARCHAR(Types.LONGVARCHAR, String.class),
   NUMERIC(Types.NUMERIC, java.math.BigDecimal.class),
