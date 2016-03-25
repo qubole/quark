@@ -631,8 +631,7 @@ public class RelToSqlConverter {
         case LITERAL:
           final RexLiteral literal = (RexLiteral) rex;
           if (literal.getTypeName() == SqlTypeName.SYMBOL) {
-            final SqlLiteral.SqlSymbol symbol =
-                (SqlLiteral.SqlSymbol) literal.getValue();
+            final Enum symbol = (Enum) literal.getValue();
             return SqlLiteral.createSymbol(symbol, POS);
           }
           switch (literal.getTypeName().getFamily()) {
@@ -803,14 +802,15 @@ public class RelToSqlConverter {
         case STRICTLY_DESCENDING:
           node = SqlStdOperatorTable.DESC.createCall(POS, node);
       }
-      switch (collation.nullDirection) {
-        case FIRST:
-          node = SqlStdOperatorTable.NULLS_FIRST.createCall(POS, node);
-          break;
-        case LAST:
-          node = SqlStdOperatorTable.NULLS_LAST.createCall(POS, node);
-          break;
-      }
+// ******* Disable Null Collation ******
+//      switch (collation.nullDirection) {
+//        case FIRST:
+//          node = SqlStdOperatorTable.NULLS_FIRST.createCall(POS, node);
+//          break;
+//        case LAST:
+//          node = SqlStdOperatorTable.NULLS_LAST.createCall(POS, node);
+//          break;
+//      }
       return node;
     }
   }

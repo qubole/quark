@@ -37,8 +37,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.calcite</groupId>
-      <artifactId>calcite-avatica</artifactId>
+      <groupId>org.apache.calcite.avatica</groupId>
+      <artifactId>avatica</artifactId>
       <version>${calcite.version}</version>
     </dependency>
   </dependencies>

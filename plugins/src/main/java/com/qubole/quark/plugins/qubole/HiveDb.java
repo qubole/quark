@@ -91,7 +91,6 @@ public class HiveDb extends QuboleDB {
   public SqlDialect getSqlDialect() {
     final SqlDialect hiveDialect =
             SqlDialect.getProduct("Hive", null).getDialect();
-    hiveDialect.setUseLimitKeyWord(true);
     return hiveDialect;
   }
 

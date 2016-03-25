@@ -225,8 +225,7 @@ public class SqlQueryParser implements Parser {
         result = new SqlQueryParserResult(stripNamespace, newDataSource, kind, relNode, true);
       } else if (this.context.isUnitTestMode()) {
         String parsedSql =
-            getParsedSql(relNode,
-                new SqlDialect(SqlDialect.DatabaseProduct.UNKNOWN, "UNKNOWN", null, true));
+            getParsedSql(relNode, SqlDialect.DatabaseProduct.QUARK.getDialect());
         result = new SqlQueryParserResult(parsedSql, null, kind, relNode, true);
       } else if (dataSources.size() > 1) {
         /**

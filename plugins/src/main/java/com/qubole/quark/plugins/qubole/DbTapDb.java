@@ -148,7 +148,6 @@ public class DbTapDb extends QuboleDB {
         dialect = SqlDialect.getProduct("UNKNOWN", null).getDialect();
         break;
     }
-    dialect.setUseLimitKeyWord(true);
     return dialect;
   }
 

@@ -841,6 +841,11 @@ public class QuarkMetaImpl extends MetaImpl {
     throw new UnsupportedOperationException();
   }
 
+  @Override public void commit(ConnectionHandle ch) {
+  }
+
+  @Override public void rollback(ConnectionHandle ch) {
+  }
 
   /**
    * Metadata describing a Calcite schema.

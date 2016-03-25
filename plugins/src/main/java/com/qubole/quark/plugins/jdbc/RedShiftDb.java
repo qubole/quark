@@ -97,7 +97,6 @@ public class RedShiftDb extends JdbcDB {
   public SqlDialect getSqlDialect() {
     final SqlDialect redshiftDialect =
         SqlDialect.getProduct("REDSHIFT", null).getDialect();
-    redshiftDialect.setUseLimitKeyWord(true);
     return redshiftDialect;
   }
 }

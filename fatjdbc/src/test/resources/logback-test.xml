@@ -24,9 +24,9 @@
 
     <logger name="org.hibernate" level="INFO"/>
     <logger name="com.qubole" level="DEBUG"/>
-    <logger name="org.apache.calcite" level="DEBUG"/>
+    <logger name="org.apache.calcite" level="INFO"/>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

@@ -71,7 +71,6 @@ public class GenericDb extends JdbcDB {
   public SqlDialect getSqlDialect() {
     final SqlDialect sqlDialect = SqlDialect.getProduct((String) properties.get("type"), null)
         .getDialect();
-    sqlDialect.setUseLimitKeyWord(true);
     return sqlDialect;
   }
 }
