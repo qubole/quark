@@ -69,12 +69,12 @@ public class MaterializedViewJoinTest {
         + " `destination_id`,`schema_name`, `table_name`)"
         + " VALUES('test_hist_part1', 'Test History Partition1', 0, "
         + "'select * from h2.public.test_hist as h where to_date(h.created_at) < \''2015-02-01\''',"
-        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION');"
+        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION');"*/
         + "insert into partitions(`name`, `description`, `cost`, `query`, `ds_set_id`,"
         + " `destination_id`,`schema_name`, `table_name`)"
         + " VALUES('test_hist_part12', 'Test History Partition2', 0, "
         + "'select * from h2.public.test_hist as h where to_date(h.created_at) > DATE_SUB(FROM_UNIXTIME(UNIX_TIMESTAMP()), 60)',"
-        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION1');"*/;
+        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION1');";
 
     stmt.execute(sql);
     stmt.close();
@@ -178,7 +178,7 @@ public class MaterializedViewJoinTest {
         "LIKE '%\\\"HIVE_VERSION\\\":\\\"1.2\\\"%') " +
         "GROUP BY CREATED_AT ORDER BY CREATED_AT", hiveQuery);
   }
-  /*@Test
+  @Test
   public void testMVOptWithJoinAndhiveOp() throws Exception {
     String sql = "select\n" +
         "to_date(qh.created_at) as dt, \n" +
@@ -215,5 +215,44 @@ public class MaterializedViewJoinTest {
         + "AND TEST_HIST_PARTITION1.QLOG LIKE '%\\\"HIVE_VERSION\\\":\\\"1.2\\\"%') "
         + "GROUP BY TO_DATE(TEST_HIST_PARTITION1.CREATED_AT) "
         + "ORDER BY DT", hiveQuery);
-  }*/
+  }
+
+  @Test
+  public void testNoOptWithHiveOp() throws Exception {
+    String sql = "select\n" +
+        "to_date(qh.created_at) as dt, \n" +
+        "count(qh.id) as num_queries\n" +
+        "\n" +
+        "from test_hist qh\n" +
+        "join uinfo ui\n" +
+        "  on qh.qbol_user_id = ui.qu_id\n" +
+        "join acc externals\n" +
+        "  on externals.id = ui.a_id\n" +
+        "\n" +
+        "where to_date(qh.created_at) >= date_sub(from_unixtime(unix_timestamp()),150)\n" +
+        "and command_type = 'HiveCommand'\n" +
+        "and qlog like '%\\\"HIVE_VERSION\\\":\\\"1.2\\\"%'\n" +
+        "and customer_name like 'amogh'\n" +
+        "\n" +
+        "group by \n" +
+        "to_date(qh.created_at)\n" +
+        "\n" +
+        "order by dt asc";
+    SqlQueryParser parser = new SqlQueryParser(connInfo);
+    final SqlQueryParser.SqlQueryParserResult result = parser.parse(sql);
+    final String hiveQuery = ResultProcessor.getParsedSql(result.getRelNode(),
+        SqlDialect.DatabaseProduct.HIVE.getDialect());
+    assertEquals("SELECT TO_DATE(TEST_HIST.CREATED_AT) DT, "
+        + "COUNT(TEST_HIST.ID) NUM_QUERIES "
+        + "FROM H2.PUBLIC.TEST_HIST INNER JOIN H2.PUBLIC.UINFO "
+        + "ON TEST_HIST.QBOL_USER_ID = UINFO.QU_ID INNER JOIN H2.PUBLIC.ACC "
+        + "ON UINFO.A_ID = ACC.ID "
+        + "WHERE ACC.CUSTOMER_NAME LIKE 'amogh' AND "
+        + "(TO_DATE(TEST_HIST.CREATED_AT) >= "
+        + "DATE_SUB(FROM_UNIXTIME(UNIX_TIMESTAMP()), 150) "
+        + "AND TEST_HIST.COMMAND_TYPE = 'HiveCommand' "
+        + "AND TEST_HIST.QLOG LIKE '%\\\"HIVE_VERSION\\\":\\\"1.2\\\"%') "
+        + "GROUP BY TO_DATE(TEST_HIST.CREATED_AT) "
+        + "ORDER BY DT", hiveQuery);
+  }
 }
