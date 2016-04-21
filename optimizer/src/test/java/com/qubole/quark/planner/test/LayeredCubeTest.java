@@ -208,10 +208,10 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT t.D_YEAR, t.D_MOY, t.D_DOM, SUM(STORE_SALES.SS_SALES_PRICE) " +
-            "FROM (" +
+            "FROM TPCDS.STORE_SALES INNER JOIN (" +
             "SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 AND D_MOY = 7 AND D_DOM = 1" +
             ") AS t " +
-            "INNER JOIN TPCDS.STORE_SALES ON t.D_DATE_SK = STORE_SALES.SS_SOLD_DATE_SK " +
+            "ON STORE_SALES.SS_SOLD_DATE_SK = t.D_DATE_SK " +
             "GROUP BY t.D_YEAR, t.D_MOY, t.D_DOM");
   }
 
@@ -255,11 +255,11 @@ public class LayeredCubeTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT t.D_YEAR, t.D_MOY, t.D_DOM, SUM(STORE_SALES.SS_SALES_PRICE)" +
-            " FROM (" +
-            "SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 AND D_MOY = 2 AND D_DOM = 1" +
-            ") AS t " +
-            "INNER JOIN TPCDS.STORE_SALES ON t.D_DATE_SK = STORE_SALES.SS_SOLD_DATE_SK " +
+        "SELECT t.D_YEAR, t.D_MOY, t.D_DOM, SUM(STORE_SALES.SS_SALES_PRICE) " +
+            "FROM TPCDS.STORE_SALES " +
+            "INNER JOIN (SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 " +
+            "AND D_MOY = 2 AND D_DOM = 1) AS t " +
+            "ON STORE_SALES.SS_SOLD_DATE_SK = t.D_DATE_SK " +
             "GROUP BY t.D_YEAR, t.D_MOY, t.D_DOM");
   }
 
@@ -273,9 +273,10 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT t.D_YEAR, t.D_MOY, t.D_WEEK_SEQ, SUM(STORE_SALES.SS_SALES_PRICE) " +
-            "FROM (SELECT * FROM TPCDS.DATE_DIM " +
-            "WHERE D_YEAR = 2015 AND D_MOY = 2 AND D_WEEK_SEQ = 6) AS t " +
-            "INNER JOIN TPCDS.STORE_SALES ON t.D_DATE_SK = STORE_SALES.SS_SOLD_DATE_SK " +
+            "FROM TPCDS.STORE_SALES INNER JOIN " +
+            "(SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 AND D_MOY = 2 " +
+            "AND D_WEEK_SEQ = 6) AS t " +
+            "ON STORE_SALES.SS_SOLD_DATE_SK = t.D_DATE_SK " +
             "GROUP BY t.D_WEEK_SEQ, t.D_YEAR, t.D_MOY");
   }
 
@@ -304,8 +305,10 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT t.D_DATE, SUM(STORE_SALES.SS_SALES_PRICE) " +
-            "FROM (SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 AND D_MOY = 12) AS t " +
-            "INNER JOIN TPCDS.STORE_SALES ON t.D_DATE_SK = STORE_SALES.SS_SOLD_DATE_SK " +
+            "FROM TPCDS.STORE_SALES INNER JOIN " +
+            "(SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 " +
+            "AND D_MOY = 12) AS t " +
+            "ON STORE_SALES.SS_SOLD_DATE_SK = t.D_DATE_SK " +
             "GROUP BY t.D_DATE");
   }
 
@@ -319,8 +322,9 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT t.D_YEAR, t.D_MOY, SUM(STORE_SALES.SS_SALES_PRICE) " +
-            "FROM (SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2016 AND D_MOY = 12) AS t " +
-            "INNER JOIN TPCDS.STORE_SALES ON t.D_DATE_SK = STORE_SALES.SS_SOLD_DATE_SK " +
+            "FROM TPCDS.STORE_SALES INNER JOIN " +
+            "(SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2016 AND D_MOY = 12) AS t " +
+            "ON STORE_SALES.SS_SOLD_DATE_SK = t.D_DATE_SK " +
             "GROUP BY t.D_YEAR, t.D_MOY");
   }
 
@@ -334,8 +338,9 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT t.D_YEAR, t.D_MOY, SUM(STORE_SALES.SS_SALES_PRICE) " +
-            "FROM (SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 AND D_MOY >= 8 AND D_MOY <= " +
-            "12) AS t INNER JOIN TPCDS.STORE_SALES ON t.D_DATE_SK = STORE_SALES.SS_SOLD_DATE_SK " +
+            "FROM TPCDS.STORE_SALES INNER JOIN " +
+            "(SELECT * FROM TPCDS.DATE_DIM WHERE D_YEAR = 2015 AND D_MOY >= 8 AND D_MOY <= " +
+            "12) AS t ON STORE_SALES.SS_SOLD_DATE_SK = t.D_DATE_SK " +
             "GROUP BY t.D_YEAR, t.D_MOY");
   }
 

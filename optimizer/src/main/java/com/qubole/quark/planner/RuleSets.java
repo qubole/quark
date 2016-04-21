@@ -17,19 +17,27 @@ package com.qubole.quark.planner;
 
 import org.apache.calcite.adapter.enumerable.EnumerableRules;
 import org.apache.calcite.plan.RelOptRule;
+import org.apache.calcite.plan.volcano.AbstractConverter;
 import org.apache.calcite.rel.rules.AggregateExpandDistinctAggregatesRule;
+import org.apache.calcite.rel.rules.AggregateJoinTransposeRule;
+import org.apache.calcite.rel.rules.AggregateProjectMergeRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
+import org.apache.calcite.rel.rules.AggregateRemoveRule;
+import org.apache.calcite.rel.rules.CalcRemoveRule;
 import org.apache.calcite.rel.rules.FilterAggregateTransposeRule;
 import org.apache.calcite.rel.rules.FilterJoinRule;
 import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
 import org.apache.calcite.rel.rules.FilterTableScanRule;
 import org.apache.calcite.rel.rules.JoinAssociateRule;
-import org.apache.calcite.rel.rules.JoinCommuteRule;
 import org.apache.calcite.rel.rules.JoinPushThroughJoinRule;
 import org.apache.calcite.rel.rules.ProjectFilterTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
+import org.apache.calcite.rel.rules.ProjectRemoveRule;
+import org.apache.calcite.rel.rules.SemiJoinRule;
 import org.apache.calcite.rel.rules.SortProjectTransposeRule;
+import org.apache.calcite.rel.rules.SortRemoveRule;
 import org.apache.calcite.rel.rules.TableScanRule;
+import org.apache.calcite.rel.rules.UnionToDistinctRule;
 import org.apache.calcite.tools.RuleSet;
 import org.apache.calcite.util.Util;
 
@@ -64,14 +72,24 @@ public class RuleSets {
           ProjectFilterTransposeRule.INSTANCE,
           FilterProjectTransposeRule.INSTANCE,
           FilterJoinRule.FILTER_ON_JOIN,
+          FilterJoinRule.JOIN,
+          AbstractConverter.ExpandConversionRule.INSTANCE,
           AggregateExpandDistinctAggregatesRule.INSTANCE,
           AggregateReduceFunctionsRule.INSTANCE,
           FilterAggregateTransposeRule.INSTANCE,
-          JoinCommuteRule.INSTANCE,
+          //JoinCommuteRule.INSTANCE,
           JoinPushThroughJoinRule.RIGHT,
           JoinPushThroughJoinRule.LEFT,
-          SortProjectTransposeRule.INSTANCE);
-
+          SortProjectTransposeRule.INSTANCE,
+          SemiJoinRule.INSTANCE,
+          MaterializedViewFilterScanRule.INSTANCE,
+          AggregateRemoveRule.INSTANCE,
+          UnionToDistinctRule.INSTANCE,
+          ProjectRemoveRule.INSTANCE,
+          AggregateJoinTransposeRule.INSTANCE,
+          AggregateProjectMergeRule.INSTANCE,
+          CalcRemoveRule.INSTANCE,
+          SortRemoveRule.INSTANCE);
   private static final List<RelOptRule> ENUMERABLE_RULES =
       ImmutableList.of(
           EnumerableRules.ENUMERABLE_JOIN_RULE,

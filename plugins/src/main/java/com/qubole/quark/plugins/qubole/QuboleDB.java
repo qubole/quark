@@ -76,7 +76,8 @@ public abstract class QuboleDB implements Executor {
           .put(Primitive.FLOAT.primitiveClass.getSimpleName(), Types.FLOAT)
           .put(Primitive.DOUBLE.primitiveClass.getSimpleName(), Types.DOUBLE)
           .put("date", Types.DATE)
-          .put("time", Types.TIMESTAMP).build();
+          .put("time", Types.TIMESTAMP)
+          .put("boolean", Types.BOOLEAN).build();
 
   protected abstract Map<String, List<SchemaOrdinal>>
                         getSchemaListDescribed() throws ExecutionException, InterruptedException;

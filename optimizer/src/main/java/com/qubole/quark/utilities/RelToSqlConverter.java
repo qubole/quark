@@ -613,6 +613,7 @@ public class RelToSqlConverter {
       this.ignoreCast = ignoreCast;
     }
 
+    public abstract SqlNode field(int ordinal, boolean useAlias);
     public abstract SqlNode field(int ordinal);
 
     /**
@@ -796,7 +797,7 @@ public class RelToSqlConverter {
      * Converts a collation to an ORDER BY item.
      */
     public SqlNode toSql(RelFieldCollation collation) {
-      SqlNode node = field(collation.getFieldIndex());
+      SqlNode node = field(collation.getFieldIndex(), true);
       switch (collation.getDirection()) {
         case DESCENDING:
         case STRICTLY_DESCENDING:
@@ -837,6 +838,10 @@ public class RelToSqlConverter {
       super(computeFieldCount(aliases));
       this.aliases = aliases;
       this.qualified = qualified;
+    }
+
+    public SqlNode field(int ordinal, boolean useAlias) {
+      return field(ordinal);
     }
 
     public SqlNode field(int ordinal) {
@@ -920,12 +925,22 @@ public class RelToSqlConverter {
       final SqlNodeList selectList = select.getSelectList();
       if (selectList != null) {
         newContext = new Context(selectList.size()) {
+
           @Override
           public SqlNode field(int ordinal) {
+            return field(ordinal, false);
+          }
+
+          @Override
+          public SqlNode field(int ordinal, boolean useAlias) {
             final SqlNode selectItem = selectList.get(ordinal);
             switch (selectItem.getKind()) {
               case AS:
-                return ((SqlCall) selectItem).operand(0);
+                if (useAlias) {
+                  return ((SqlCall) selectItem).operand(1);
+                } else {
+                  return ((SqlCall) selectItem).operand(0);
+                }
             }
             return selectItem;
           }
