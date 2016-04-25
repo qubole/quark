@@ -15,7 +15,7 @@
 
 package com.qubole.quark.fatjdbc.test;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.AESEncrypt;
 import com.qubole.quark.fatjdbc.test.utility.MetaDataTest;
 
 import org.flywaydb.core.Flyway;
@@ -52,13 +52,6 @@ public class DbMetaDataTest extends MetaDataTest {
     flyway.setDataSource(dbSchemaUrl, "sa", "");
     flyway.migrate();
 
-    // Encrypting url, username and password before storing in db
-    MysqlAES mysqlAES = MysqlAES.getInstance();
-    mysqlAES.setKey("easy");
-    String url = mysqlAES.convertToDatabaseColumn(h2Url);
-    String username = mysqlAES.convertToDatabaseColumn("sa");
-    String password = mysqlAES.convertToDatabaseColumn("");
-
     Properties connInfo = new Properties();
     connInfo.setProperty("url", dbSchemaUrl);
     connInfo.setProperty("user", "sa");
@@ -68,8 +61,8 @@ public class DbMetaDataTest extends MetaDataTest {
 
     Statement stmt = dbConnection.createStatement();
     String sql = "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
-        + "('H2', 'H2', '" + url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
-        + "username, password) values(1, '" + username + "', '" + password + "');" +
+        + "('H2', 'H2', '" + h2Url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
+        + "username, password) values(1, 'sa', '');" +
         "update ds_sets set default_datasource_id = 1 where id = 1;";
 
     stmt.execute(sql);

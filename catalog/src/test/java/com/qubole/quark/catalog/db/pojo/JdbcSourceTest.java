@@ -16,7 +16,7 @@
 package com.qubole.quark.catalog.db.pojo;
 
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.AESEncrypt;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
@@ -42,11 +42,9 @@ public class JdbcSourceTest extends DbUtility {
 
     setUpDb(dbSchemaUrl, "sa", "", "tpcds.sql");
 
-    MysqlAES mysqlAES = MysqlAES.getInstance();
-    mysqlAES.setKey("easy");
-
     DBI dbi = new DBI(dbSchemaUrl, "sa", "");
     jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
+    dbi.define("encryptClass", new AESEncrypt("easy"));
   }
 
   @Test

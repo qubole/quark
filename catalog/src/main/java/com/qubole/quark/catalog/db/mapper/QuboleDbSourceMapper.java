@@ -15,7 +15,7 @@
 
 package com.qubole.quark.catalog.db.mapper;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.Encrypt;
 import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
 
 import org.skife.jdbi.v2.StatementContext;
@@ -29,11 +29,10 @@ import java.sql.SQLException;
  */
 public class QuboleDbSourceMapper implements ResultSetMapper<QuboleDbSource> {
   public QuboleDbSource map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-    MysqlAES mysqlAES = MysqlAES.getInstance();
-
+    Encrypt encrypt = (Encrypt) ctx.getAttribute("encryptClass");
     return new QuboleDbSource(r.getInt("id"), r.getString("type"), r.getString("name"),
-        r.getString("datasource_type"), mysqlAES.convertToEntityAttribute(r.getString("url")),
+        r.getString("datasource_type"), encrypt.convertToEntityAttribute(r.getString("url")),
         r.getInt("ds_set_id"), r.getLong("dbtap_id"),
-        mysqlAES.convertToEntityAttribute(r.getString("auth_token")));
+        encrypt.convertToEntityAttribute(r.getString("auth_token")));
   }
 }

@@ -126,6 +126,7 @@ public class QuarkDriver extends UnregisteredDriver {
           info.setProperty("user", catalogDetail.dbCredentials.username);
           info.setProperty("password", catalogDetail.dbCredentials.password);
           info.setProperty("encryptionKey", catalogDetail.dbCredentials.encryptionKey);
+          info.setProperty("encrypt", catalogDetail.dbCredentials.encrypt);
         } catch (IOException e) {
           throw new SQLException(e);
         }

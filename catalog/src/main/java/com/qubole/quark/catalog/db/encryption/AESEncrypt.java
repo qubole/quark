@@ -26,20 +26,10 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * Encrypt/decrypt data for/from db using Mysql AES algorithm.
  */
-public class MysqlAES {
-  private String key;
-  private static MysqlAES mysqlAES;
+public class AESEncrypt implements Encrypt {
+  private final String key;
 
-  private MysqlAES() {}
-
-  public static MysqlAES getInstance() {
-    if (mysqlAES == null) {
-      mysqlAES = new MysqlAES();
-    }
-    return mysqlAES;
-  }
-
-  public void setKey(String key) {
+  public AESEncrypt(String key) {
     this.key = key;
   }
 
@@ -79,7 +69,5 @@ public class MysqlAES {
     } catch (Exception e) {
       throw new SQLException(e);
     }
-
   }
-
 }

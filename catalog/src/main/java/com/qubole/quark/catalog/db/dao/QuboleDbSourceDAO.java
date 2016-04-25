@@ -15,7 +15,7 @@
 
 package com.qubole.quark.catalog.db.dao;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.Encrypt;
 import com.qubole.quark.catalog.db.mapper.QuboleDbSourceMapper;
 import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
 
@@ -59,16 +59,12 @@ public abstract class QuboleDbSourceDAO {
   public abstract void delete(@Bind("id") int id);
 
   @Transaction
-  public int update(QuboleDbSource db, DataSourceDAO dao, String key) {
-    if (key != null) {
-      try {
-        MysqlAES mysqlAES = MysqlAES.getInstance();
-        mysqlAES.setKey(key);
-        db.setUrl(mysqlAES.convertToDatabaseColumn(db.getUrl()));
-        db.setAuthToken(mysqlAES.convertToDatabaseColumn(db.getAuthToken()));
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+  public int update(QuboleDbSource db, DataSourceDAO dao, Encrypt encrypt) {
+    try {
+      db.setUrl(encrypt.convertToDatabaseColumn(db.getUrl()));
+      db.setAuthToken(encrypt.convertToDatabaseColumn(db.getAuthToken()));
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
     updateQubole(db);
     return dao.update(db);
