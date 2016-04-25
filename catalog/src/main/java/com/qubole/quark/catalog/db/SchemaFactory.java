@@ -104,9 +104,18 @@ public class SchemaFactory implements QuarkFactory {
       MeasureDAO measureDAO = dbi.onDemand(MeasureDAO.class);
       DimensionDAO dimensionDAO = dbi.onDemand(DimensionDAO.class);
 
-      List<DSSet> dsSets = dsSetDAO.findAll();
-      long dsSetId = dsSets.get(0).getId();
-      long defaultDataSourceId = dsSets.get(0).getDefaultDatasourceId();
+
+      DSSet dsSet;
+      if (info.containsKey("dsSetId")) {
+        dsSet = dsSetDAO.find(Integer.parseInt(info.getProperty("dsSetId")));
+      } else {
+        List<DSSet> dsSets = dsSetDAO.findAll();
+        dsSet = dsSets.get(0);
+      }
+
+      long dsSetId = dsSet.getId();
+      long defaultDataSourceId = dsSet.getDefaultDatasourceId();
+
       List<JdbcSource> jdbcSources = jdbcSourceDAO.findByDSSetId(dsSetId);
       List<QuboleDbSource> quboleDbSources = quboleDbSourceDAO.findByDSSetId(dsSetId);
 
