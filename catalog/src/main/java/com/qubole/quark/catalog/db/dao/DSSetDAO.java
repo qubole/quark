@@ -18,6 +18,7 @@ package com.qubole.quark.catalog.db.dao;
 import com.qubole.quark.catalog.db.mapper.DSSetMapper;
 import com.qubole.quark.catalog.db.pojo.DSSet;
 
+import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 
@@ -30,4 +31,7 @@ import java.util.List;
 public interface DSSetDAO {
   @SqlQuery("select id, name, default_datasource_id from ds_sets")
   List<DSSet> findAll();
+
+  @SqlQuery("select id, name, default_datasource_id from ds_sets where id = :id")
+  DSSet find(@Bind("id") int id);
 }
