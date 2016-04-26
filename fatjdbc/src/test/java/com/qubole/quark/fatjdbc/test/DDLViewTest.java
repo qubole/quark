@@ -15,7 +15,7 @@
 
 package com.qubole.quark.fatjdbc.test;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.AESEncrypt;
 import org.flywaydb.core.Flyway;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -97,13 +97,6 @@ public class DDLViewTest {
     flyway.setDataSource(dbSchemaUrl, "sa", "");
     flyway.migrate();
 
-    // Encrypting url, username and password before storing in db
-    MysqlAES mysqlAES = MysqlAES.getInstance();
-    mysqlAES.setKey("xyz");
-    String url = mysqlAES.convertToDatabaseColumn(tpcdsUrl);
-    String username = mysqlAES.convertToDatabaseColumn("sa");
-    String password = mysqlAES.convertToDatabaseColumn("");
-
     Properties connInfo = new Properties();
     connInfo.setProperty("url", dbSchemaUrl);
     connInfo.setProperty("user", "sa");
@@ -114,14 +107,13 @@ public class DDLViewTest {
     Statement stmt = dbConnection.createStatement();
     // Sql statement default data-source and view datasource
     String sql = "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
-        + "('CANONICAL', 'H2', '" + url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
-        + "username, password) values(1, '" + username + "', '" + password + "');"
+        + "('CANONICAL', 'H2', '" + tpcdsUrl + "', 1, 'JDBC'); insert into jdbc_sources (id, "
+        + "username, password) values(1, 'sa', '');"
         + "update ds_sets set default_datasource_id = 1 where id = 1;";
 
     sql = sql + "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
-        + "('VIEWS', 'H2', '" + mysqlAES.convertToDatabaseColumn(tpcdsViewUrl) + "', 1, 'JDBC'); "
-        + "insert into jdbc_sources (id, username, password) values(2, '" + username + "', '"
-        + password + "');";
+        + "('VIEWS', 'H2', '" + tpcdsViewUrl + "', 1, 'JDBC'); "
+        + "insert into jdbc_sources (id, username, password) values(2, 'sa', '');";
 
     // Sql statement to add views, to be used for drop and alter view respectively.
     sql = sql + " insert into partitions(name, description, cost, query, ds_set_id, destination_id, "

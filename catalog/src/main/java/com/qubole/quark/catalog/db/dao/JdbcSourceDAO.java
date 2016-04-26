@@ -15,7 +15,7 @@
 
 package com.qubole.quark.catalog.db.dao;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.Encrypt;
 import com.qubole.quark.catalog.db.mapper.JdbcSourceMapper;
 import com.qubole.quark.catalog.db.pojo.JdbcSource;
 
@@ -58,17 +58,13 @@ public abstract class JdbcSourceDAO {
   public abstract void delete(@Bind("id") int id);
 
   @Transaction
-  public int update(JdbcSource source, DataSourceDAO dao, String key) {
-    if (key != null) {
-      try {
-        MysqlAES mysqlAES = MysqlAES.getInstance();
-        mysqlAES.setKey(key);
-        source.setUrl(mysqlAES.convertToDatabaseColumn(source.getUrl()));
-        source.setUsername(mysqlAES.convertToDatabaseColumn(source.getUsername()));
-        source.setPassword(mysqlAES.convertToDatabaseColumn(source.getPassword()));
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+  public int update(JdbcSource source, DataSourceDAO dao, Encrypt encrypt) {
+    try {
+      source.setUrl(encrypt.convertToDatabaseColumn(source.getUrl()));
+      source.setUsername(encrypt.convertToDatabaseColumn(source.getUsername()));
+      source.setPassword(encrypt.convertToDatabaseColumn(source.getPassword()));
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
     updateJdbc(source);
     return dao.update(source);

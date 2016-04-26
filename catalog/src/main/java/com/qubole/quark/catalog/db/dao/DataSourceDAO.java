@@ -15,7 +15,7 @@
 
 package com.qubole.quark.catalog.db.dao;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.Encrypt;
 import com.qubole.quark.catalog.db.mapper.DataSourceMapper;
 import com.qubole.quark.catalog.db.pojo.DataSource;
 
@@ -56,18 +56,14 @@ public abstract class DataSourceDAO {
   public abstract void delete(@Bind("id") int id);
 
   public int insertJDBC(String name, String type, String url, long dsSetId,
-      String dataSourcetype, JdbcSourceDAO jdbcDao, String username, String password,
-      String key) {
-    if (key != null) {
-      try {
-        MysqlAES mysqlAES = MysqlAES.getInstance();
-        mysqlAES.setKey(key);
-        url = mysqlAES.convertToDatabaseColumn(url);
-        username = mysqlAES.convertToDatabaseColumn(username);
-        password = mysqlAES.convertToDatabaseColumn(password);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+                        String dataSourcetype, JdbcSourceDAO jdbcDao, String username,
+                        String password, Encrypt encrypt) {
+    try {
+      url = encrypt.convertToDatabaseColumn(url);
+      username = encrypt.convertToDatabaseColumn(username);
+      password = encrypt.convertToDatabaseColumn(password);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
     int id = insert(name, type, url, dsSetId, dataSourcetype);
     jdbcDao.insert(id, username, password);
@@ -77,16 +73,12 @@ public abstract class DataSourceDAO {
   @Transaction
   public int insertQuboleDB(String name, String type, String url, long dsSetId,
       String dataSourcetype, QuboleDbSourceDAO quboleDao, int dbTapId, String authToken,
-      String key) {
-    if (key != null) {
-      try {
-        MysqlAES mysqlAES = MysqlAES.getInstance();
-        mysqlAES.setKey(key);
-        url = mysqlAES.convertToDatabaseColumn(url);
-        authToken = mysqlAES.convertToDatabaseColumn(authToken);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      Encrypt encrypt) {
+    try {
+      url = encrypt.convertToDatabaseColumn(url);
+      authToken = encrypt.convertToDatabaseColumn(authToken);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
     int id = insert(name, type, url, dsSetId, dataSourcetype);
     quboleDao.insert(id, dbTapId, authToken);

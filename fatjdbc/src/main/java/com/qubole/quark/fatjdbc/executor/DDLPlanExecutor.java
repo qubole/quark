@@ -36,6 +36,9 @@ import com.qubole.quark.catalog.db.dao.DataSourceDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
 import com.qubole.quark.catalog.db.dao.QuboleDbSourceDAO;
 import com.qubole.quark.catalog.db.dao.ViewDAO;
+import com.qubole.quark.catalog.db.encryption.AESEncrypt;
+import com.qubole.quark.catalog.db.encryption.Encrypt;
+import com.qubole.quark.catalog.db.encryption.NoopEncrypt;
 import com.qubole.quark.catalog.db.pojo.DataSource;
 import com.qubole.quark.catalog.db.pojo.JdbcSource;
 import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
@@ -203,21 +206,33 @@ public class DDLPlanExecutor implements PlanExecutor {
       }
     }
 
-    if (dataSource instanceof JdbcSource) {
-      return jdbcDAO.update((JdbcSource) dataSource, dataSourceDAO,
-          connection.getProperties().getProperty("encryptionKey"));
+    Encrypt encrypt;
+    if (Boolean.parseBoolean(connection.getProperties().getProperty("encrypt", "false"))) {
+      encrypt = new AESEncrypt(connection.getProperties().getProperty("encryptionKey"));
     } else {
-      return quboleDAO.update((QuboleDbSource) dataSource, dataSourceDAO,
-          connection.getProperties().getProperty("encryptionKey"));
+      encrypt = new NoopEncrypt();
+    }
+    if (dataSource instanceof JdbcSource) {
+      return jdbcDAO.update((JdbcSource) dataSource, dataSourceDAO, encrypt);
+    } else {
+      return quboleDAO.update((QuboleDbSource) dataSource, dataSourceDAO, encrypt);
     }
   }
 
   private DBI getDBI() {
     Properties info = connection.getProperties();
-    return new DBI(
+    DBI dbi = new DBI(
           info.getProperty("url"),
           info.getProperty("user"),
           info.getProperty("password"));
+
+    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
+      dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
+    } else {
+      dbi.define("encryptClass", new NoopEncrypt());
+    }
+
+    return dbi;
   }
 
   public int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
@@ -289,6 +304,14 @@ public class DDLPlanExecutor implements PlanExecutor {
         }
         i++;
       }
+
+      Encrypt encrypt;
+      if (Boolean.parseBoolean(connection.getProperties().getProperty("encrypt", "false"))) {
+        encrypt = new AESEncrypt(connection.getProperties().getProperty("encryptionKey"));
+      } else {
+        encrypt = new NoopEncrypt();
+      }
+
       if ((jdbcSourceDAO == null && quboleDbSourceDAO == null)
           || (jdbcSourceDAO != null && quboleDbSourceDAO != null)) {
         throw new RuntimeException("Need to pass exact values to create"
@@ -303,7 +326,7 @@ public class DDLPlanExecutor implements PlanExecutor {
             (String) dbSpecificColumns.get("username"),
             (dbSpecificColumns.get("password") == null) ? ""
                 : (String) dbSpecificColumns.get("password"),
-            connection.getProperties().getProperty("encryptionKey"));
+            encrypt);
       } else {
         return dataSourceDAO.insertQuboleDB((String) commonColumns.get("name"),
             (String) commonColumns.get("type"),
@@ -313,7 +336,7 @@ public class DDLPlanExecutor implements PlanExecutor {
             quboleDbSourceDAO,
             (int) dbSpecificColumns.get("dbtap_id"),
             (String) dbSpecificColumns.get("auth_token"),
-            connection.getProperties().getProperty("encryptionKey"));
+            encrypt);
       }
     } else {
       throw new RuntimeException("Incorrect DDL Statement to create Datasources");

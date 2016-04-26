@@ -1,6 +1,6 @@
 package com.qubole.quark.fatjdbc.test;
 
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.AESEncrypt;
 import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.sql.ResultProcessor;
 import org.apache.calcite.sql.SqlDialect;
@@ -35,13 +35,6 @@ public class MaterializedViewJoinTest {
     flyway.setDataSource(dbSchemaUrl, "sa", "");
     flyway.migrate();
 
-    // Encrypting url, username and password before storing in db
-    MysqlAES mysqlAES = MysqlAES.getInstance();
-    mysqlAES.setKey("key");
-    String url = mysqlAES.convertToDatabaseColumn(dbUrl);
-    String username = mysqlAES.convertToDatabaseColumn("sa");
-    String password = mysqlAES.convertToDatabaseColumn("");
-
     connInfo = new Properties();
     connInfo.setProperty("url", dbSchemaUrl);
     connInfo.setProperty("user", "sa");
@@ -51,14 +44,14 @@ public class MaterializedViewJoinTest {
             getResource("/HiveUDFModel.json").getPath(), "");
     connInfo.setProperty("schemaFactory",
         "com.qubole.quark.catalog.db.SchemaFactory");
-    connInfo.setProperty("encryptionKey", "key");
+    connInfo.setProperty("encryption", "false");
 
     dbConnection = DriverManager.getConnection(dbSchemaUrl, connInfo);
 
     Statement stmt = dbConnection.createStatement();
     String sql = "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
-        + "('H2', 'H2', '" + url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
-        + "username, password) values(1, '" + username + "', '" + password + "');"
+        + "('H2', 'H2', '" + dbUrl + "', 1, 'JDBC'); insert into jdbc_sources (id, "
+        + "username, password) values(1, 'sa', '');"
         + "update ds_sets set default_datasource_id = 1 where id = 1;"
         + "insert into partitions(`name`, `description`, `cost`, `query`, `ds_set_id`,"
         + " `destination_id`,`schema_name`, `table_name`)"

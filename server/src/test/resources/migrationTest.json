@@ -3,7 +3,8 @@
     "url": "jdbc:h2:mem:MigrationTest;DB_CLOSE_DELAY=-1",
     "username": "sa",
     "password": "",
-    "encrypt_key": "key"
+    "encrypt_key": "key",
+    "encrypt":"true"
   },
   "port": 8800
 }

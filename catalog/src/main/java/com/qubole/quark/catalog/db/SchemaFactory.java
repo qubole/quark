@@ -25,7 +25,8 @@ import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
 import com.qubole.quark.catalog.db.dao.MeasureDAO;
 import com.qubole.quark.catalog.db.dao.QuboleDbSourceDAO;
 import com.qubole.quark.catalog.db.dao.ViewDAO;
-import com.qubole.quark.catalog.db.encryption.MysqlAES;
+import com.qubole.quark.catalog.db.encryption.AESEncrypt;
+import com.qubole.quark.catalog.db.encryption.NoopEncrypt;
 import com.qubole.quark.catalog.db.pojo.Cube;
 import com.qubole.quark.catalog.db.pojo.DSSet;
 import com.qubole.quark.catalog.db.pojo.DataSource;
@@ -78,14 +79,16 @@ public class SchemaFactory implements QuarkFactory {
    */
   public QuarkFactoryResult create(Properties info) throws QuarkException {
     try {
-      MysqlAES mysqlAES = MysqlAES.getInstance();
-      mysqlAES.setKey(info.getProperty("encryptionKey"));
-
       DBI dbi = new DBI(
           info.getProperty("url"),
           info.getProperty("user"),
           info.getProperty("password"));
 
+      if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
+        dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
+      } else {
+        dbi.define("encryptClass", new NoopEncrypt());
+      }
       Flyway flyway = new Flyway();
       flyway.setDataSource(
           info.getProperty("url"),
