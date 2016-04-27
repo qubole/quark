@@ -67,6 +67,10 @@ public abstract class MaterializedViewFilterScanRule extends RelOptRule {
   //~ Methods ----------------------------------------------------------------
 
   protected void apply(RelOptRuleCall call, Filter filter, TableScan scan) {
+    //Avoid optimizing already optimized scan
+    if (scan instanceof QuarkViewScan || scan instanceof QuarkTileScan) {
+      return;
+    }
     RelNode root = filter.copy(filter.getTraitSet(),
         Collections.singletonList((RelNode) scan));
     RelOptPlanner planner = call.getPlanner();
@@ -74,15 +78,17 @@ public abstract class MaterializedViewFilterScanRule extends RelOptRule {
       List<RelOptMaterialization> materializations
           = ((VolcanoPlanner) planner).getApplicableMaterializations();
       for (RelOptMaterialization materialization : materializations) {
-        RelNode target = materialization.queryRel;
-        final HepPlanner hepPlanner =
-            new HepPlanner(program, planner.getContext());
-        hepPlanner.setRoot(target);
-        target = hepPlanner.findBestExp();
-        List<RelNode> subs = new MaterializedViewSubstitutionVisitor(target, root)
-            .go(materialization.tableRel);
-        for (RelNode s : subs) {
-          call.transformTo(s);
+        if (scan.getRowType().equals(materialization.queryRel.getRowType())) {
+          RelNode target = materialization.queryRel;
+          final HepPlanner hepPlanner =
+              new HepPlanner(program, planner.getContext());
+          hepPlanner.setRoot(target);
+          target = hepPlanner.findBestExp();
+          List<RelNode> subs = new MaterializedViewSubstitutionVisitor(target, root)
+              .go(materialization.tableRel);
+          for (RelNode s : subs) {
+            call.transformTo(s);
+          }
         }
       }
     }
