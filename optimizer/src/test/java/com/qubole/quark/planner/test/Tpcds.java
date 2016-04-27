@@ -220,6 +220,37 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES", store_sales);
 
+    QuarkTable web_site = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+        .add(new QuarkColumn("web_site_sk", Types.INTEGER))
+        .add(new QuarkColumn("web_site_id", Types.CHAR))
+        .add(new QuarkColumn("web_rec_start_date", Types.DATE))
+        .add(new QuarkColumn("web_rec_end_data", Types.DATE))
+        .add(new QuarkColumn("web_name", Types.VARCHAR))
+        .add(new QuarkColumn("web_open_date_sk", Types.INTEGER))
+            .add(new QuarkColumn("web_close_date_sk", Types.INTEGER))
+            .add(new QuarkColumn("web_class", Types.VARCHAR))
+            .add(new QuarkColumn("web_manager", Types.VARCHAR))
+            .add(new QuarkColumn("web_mkt_id", Types.INTEGER))
+            .add(new QuarkColumn("web_mkt_class", Types.VARCHAR))
+            .add(new QuarkColumn("web_mkt_desc", Types.VARCHAR))
+            .add(new QuarkColumn("web_market_manager", Types.VARCHAR))
+            .add(new QuarkColumn("web_company_id", Types.INTEGER))
+            .add(new QuarkColumn("web_company_name", Types.CHAR))
+            .add(new QuarkColumn("web_street_number", Types.CHAR))
+            .add(new QuarkColumn("web_street_name", Types.VARCHAR))
+            .add(new QuarkColumn("web_street_type", Types.CHAR))
+            .add(new QuarkColumn("web_suite_number", Types.CHAR))
+            .add(new QuarkColumn("web_city", Types.VARCHAR))
+            .add(new QuarkColumn("web_county", Types.VARCHAR))
+            .add(new QuarkColumn("web_state", Types.CHAR))
+            .add(new QuarkColumn("web_zip", Types.CHAR))
+            .add(new QuarkColumn("web_country", Types.VARCHAR))
+            .add(new QuarkColumn("web_gmt_offset", Types.DECIMAL))
+            .add(new QuarkColumn("web_tax_percentage", Types.DECIMAL)).build()
+    );
+
+    builder.put("WEB_SITE", web_site);
+
     QuarkTable store_sales_cube = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("i_item_id", Types.VARCHAR))
         .add(new QuarkColumn("c_customer_id", Types.VARCHAR))
@@ -288,6 +319,14 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES_CUBE_MONTHLY", store_sales_cube_monthly);
 
+    QuarkTable web_site_partition = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+            .add(new QuarkColumn("web_site_sk", Types.INTEGER))
+            .add(new QuarkColumn("web_rec_start_date", Types.DATE))
+            .add(new QuarkColumn("web_county", Types.VARCHAR))
+            .add(new QuarkColumn("web_tax_percentage", Types.DECIMAL)).build()
+    );
+
+    builder.put("WEB_SITE_PARTITION", web_site_partition);
     return builder.build();
   }
 }
