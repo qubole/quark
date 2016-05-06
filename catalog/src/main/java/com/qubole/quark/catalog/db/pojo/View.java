@@ -132,4 +132,16 @@ public class View {
     this.dsSetId = dsSetId;
   }
 
+  public String[] values() {
+    return new String[]{String.valueOf(this.id),
+        this.name,
+        this.description,
+        String.valueOf(this.cost),
+        this.query,
+        String.valueOf(this.destinationId),
+        this.schema,
+        this.table,
+        String.valueOf(this.dsSetId)};
+  }
+
 }

@@ -23,13 +23,16 @@ import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import java.util.List;
 
 /**
  * DAO for {@link View}
  */
+@UseStringTemplate3StatementLocator
 @RegisterMapper(ViewMapper.class)
 public interface ViewDAO {
 
@@ -60,4 +63,8 @@ public interface ViewDAO {
 
   @SqlUpdate("delete from partitions where id = :id")
   void delete(@Bind("id") int id);
+
+  @SqlQuery("select id, name, description, query, cost, table_name, schema_name, "
+      + "destination_id, null as destination, ds_set_id from partitions <where>")
+  List<View> findByWhere(@Define("where") String where);
 }

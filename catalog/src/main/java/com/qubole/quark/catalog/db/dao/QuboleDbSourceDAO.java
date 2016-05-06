@@ -25,7 +25,9 @@ import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.Transaction;
+import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.List;
 /**
  * DAO for {@link QuboleDbSource}
  */
+@UseStringTemplate3StatementLocator
 @RegisterMapper(QuboleDbSourceMapper.class)
 public abstract class QuboleDbSourceDAO {
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
@@ -69,4 +72,9 @@ public abstract class QuboleDbSourceDAO {
     updateQubole(db);
     return dao.update(db);
   }
+
+  @SqlQuery("select data_sources.id, name, type, datasource_type, url, ds_set_id, "
+      + "quboledb_sources.dbtap_id, quboledb_sources.auth_token from data_sources "
+      + "join quboledb_sources on data_sources.id = quboledb_sources.id <where>")
+  public abstract List<QuboleDbSource> findByWhere(@Define("where") String where);
 }

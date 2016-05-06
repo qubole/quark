@@ -15,6 +15,7 @@
 
 package com.qubole.quark.catalog.db.pojo;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,5 +113,9 @@ public class DataSource {
     }
 
     return properties;
+  }
+
+  public String[] values() throws SQLException {
+    throw new SQLException("Method not implemented for " + this.getClass());
   }
 }

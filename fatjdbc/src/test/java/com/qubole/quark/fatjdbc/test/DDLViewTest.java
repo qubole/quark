@@ -215,4 +215,13 @@ public class DDLViewTest {
 
     assertThat(getSize(countQuery)).isEqualTo(0);
   }
+
+  @Test
+  public void testShowViewDDL() throws SQLException, ClassNotFoundException {
+    Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
+    Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
+
+    ResultSet rs = connection.createStatement().executeQuery("SHOW VIEW WHERE ID=1");
+    assertThat(rs.next()).isEqualTo(true);
+  }
 }

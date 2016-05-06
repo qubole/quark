@@ -25,7 +25,9 @@ import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.Transaction;
+import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.List;
 /**
  * DAO for {@link JdbcSource}
  */
+@UseStringTemplate3StatementLocator
 @RegisterMapper(JdbcSourceMapper.class)
 public abstract class JdbcSourceDAO {
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
@@ -69,4 +72,9 @@ public abstract class JdbcSourceDAO {
     updateJdbc(source);
     return dao.update(source);
   }
+
+  @SqlQuery("select data_sources.id, name, type, datasource_type, url, ds_set_id, "
+      + "jdbc_sources.username, jdbc_sources.password from data_sources join jdbc_sources "
+      + "on data_sources.id = jdbc_sources.id <where>")
+  public abstract List<JdbcSource> findByWhere(@Define("where") String where);
 }
