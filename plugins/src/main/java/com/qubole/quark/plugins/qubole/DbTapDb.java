@@ -49,7 +49,8 @@ public class DbTapDb extends QuboleDB {
           .put("character varying\\([0-9]+\\)", Types.VARCHAR)
           .put("timestamp without time zone", Types.TIMESTAMP)
           .put("double precision", Types.DOUBLE)
-          .put("character\\([0-9]+\\)", Types.FLOAT).build();
+          .put("character\\([0-9]+\\)", Types.FLOAT)
+          .put("real", Types.FLOAT).build();
 
   public DbTapDb(Map<String, Object> properties) {
     super(properties);
