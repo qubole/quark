@@ -195,9 +195,9 @@ public abstract class QuboleDB implements Executor {
    * Merges two schema Maps. 'putAll' method can't be used because if the any of the
    * key is same in the maps, then it will get overwritten.
    * for e.g.
-   * if map1 = {'public' -> list1}, map2 = {'public' -> list2}
+   * if map1 = {'public' -&gt; list1}, map2 = {'public' -&gt; list2}
    * then
-   *   map1.putAll(map2) will return map2 ({'public' -> list2})
+   *   map1.putAll(map2) will return map2 ({'public' -&gt; list2})
    *   i.e. map1 gets overwritten
    *
    * @param schemas1 schema map1
