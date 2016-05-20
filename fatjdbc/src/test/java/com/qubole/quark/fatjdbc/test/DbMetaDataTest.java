@@ -15,7 +15,6 @@
 
 package com.qubole.quark.fatjdbc.test;
 
-import com.qubole.quark.catalog.db.encryption.AESEncrypt;
 import com.qubole.quark.fatjdbc.test.utility.MetaDataTest;
 
 import org.flywaydb.core.Flyway;

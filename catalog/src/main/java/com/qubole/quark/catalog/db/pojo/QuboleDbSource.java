@@ -63,4 +63,18 @@ public class QuboleDbSource extends DataSource {
   public void setAuthToken(String authToken) {
     this.authToken = authToken;
   }
+
+  @Override
+  public String[] values() {
+    return new String[]{String.valueOf(this.getId()),
+        this.getType(),
+        this.getUrl(),
+        this.getName(),
+        String.valueOf(this.getDsSetId()),
+        this.getDatasourceType(),
+        this.authToken,
+        String.valueOf(this.dbTapId),
+        null,
+        null};
+  }
 }

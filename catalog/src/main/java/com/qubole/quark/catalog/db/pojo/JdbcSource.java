@@ -61,4 +61,18 @@ public class JdbcSource extends DataSource {
 
     return prop;
   }
+
+  @Override
+  public String[] values() {
+    return new String[]{String.valueOf(this.getId()),
+        this.getType(),
+        this.getUrl(),
+        this.getName(),
+        String.valueOf(this.getDsSetId()),
+        this.getDatasourceType(),
+        null,
+        null,
+        this.username,
+        this.password};
+  }
 }

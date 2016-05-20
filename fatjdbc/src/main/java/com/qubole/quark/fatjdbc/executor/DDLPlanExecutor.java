@@ -14,9 +14,16 @@
  */
 package com.qubole.quark.fatjdbc.executor;
 
+import org.apache.calcite.avatica.AvaticaStatement;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.avatica.util.Quoting;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactoryImpl;
+import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
+import org.apache.calcite.rel.type.RelRecordType;
 import org.apache.calcite.sql.SqlAlterQuarkDataSource;
 import org.apache.calcite.sql.SqlAlterQuarkView;
 import org.apache.calcite.sql.SqlBasicCall;
@@ -29,8 +36,12 @@ import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlNumericLiteral;
+import org.apache.calcite.sql.SqlShowQuark;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.util.Util;
+
+import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.catalog.db.dao.DataSourceDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
@@ -50,14 +61,17 @@ import com.qubole.quark.planner.parser.ParserResult;
 import org.skife.jdbi.v2.DBI;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 /**
  * Created by amoghm on 3/4/16.
  */
-public class DDLPlanExecutor implements PlanExecutor {
+public class DDLPlanExecutor extends PlanExecutor {
   Meta.StatementHandle h;
   QuarkConnectionImpl connection;
   DBI dbi = null;
@@ -106,6 +120,8 @@ public class DDLPlanExecutor implements PlanExecutor {
       executeDeleteOnView((SqlDropQuarkView) sqlNode);
       connection.resetSelectParser();
       return QuarkMetaResultSet.count(h.connectionId, h.id, 0);
+    } else if (sqlNode instanceof SqlShowQuark) {
+      return getQuarkMetaResultSetForDDL((SqlShowQuark) sqlNode, result);
     }
     throw new RuntimeException("Cannot handle execution for: " + result.getParsedSql());
   }
@@ -489,5 +505,147 @@ public class DDLPlanExecutor implements PlanExecutor {
     DBI dbi = getDBI();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
     viewDAO.delete(id);
+  }
+
+  private QuarkMetaResultSet getQuarkMetaResultSetForDDL(SqlShowQuark sqlNode, ParserResult result)
+      throws SQLException {
+    String pojoType = sqlNode.getOperator().toString();
+    String whereClause = (sqlNode.getCondition() == null)
+        ? "" : "where " + sqlNode.getCondition();
+
+    return getMetaResultSetFromIterator(
+        convertToIterator(getListFromDAO(pojoType, whereClause), pojoType),
+        connection, result, "", connection.server.getStatement(h), h,
+        AvaticaStatement.DEFAULT_FETCH_SIZE, sqlNode);
+  }
+
+  private List getListFromDAO(String pojoType, String whereClause) throws SQLException {
+    DBI dbi = getDBI();
+
+    switch (pojoType) {
+      case "SHOW_DATASOURCE":
+        return getDataSourceList(whereClause, dbi);
+      case "SHOW_VIEW":
+        ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
+        return viewDAO.findByWhere(whereClause);
+      default:
+        throw new SQLException("Not supported for: " + pojoType);
+    }
+  }
+
+  private List<DataSource> getDataSourceList(String whereClause, DBI dbi) {
+
+    boolean isQuboleDBQuery =
+        whereClause.contains(" `auth_token`") || whereClause.contains(" `dbtap_id`");
+    boolean isJDBCDBQuery =
+        whereClause.contains(" `username`") || whereClause.contains(" `password`");
+
+    whereClause = preProcessWhereClause(whereClause);
+
+    JdbcSourceDAO jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
+    QuboleDbSourceDAO quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
+    List<DataSource> dataSources = new ArrayList<>();
+
+    if (isJDBCDBQuery) {
+      dataSources.addAll(jdbcSourceDAO.findByWhere(whereClause));
+    } else if (isQuboleDBQuery) {
+      dataSources.addAll(quboleDbSourceDAO.findByWhere(whereClause));
+    } else {
+      dataSources.addAll(jdbcSourceDAO.findByWhere(whereClause));
+      dataSources.addAll(quboleDbSourceDAO.findByWhere(whereClause));
+    }
+    return dataSources;
+  }
+  private String preProcessWhereClause(String whereClause) {
+    if (whereClause.contains(" `id`")) {
+      whereClause = whereClause.replace(" `id`", " data_sources.id");
+    }
+    whereClause = whereClause.replace(" `username`", " jdbc_sources.username");
+    whereClause = whereClause.replace(" `password`", " jdbc_sources.password");
+    whereClause = whereClause.replace(" `auth_token`", " quboledb_sources.auth_token");
+    whereClause = whereClause.replace(" `dbtap_id`", " quboledb_sources.dbtap_id");
+    return whereClause;
+  }
+
+  private Iterator<Object> convertToIterator(List list, String pojoType) throws SQLException {
+    List<Object> resultSet = new ArrayList<>();
+
+    for (int i = 0; i < list.size(); i++) {
+      String[] row = getValues(list.get(i), pojoType);
+      resultSet.add(row);
+    }
+    return  resultSet.iterator();
+  }
+
+  private String[] getValues(Object object, String pojoType) throws SQLException {
+    switch (pojoType) {
+      case "SHOW_DATASOURCE":
+        return ((DataSource) object).values();
+      case "SHOW_VIEW":
+        return ((View) object).values();
+      default:
+        throw new SQLException("Unknown object type for: " + pojoType);
+    }
+  }
+
+  @Override
+  protected RelDataType getRowType(SqlNode sqlNode) throws SQLException {
+    if (sqlNode instanceof SqlShowQuark) {
+      if (((SqlShowQuark) sqlNode).getOperator().toString().equalsIgnoreCase("SHOW_DATASOURCE")) {
+        return getDataSourceRowType();
+      } else if (((SqlShowQuark) sqlNode).getOperator().toString().equalsIgnoreCase("SHOW_VIEW")) {
+        return getViewRowType();
+      } else {
+        throw new SQLException("RowType not defined for sqlnode: " + sqlNode.toString());
+      }
+    } else {
+      throw new SQLException("Operation not supported for sqlnode: " + sqlNode.toString());
+    }
+  }
+
+  protected RelDataType getDataSourceRowType() throws SQLException {
+
+    List<RelDataTypeField> relDataTypeFields =
+        ImmutableList.<RelDataTypeField>of(
+            new RelDataTypeFieldImpl("id", 1, getIntegerJavaType()),
+            new RelDataTypeFieldImpl("type", 2, getStringJavaType()),
+            new RelDataTypeFieldImpl("url", 3, getStringJavaType()),
+            new RelDataTypeFieldImpl("name", 4, getStringJavaType()),
+            new RelDataTypeFieldImpl("ds_set_id", 5, getIntegerJavaType()),
+            new RelDataTypeFieldImpl("datasource_type", 6, getStringJavaType()),
+            new RelDataTypeFieldImpl("auth_token", 7, getStringJavaType()),
+            new RelDataTypeFieldImpl("dbtap_id", 8, getIntegerJavaType()),
+            new RelDataTypeFieldImpl("username", 9, getStringJavaType()),
+            new RelDataTypeFieldImpl("password", 10, getStringJavaType()));
+
+    return new RelRecordType(relDataTypeFields);
+  }
+
+  protected RelDataType getViewRowType() {
+
+    List<RelDataTypeField> relDataTypeFields =
+        ImmutableList.<RelDataTypeField>of(
+            new RelDataTypeFieldImpl("id", 1, getIntegerJavaType()),
+            new RelDataTypeFieldImpl("name", 2, getStringJavaType()),
+            new RelDataTypeFieldImpl("description", 3, getStringJavaType()),
+            new RelDataTypeFieldImpl("cost", 4, getIntegerJavaType()),
+            new RelDataTypeFieldImpl("query", 5, getStringJavaType()),
+            new RelDataTypeFieldImpl("destination_id", 6, getIntegerJavaType()),
+            new RelDataTypeFieldImpl("schema_name", 7, getStringJavaType()),
+            new RelDataTypeFieldImpl("table_name", 8, getStringJavaType()),
+            new RelDataTypeFieldImpl("ds_set_id", 9, getIntegerJavaType()));
+
+    return new RelRecordType(relDataTypeFields);
+  }
+
+  private RelDataTypeFactoryImpl.JavaType getIntegerJavaType() {
+    RelDataTypeFactoryImpl relDataTypeFactoryImpl = new JavaTypeFactoryImpl();
+    return relDataTypeFactoryImpl.new JavaType(Integer.class);
+  }
+
+  private RelDataTypeFactoryImpl.JavaType getStringJavaType() {
+    RelDataTypeFactoryImpl relDataTypeFactoryImpl = new JavaTypeFactoryImpl();
+    return relDataTypeFactoryImpl.new JavaType(String.class,
+        !(String.class.isPrimitive()), Util.getDefaultCharset(), null);
   }
 }

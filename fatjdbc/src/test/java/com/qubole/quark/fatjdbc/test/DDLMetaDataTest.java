@@ -15,7 +15,6 @@
 
 package com.qubole.quark.fatjdbc.test;
 
-import com.qubole.quark.catalog.db.encryption.AESEncrypt;
 import com.qubole.quark.fatjdbc.test.utility.MetaDataTest;
 import org.flywaydb.core.Flyway;
 import org.junit.BeforeClass;
@@ -236,5 +235,16 @@ public class DDLMetaDataTest {
         .isEqualTo(schemaList1.size());
     assertThat(catalogList2.size())
         .isEqualTo(catalogList1.size());
+  }
+
+  @Test
+  public void testShowDataSourceDDL() throws SQLException {
+    Connection connection =
+        DriverManager.getConnection("jdbc:quark:fat:db:", props);
+
+    ResultSet rs = connection.createStatement().executeQuery("SHOW DATASOURCE where password = ''");
+    assertThat(rs.next()).isEqualTo(true);
+    assertThat(rs.getString("name")).isEqualToIgnoringCase("H2");
+    assertThat(rs.getString("datasource_type")).isEqualToIgnoringCase("JDBC");
   }
 }
