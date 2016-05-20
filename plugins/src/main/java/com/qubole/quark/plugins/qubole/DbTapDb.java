@@ -73,7 +73,11 @@ public class DbTapDb extends QuboleDB {
     while (schemaListDescribed.getPaging_info().getNext_page() != null) {
       schemaListDescribed =  getQdsClient().dbTaps().getSchemaListDescribed(dbTapid)
               .forPage(current_page++, per_page).invoke().get();
-      schemas.putAll(schemaListDescribed.getSchemas());
+      /**
+       * Since the schema details can be distributed over multiple api calls,
+       * mergeSchemas method should be used, instead of Map.putAll
+       * */
+      schemas = mergeSchemas(schemas, schemaListDescribed.getSchemas());
     }
     return schemas;
   }

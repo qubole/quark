@@ -192,6 +192,33 @@ public abstract class QuboleDB implements Executor {
   }
 
   /**
+   * Merges two schema Maps. 'putAll' method can't be used because if the any of the
+   * key is same in the maps, then it will get overwritten.
+   * for e.g.
+   * if map1 = {'public' -> list1}, map2 = {'public' -> list2}
+   * then
+   *   map1.putAll(map2) will return map2 ({'public' -> list2})
+   *   i.e. map1 gets overwritten
+   *
+   * @param schemas1 schema map1
+   * @param schemas2 schema map2
+   *
+   * @return returns merged Map
+   * */
+  protected Map<String, List<SchemaOrdinal>> mergeSchemas(
+      Map<String, List<SchemaOrdinal>> schemas1,
+      Map<String, List<SchemaOrdinal>> schemas2) {
+    for (String schemaName : schemas2.keySet()) {
+      if (schemas1.containsKey(schemaName)) {
+        schemas1.get(schemaName).addAll(schemas2.get(schemaName));
+      } else {
+        schemas1.put(schemaName, schemas2.get(schemaName));
+      }
+    }
+    return schemas1;
+  }
+
+  /**
    * Created by dev on 11/13/15.
    */
   class ColumnComparator implements Comparator<NameTypePosition> {
