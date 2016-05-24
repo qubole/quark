@@ -28,7 +28,6 @@ import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
 
-import com.qubole.quark.QuarkException;
 import com.qubole.quark.fatjdbc.impl.QuarkServer;
 import com.qubole.quark.planner.parser.ParserFactory;
 import com.qubole.quark.planner.parser.ParserResult;
@@ -44,8 +43,7 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
   public final JavaTypeFactory typeFactory;
 
   public final QuarkServer server = new QuarkServer();
-  ParserFactory parserFactory = new ParserFactory();
-  private boolean isDirty = false;
+  public final ParserFactory parserFactory = new ParserFactory();
 
   protected QuarkConnectionImpl(QuarkDriver driver, AvaticaFactory factory, String url,
                                 Properties info, CalciteRootSchema rootSchema,
@@ -117,23 +115,11 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
     return driver;
   }
 
-  public void setIsDirty() throws QuarkException {
-    isDirty = true;
-  }
-
-  public void clearIsDirty() {
-    isDirty = false;
-  }
-
   public SqlQueryParser getSqlQueryParser() throws SQLException {
-    SqlQueryParser parser = parserFactory.getSqlQueryParser(info, isDirty);
-    clearIsDirty();
-    return parser;
+    return parserFactory.getSqlQueryParser(info);
   }
 
   public synchronized ParserResult parse(String sql) throws SQLException {
-    ParserResult parserResult = parserFactory.getParser(sql, info, isDirty).parse(sql);
-    clearIsDirty();
-    return parserResult;
+    return parserFactory.getParser(sql, info).parse(sql);
   }
 }

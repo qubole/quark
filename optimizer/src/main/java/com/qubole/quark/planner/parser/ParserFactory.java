@@ -41,7 +41,7 @@ public class ParserFactory {
     this.reloadCache = false;
   }
 
-  public SqlQueryParser getSqlQueryParser(Properties info, boolean reloadCache)
+  public SqlQueryParser getSqlQueryParser(Properties info)
       throws SQLException {
     if (reloadCache || sqlQueryParser == null) {
       try {
@@ -54,7 +54,7 @@ public class ParserFactory {
     return sqlQueryParser;
   }
 
-  public Parser getParser(String sql, Properties info, boolean reloadCache)
+  public Parser getParser(String sql, Properties info)
       throws SQLException {
     SqlParser parser = SqlParser.create(sql,
         SqlParser.configBuilder()
@@ -72,7 +72,7 @@ public class ParserFactory {
     if (sqlNode.getKind().equals(SqlKind.OTHER_DDL)) {
       return new DDLParser();
     } else  {
-      return getSqlQueryParser(info, reloadCache);
+      return getSqlQueryParser(info);
     }
   }
 }
