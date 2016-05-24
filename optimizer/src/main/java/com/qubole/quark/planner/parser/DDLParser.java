@@ -22,7 +22,7 @@ import org.apache.calcite.sql.SqlKind;
  *
  * Parser for Quark's DDL Statements
  */
-public class DDLParser {
+public class DDLParser implements Parser {
   public DDLParserResult parse(String sql) {
     return new DDLParserResult(sql,
         SqlKind.OTHER_DDL, null, true);
