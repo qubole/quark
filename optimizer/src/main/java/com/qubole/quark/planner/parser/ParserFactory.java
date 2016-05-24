@@ -31,12 +31,22 @@ import java.util.Properties;
  */
 public class ParserFactory {
   private SqlQueryParser sqlQueryParser;
+  private boolean reloadCache;
+
+  public void setReloadCache() {
+    this.reloadCache = true;
+  }
+
+  public void clearReloadCache() {
+    this.reloadCache = false;
+  }
 
   public SqlQueryParser getSqlQueryParser(Properties info, boolean reloadCache)
       throws SQLException {
     if (reloadCache || sqlQueryParser == null) {
       try {
         sqlQueryParser = new SqlQueryParser(info);
+        clearReloadCache();
       } catch (QuarkException e) {
         throw new SQLException(e.getMessage(), e);
       }
