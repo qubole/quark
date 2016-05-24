@@ -14,9 +14,9 @@
  */
 package com.qubole.quark.executor;
 
-import com.google.common.cache.Cache;
 import org.apache.calcite.sql.SqlKind;
 
+import com.google.common.cache.Cache;
 import com.qubole.quark.planner.parser.ParserFactory;
 
 import java.sql.Connection;

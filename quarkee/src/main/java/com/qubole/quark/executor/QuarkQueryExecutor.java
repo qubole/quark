@@ -15,12 +15,14 @@
 package com.qubole.quark.executor;
 
 import com.google.common.cache.Cache;
+
 import com.qubole.quark.planner.DataSourceSchema;
 import com.qubole.quark.planner.parser.ParserResult;
 import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.plugins.Executor;
 import com.qubole.quark.plugins.jdbc.EMRDb;
 import com.qubole.quark.plugins.jdbc.JdbcDB;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

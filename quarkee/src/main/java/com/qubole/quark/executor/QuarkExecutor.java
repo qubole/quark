@@ -16,8 +16,6 @@ package com.qubole.quark.executor;
 
 import com.qubole.quark.planner.parser.ParserResult;
 
-import java.sql.SQLException;
-
 /**
  * Created by adeshr on 5/24/16.
  */

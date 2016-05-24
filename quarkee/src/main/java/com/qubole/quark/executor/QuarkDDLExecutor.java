@@ -82,7 +82,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     return dbi;
   }
 
-  public Object execute(ParserResult result) throws SQLException{
+  public Object execute(ParserResult result) throws SQLException {
     SqlParser parser = SqlParser.create(result.getParsedSql(),
         SqlParser.configBuilder()
             .setQuotedCasing(Casing.UNCHANGED)
