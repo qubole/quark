@@ -98,27 +98,27 @@ public class DDLPlanExecutor extends PlanExecutor {
     }
     if (sqlNode instanceof SqlCreateQuarkDataSource) {
       int id = executeCreateDataSource((SqlCreateQuarkDataSource) sqlNode);
-      connection.resetSelectParser();
+      connection.setIsDirty();
       return QuarkMetaResultSet.count(h.connectionId, h.id, id);
     } else if (sqlNode instanceof SqlAlterQuarkDataSource) {
       int id = executeAlterDataSource((SqlAlterQuarkDataSource) sqlNode);
-      connection.resetSelectParser();
+      connection.setIsDirty();
       return QuarkMetaResultSet.count(h.connectionId, h.id, id);
     } else if (sqlNode instanceof SqlDropQuarkDataSource) {
       executeDeleteOnDataSource((SqlDropQuarkDataSource) sqlNode);
-      connection.resetSelectParser();
+      connection.setIsDirty();
       return QuarkMetaResultSet.count(h.connectionId, h.id, 0);
     } else if (sqlNode instanceof SqlCreateQuarkView) {
       int id = executeCreateView((SqlCreateQuarkView) sqlNode);
-      connection.resetSelectParser();
+      connection.setIsDirty();
       return QuarkMetaResultSet.count(h.connectionId, h.id, id);
     } else if (sqlNode instanceof SqlAlterQuarkView) {
       int id = executeAlterView((SqlAlterQuarkView) sqlNode);
-      connection.resetSelectParser();
+      connection.setIsDirty();
       return QuarkMetaResultSet.count(h.connectionId, h.id, id);
     } else if (sqlNode instanceof SqlDropQuarkView) {
       executeDeleteOnView((SqlDropQuarkView) sqlNode);
-      connection.resetSelectParser();
+      connection.setIsDirty();
       return QuarkMetaResultSet.count(h.connectionId, h.id, 0);
     } else if (sqlNode instanceof SqlShowQuark) {
       return getQuarkMetaResultSetForDDL((SqlShowQuark) sqlNode, result);

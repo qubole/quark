@@ -21,22 +21,16 @@ import org.apache.calcite.avatica.AvaticaFactory;
 import org.apache.calcite.avatica.AvaticaPreparedStatement;
 import org.apache.calcite.avatica.InternalProperty;
 import org.apache.calcite.avatica.UnregisteredDriver;
-import org.apache.calcite.avatica.util.Casing;
-import org.apache.calcite.avatica.util.Quoting;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.jdbc.CalciteRootSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlNode;
-import org.apache.calcite.sql.parser.SqlParseException;
-import org.apache.calcite.sql.parser.SqlParser;
 
 import com.qubole.quark.QuarkException;
 import com.qubole.quark.fatjdbc.impl.QuarkServer;
-import com.qubole.quark.planner.parser.DDLParser;
+import com.qubole.quark.planner.parser.ParserFactory;
 import com.qubole.quark.planner.parser.ParserResult;
 import com.qubole.quark.planner.parser.SqlQueryParser;
 
@@ -50,8 +44,7 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
   public final JavaTypeFactory typeFactory;
 
   public final QuarkServer server = new QuarkServer();
-  private SqlQueryParser sqlQueryParser;
-  private DDLParser ddlParser = new DDLParser();
+  ParserFactory parserFactory = new ParserFactory();
   private boolean isDirty = false;
 
   protected QuarkConnectionImpl(QuarkDriver driver, AvaticaFactory factory, String url,
@@ -73,12 +66,6 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
     this.properties.put(InternalProperty.UNQUOTED_CASING, cfg.unquotedCasing());
     this.properties.put(InternalProperty.QUOTED_CASING, cfg.quotedCasing());
     this.properties.put(InternalProperty.QUOTING, cfg.quoting());
-
-    try {
-      sqlQueryParser = new SqlQueryParser(info);
-    } catch (QuarkException e) {
-      throw new SQLException(e);
-    }
   }
 
 
@@ -130,40 +117,23 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
     return driver;
   }
 
-  public void resetSelectParser() throws QuarkException {
+  public void setIsDirty() throws QuarkException {
     isDirty = true;
   }
 
+  public void clearIsDirty() {
+    isDirty = false;
+  }
+
   public SqlQueryParser getSqlQueryParser() throws SQLException {
-    if (isDirty) {
-      try {
-        this.sqlQueryParser = new SqlQueryParser(info);
-      } catch (QuarkException e) {
-        throw new SQLException(e.getMessage(), e);
-      }
-      isDirty = false;
-    }
-    return sqlQueryParser;
+    SqlQueryParser parser = parserFactory.getSqlQueryParser(info, isDirty);
+    clearIsDirty();
+    return parser;
   }
 
   public synchronized ParserResult parse(String sql) throws SQLException {
-    SqlParser parser = SqlParser.create(sql,
-        SqlParser.configBuilder()
-            .setQuotedCasing(Casing.UNCHANGED)
-            .setUnquotedCasing(Casing.UNCHANGED)
-            .setQuoting(Quoting.DOUBLE_QUOTE)
-            .build());
-    SqlNode sqlNode;
-    try {
-      sqlNode = parser.parseStmt();
-    } catch (SqlParseException e) {
-      throw new RuntimeException(
-          "parse failed: " + e.getMessage(), e);
-    }
-    if (sqlNode.getKind().equals(SqlKind.OTHER_DDL)) {
-      return ddlParser.parse(sql);
-    } else  {
-      return getSqlQueryParser().parse(sql);
-    }
+    ParserResult parserResult = parserFactory.getParser(sql, info, isDirty).parse(sql);
+    clearIsDirty();
+    return parserResult;
   }
 }
