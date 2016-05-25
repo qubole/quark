@@ -43,7 +43,7 @@ public class QuarkConnectionImpl extends AvaticaConnection implements QuarkConne
   public final JavaTypeFactory typeFactory;
 
   public final QuarkServer server = new QuarkServer();
-  public final ParserFactory parserFactory = new ParserFactory();
+  public final ParserFactory parserFactory = new ParserFactory(info);
 
   protected QuarkConnectionImpl(QuarkDriver driver, AvaticaFactory factory, String url,
                                 Properties info, CalciteRootSchema rootSchema,

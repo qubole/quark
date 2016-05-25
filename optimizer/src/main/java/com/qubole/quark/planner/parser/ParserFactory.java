@@ -33,6 +33,11 @@ public class ParserFactory {
   private SqlQueryParser sqlQueryParser;
   private boolean reloadCache;
 
+  public ParserFactory(Properties info) throws SQLException {
+    sqlQueryParser = getSqlQueryParser(info);
+    reloadCache = false;
+  }
+
   public void setReloadCache() {
     this.reloadCache = true;
   }
