@@ -537,8 +537,6 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     }
     whereClause = whereClause.replace(" `username`", " jdbc_sources.username");
     whereClause = whereClause.replace(" `password`", " jdbc_sources.password");
-    whereClause = whereClause.replace(" `auth_token`", " quboledb_sources.auth_token");
-    whereClause = whereClause.replace(" `dbtap_id`", " quboledb_sources.dbtap_id");
     return whereClause;
   }
 }
