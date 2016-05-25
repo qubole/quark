@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.qubole.quark.executor;
+package com.qubole.quark.ee;
 
 import com.google.common.cache.Cache;
 
@@ -45,7 +45,7 @@ public class QuarkQueryExecutor implements QuarkExecutor {
   }
 
   public Object execute(ParserResult parserResult) throws Exception {
-
+    Object object = null;
     final DataSourceSchema dataSourceSchema =
         ((SqlQueryParser.SqlQueryParserResult) parserResult).getDataSource();
 
@@ -65,12 +65,12 @@ public class QuarkQueryExecutor implements QuarkExecutor {
         } catch (Exception e) {
           LOG.warn("Couldnot set Query Timeout to " + QUERY_TIMEOUT + " seconds", e);
         }
-        return statement.executeQuery(parsedSql);
+        object = statement.executeQuery(parsedSql);
       } else {
-        return executor.executeQuery(parsedSql);
+        object = executor.executeQuery(parsedSql);
       }
     }
-    return null;
+    return object;
   }
 
   private Connection getExecutorConnection(String id, Executor executor)

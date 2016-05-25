@@ -353,7 +353,7 @@
         <module>optimizer</module>
         <module>catalog</module>
         <module>plugins</module>
-        <module>quarkee</module>
+        <module>ee</module>
         <module>fatjdbc</module>
         <module>jdbc</module>
         <module>server</module>

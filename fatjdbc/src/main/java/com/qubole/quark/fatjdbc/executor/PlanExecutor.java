@@ -36,8 +36,8 @@ import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.catalog.db.pojo.DataSource;
 import com.qubole.quark.catalog.db.pojo.View;
-import com.qubole.quark.executor.QuarkExecutor;
-import com.qubole.quark.executor.QuarkExecutorFactory;
+import com.qubole.quark.ee.QuarkExecutor;
+import com.qubole.quark.ee.QuarkExecutorFactory;
 import com.qubole.quark.fatjdbc.QuarkConnectionImpl;
 import com.qubole.quark.fatjdbc.QuarkJdbcStatement;
 import com.qubole.quark.fatjdbc.QuarkMetaResultSet;
