@@ -76,13 +76,6 @@ public class MigrationTest {
       }
     }
 
-    // Executing a random query to migrate the db
-    try {
-      connection.createStatement().executeQuery("select * from non_existent_table");
-    } catch (Exception e) {
-      assertThat(e.getMessage(), containsString("Table 'NON_EXISTENT_TABLE' not found"));
-    }
-
     connection = DriverManager.getConnection(dbUrl, "sa", "");
     stmt = connection.createStatement();
     ResultSet version = stmt.executeQuery("select count(*) from \"schema_version\"");

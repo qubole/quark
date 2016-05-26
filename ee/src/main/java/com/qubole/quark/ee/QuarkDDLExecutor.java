@@ -12,18 +12,10 @@
  * See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.qubole.quark.fatjdbc.executor;
+package com.qubole.quark.ee;
 
-import org.apache.calcite.avatica.AvaticaStatement;
-import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.avatica.util.Quoting;
-import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactoryImpl;
-import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
-import org.apache.calcite.rel.type.RelRecordType;
 import org.apache.calcite.sql.SqlAlterQuarkDataSource;
 import org.apache.calcite.sql.SqlAlterQuarkView;
 import org.apache.calcite.sql.SqlBasicCall;
@@ -39,9 +31,6 @@ import org.apache.calcite.sql.SqlNumericLiteral;
 import org.apache.calcite.sql.SqlShowQuark;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
-import org.apache.calcite.util.Util;
-
-import com.google.common.collect.ImmutableList;
 
 import com.qubole.quark.catalog.db.dao.DataSourceDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
@@ -54,8 +43,7 @@ import com.qubole.quark.catalog.db.pojo.DataSource;
 import com.qubole.quark.catalog.db.pojo.JdbcSource;
 import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
 import com.qubole.quark.catalog.db.pojo.View;
-import com.qubole.quark.fatjdbc.QuarkConnectionImpl;
-import com.qubole.quark.fatjdbc.QuarkMetaResultSet;
+import com.qubole.quark.planner.parser.ParserFactory;
 import com.qubole.quark.planner.parser.ParserResult;
 
 import org.skife.jdbi.v2.DBI;
@@ -63,26 +51,38 @@ import org.skife.jdbi.v2.DBI;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 /**
- * Created by amoghm on 3/4/16.
+ * Created by adeshr on 5/24/16.
  */
-public class DDLPlanExecutor extends PlanExecutor {
-  Meta.StatementHandle h;
-  QuarkConnectionImpl connection;
-  DBI dbi = null;
+public class QuarkDDLExecutor implements QuarkExecutor {
+  private Properties info;
+  private ParserFactory parserFactory;
 
-  DDLPlanExecutor(Meta.StatementHandle h, QuarkConnectionImpl connection) {
-    this.h = h;
-    this.connection = connection;
+  public QuarkDDLExecutor(ParserFactory parserFactory, Properties info) {
+    this.parserFactory = parserFactory;
+    this.info = info;
   }
 
-  public QuarkMetaResultSet execute(ParserResult result)
-      throws Exception {
+  private DBI getDBI() {
+    DBI dbi = new DBI(
+        info.getProperty("url"),
+        info.getProperty("user"),
+        info.getProperty("password"));
+
+    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
+      dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
+    } else {
+      dbi.define("encryptClass", new NoopEncrypt());
+    }
+
+    return dbi;
+  }
+
+  public Object execute(ParserResult result) throws SQLException {
     SqlParser parser = SqlParser.create(result.getParsedSql(),
         SqlParser.configBuilder()
             .setQuotedCasing(Casing.UNCHANGED)
@@ -98,30 +98,30 @@ public class DDLPlanExecutor extends PlanExecutor {
     }
     if (sqlNode instanceof SqlCreateQuarkDataSource) {
       int id = executeCreateDataSource((SqlCreateQuarkDataSource) sqlNode);
-      connection.setIsDirty();
-      return QuarkMetaResultSet.count(h.connectionId, h.id, id);
+      parserFactory.setReloadCache();
+      return id;
     } else if (sqlNode instanceof SqlAlterQuarkDataSource) {
       int id = executeAlterDataSource((SqlAlterQuarkDataSource) sqlNode);
-      connection.setIsDirty();
-      return QuarkMetaResultSet.count(h.connectionId, h.id, id);
+      parserFactory.setReloadCache();
+      return id;
     } else if (sqlNode instanceof SqlDropQuarkDataSource) {
       executeDeleteOnDataSource((SqlDropQuarkDataSource) sqlNode);
-      connection.setIsDirty();
-      return QuarkMetaResultSet.count(h.connectionId, h.id, 0);
+      parserFactory.setReloadCache();
+      return 0;
     } else if (sqlNode instanceof SqlCreateQuarkView) {
       int id = executeCreateView((SqlCreateQuarkView) sqlNode);
-      connection.setIsDirty();
-      return QuarkMetaResultSet.count(h.connectionId, h.id, id);
+      parserFactory.setReloadCache();
+      return id;
     } else if (sqlNode instanceof SqlAlterQuarkView) {
       int id = executeAlterView((SqlAlterQuarkView) sqlNode);
-      connection.setIsDirty();
-      return QuarkMetaResultSet.count(h.connectionId, h.id, id);
+      parserFactory.setReloadCache();
+      return id;
     } else if (sqlNode instanceof SqlDropQuarkView) {
       executeDeleteOnView((SqlDropQuarkView) sqlNode);
-      connection.setIsDirty();
-      return QuarkMetaResultSet.count(h.connectionId, h.id, 0);
+      parserFactory.setReloadCache();
+      return 0;
     } else if (sqlNode instanceof SqlShowQuark) {
-      return getQuarkMetaResultSetForDDL((SqlShowQuark) sqlNode, result);
+      return getListFromDAO((SqlShowQuark) sqlNode);
     }
     throw new RuntimeException("Cannot handle execution for: " + result.getParsedSql());
   }
@@ -223,8 +223,8 @@ public class DDLPlanExecutor extends PlanExecutor {
     }
 
     Encrypt encrypt;
-    if (Boolean.parseBoolean(connection.getProperties().getProperty("encrypt", "false"))) {
-      encrypt = new AESEncrypt(connection.getProperties().getProperty("encryptionKey"));
+    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
+      encrypt = new AESEncrypt(info.getProperty("encryptionKey"));
     } else {
       encrypt = new NoopEncrypt();
     }
@@ -233,22 +233,6 @@ public class DDLPlanExecutor extends PlanExecutor {
     } else {
       return quboleDAO.update((QuboleDbSource) dataSource, dataSourceDAO, encrypt);
     }
-  }
-
-  private DBI getDBI() {
-    Properties info = connection.getProperties();
-    DBI dbi = new DBI(
-          info.getProperty("url"),
-          info.getProperty("user"),
-          info.getProperty("password"));
-
-    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
-      dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
-    } else {
-      dbi.define("encryptClass", new NoopEncrypt());
-    }
-
-    return dbi;
   }
 
   public int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
@@ -322,8 +306,8 @@ public class DDLPlanExecutor extends PlanExecutor {
       }
 
       Encrypt encrypt;
-      if (Boolean.parseBoolean(connection.getProperties().getProperty("encrypt", "false"))) {
-        encrypt = new AESEncrypt(connection.getProperties().getProperty("encryptionKey"));
+      if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
+        encrypt = new AESEncrypt(info.getProperty("encryptionKey"));
       } else {
         encrypt = new NoopEncrypt();
       }
@@ -507,20 +491,11 @@ public class DDLPlanExecutor extends PlanExecutor {
     viewDAO.delete(id);
   }
 
-  private QuarkMetaResultSet getQuarkMetaResultSetForDDL(SqlShowQuark sqlNode, ParserResult result)
-      throws SQLException {
+  private List getListFromDAO(SqlShowQuark sqlNode) throws SQLException {
+    DBI dbi = getDBI();
     String pojoType = sqlNode.getOperator().toString();
     String whereClause = (sqlNode.getCondition() == null)
         ? "" : "where " + sqlNode.getCondition();
-
-    return getMetaResultSetFromIterator(
-        convertToIterator(getListFromDAO(pojoType, whereClause), pojoType),
-        connection, result, "", connection.server.getStatement(h), h,
-        AvaticaStatement.DEFAULT_FETCH_SIZE, sqlNode);
-  }
-
-  private List getListFromDAO(String pojoType, String whereClause) throws SQLException {
-    DBI dbi = getDBI();
 
     switch (pojoType) {
       case "SHOW_DATASOURCE":
@@ -562,90 +537,6 @@ public class DDLPlanExecutor extends PlanExecutor {
     }
     whereClause = whereClause.replace(" `username`", " jdbc_sources.username");
     whereClause = whereClause.replace(" `password`", " jdbc_sources.password");
-    whereClause = whereClause.replace(" `auth_token`", " quboledb_sources.auth_token");
-    whereClause = whereClause.replace(" `dbtap_id`", " quboledb_sources.dbtap_id");
     return whereClause;
-  }
-
-  private Iterator<Object> convertToIterator(List list, String pojoType) throws SQLException {
-    List<Object> resultSet = new ArrayList<>();
-
-    for (int i = 0; i < list.size(); i++) {
-      String[] row = getValues(list.get(i), pojoType);
-      resultSet.add(row);
-    }
-    return  resultSet.iterator();
-  }
-
-  private String[] getValues(Object object, String pojoType) throws SQLException {
-    switch (pojoType) {
-      case "SHOW_DATASOURCE":
-        return ((DataSource) object).values();
-      case "SHOW_VIEW":
-        return ((View) object).values();
-      default:
-        throw new SQLException("Unknown object type for: " + pojoType);
-    }
-  }
-
-  @Override
-  protected RelDataType getRowType(SqlNode sqlNode) throws SQLException {
-    if (sqlNode instanceof SqlShowQuark) {
-      if (((SqlShowQuark) sqlNode).getOperator().toString().equalsIgnoreCase("SHOW_DATASOURCE")) {
-        return getDataSourceRowType();
-      } else if (((SqlShowQuark) sqlNode).getOperator().toString().equalsIgnoreCase("SHOW_VIEW")) {
-        return getViewRowType();
-      } else {
-        throw new SQLException("RowType not defined for sqlnode: " + sqlNode.toString());
-      }
-    } else {
-      throw new SQLException("Operation not supported for sqlnode: " + sqlNode.toString());
-    }
-  }
-
-  protected RelDataType getDataSourceRowType() throws SQLException {
-
-    List<RelDataTypeField> relDataTypeFields =
-        ImmutableList.<RelDataTypeField>of(
-            new RelDataTypeFieldImpl("id", 1, getIntegerJavaType()),
-            new RelDataTypeFieldImpl("type", 2, getStringJavaType()),
-            new RelDataTypeFieldImpl("url", 3, getStringJavaType()),
-            new RelDataTypeFieldImpl("name", 4, getStringJavaType()),
-            new RelDataTypeFieldImpl("ds_set_id", 5, getIntegerJavaType()),
-            new RelDataTypeFieldImpl("datasource_type", 6, getStringJavaType()),
-            new RelDataTypeFieldImpl("auth_token", 7, getStringJavaType()),
-            new RelDataTypeFieldImpl("dbtap_id", 8, getIntegerJavaType()),
-            new RelDataTypeFieldImpl("username", 9, getStringJavaType()),
-            new RelDataTypeFieldImpl("password", 10, getStringJavaType()));
-
-    return new RelRecordType(relDataTypeFields);
-  }
-
-  protected RelDataType getViewRowType() {
-
-    List<RelDataTypeField> relDataTypeFields =
-        ImmutableList.<RelDataTypeField>of(
-            new RelDataTypeFieldImpl("id", 1, getIntegerJavaType()),
-            new RelDataTypeFieldImpl("name", 2, getStringJavaType()),
-            new RelDataTypeFieldImpl("description", 3, getStringJavaType()),
-            new RelDataTypeFieldImpl("cost", 4, getIntegerJavaType()),
-            new RelDataTypeFieldImpl("query", 5, getStringJavaType()),
-            new RelDataTypeFieldImpl("destination_id", 6, getIntegerJavaType()),
-            new RelDataTypeFieldImpl("schema_name", 7, getStringJavaType()),
-            new RelDataTypeFieldImpl("table_name", 8, getStringJavaType()),
-            new RelDataTypeFieldImpl("ds_set_id", 9, getIntegerJavaType()));
-
-    return new RelRecordType(relDataTypeFields);
-  }
-
-  private RelDataTypeFactoryImpl.JavaType getIntegerJavaType() {
-    RelDataTypeFactoryImpl relDataTypeFactoryImpl = new JavaTypeFactoryImpl();
-    return relDataTypeFactoryImpl.new JavaType(Integer.class);
-  }
-
-  private RelDataTypeFactoryImpl.JavaType getStringJavaType() {
-    RelDataTypeFactoryImpl relDataTypeFactoryImpl = new JavaTypeFactoryImpl();
-    return relDataTypeFactoryImpl.new JavaType(String.class,
-        !(String.class.isPrimitive()), Util.getDefaultCharset(), null);
   }
 }

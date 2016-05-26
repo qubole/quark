@@ -12,34 +12,34 @@
  * See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.qubole.quark.fatjdbc.executor;
+package com.qubole.quark.ee;
 
-import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.sql.SqlKind;
 
 import com.google.common.cache.Cache;
-
-import com.qubole.quark.fatjdbc.QuarkConnectionImpl;
+import com.qubole.quark.planner.parser.ParserFactory;
 
 import java.sql.Connection;
+import java.util.Properties;
 
 /**
- * Created by amoghm on 3/4/16.
+ * Created by adeshr on 5/24/16.
  */
-public class PlanExecutorFactory {
-  private PlanExecutorFactory() {
+public class QuarkExecutorFactory {
+  private QuarkExecutorFactory() {
   }
 
-  public static PlanExecutor buildPlanExecutor(SqlKind kind, Meta.StatementHandle h,
-      QuarkConnectionImpl connection, Cache<String, Connection> connectionCache,
-      long maxRowCount) {
-    if (kind.equals(SqlKind.OTHER_DDL)) {
-      return new DDLPlanExecutor(h, connection);
-    } else if (kind.belongsTo(SqlKind.QUERY)) {
-      return new QueryPlanExecutor(h, connection, connectionCache, maxRowCount);
+  public static QuarkExecutor getQuarkExecutor(SqlKind sqlKind,
+                                               ParserFactory parserFactory,
+                                               Properties info,
+                                               Cache<String, Connection> connectionCache) {
+    if (sqlKind.equals(SqlKind.OTHER_DDL)) {
+      return new QuarkDDLExecutor(parserFactory, info);
+    } else if (sqlKind.belongsTo(SqlKind.QUERY)) {
+      return new QuarkQueryExecutor(connectionCache);
     } else {
       throw new UnsupportedOperationException("Cannot execute parsed Sql of kind: "
-          + kind);
+          + sqlKind);
     }
   }
 }

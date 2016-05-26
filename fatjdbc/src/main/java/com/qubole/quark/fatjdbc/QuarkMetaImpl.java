@@ -56,7 +56,7 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import com.qubole.quark.fatjdbc.executor.PlanExecutorFactory;
+import com.qubole.quark.fatjdbc.executor.PlanExecutor;
 import com.qubole.quark.planner.parser.ParserResult;
 
 import org.slf4j.Logger;
@@ -355,10 +355,8 @@ public class QuarkMetaImpl extends MetaImpl {
       synchronized (callback.getMonitor()) {
         callback.clear();
         ParserResult result = getConnection().parse(sql);
-        metaResultSet = PlanExecutorFactory
-            .buildPlanExecutor(result.getKind(), h, getConnection(),
-                connectionCache, maxRowCount)
-            .execute(result);
+        metaResultSet = new PlanExecutor(h, getConnection(),
+            connectionCache, maxRowCount).execute(result);
         callback.assign(metaResultSet.signature, metaResultSet.firstFrame,
             metaResultSet.updateCount);
       }

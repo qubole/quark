@@ -12,15 +12,10 @@
  * See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package com.qubole.quark.fatjdbc.executor;
-
-import org.apache.calcite.avatica.Meta;
+package com.qubole.quark.ee;
 
 import com.google.common.cache.Cache;
 
-import com.qubole.quark.fatjdbc.QuarkConnectionImpl;
-import com.qubole.quark.fatjdbc.QuarkJdbcStatement;
-import com.qubole.quark.fatjdbc.QuarkMetaResultSet;
 import com.qubole.quark.planner.DataSourceSchema;
 import com.qubole.quark.planner.parser.ParserResult;
 import com.qubole.quark.planner.parser.SqlQueryParser;
@@ -32,50 +27,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 
 /**
- * Created by amoghm on 3/4/16.
- *
- * Parser for SQL statements that belongs to
- * {@link org.apache.calcite.sql.SqlKind#QUERY} or
- * {@link org.apache.calcite.sql.SqlKind#SET_QUERY}
+ * Created by adeshr on 5/24/16.
  */
-public class QueryPlanExecutor extends PlanExecutor {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(QueryPlanExecutor.class);
+public class QuarkQueryExecutor implements QuarkExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(QuarkQueryExecutor.class);
 
   public static final int QUERY_TIMEOUT = 60;
 
-  private final Meta.StatementHandle h;
-  private final QuarkConnectionImpl connection;
   private final Cache<String, Connection> connectionCache;
-  private final long maxRowCount;
 
-  public QueryPlanExecutor(Meta.StatementHandle h, QuarkConnectionImpl connection,
-                           Cache<String, Connection> connectionCache, long maxRowCount) {
-    this.h = h;
-    this.connection = connection;
+  public QuarkQueryExecutor(Cache<String, Connection> connectionCache) {
     this.connectionCache = connectionCache;
-    this.maxRowCount = maxRowCount;
   }
 
-  public QuarkMetaResultSet execute(ParserResult result) throws Exception {
-    QuarkMetaResultSet metaResultSet = null;
-    String sql = result.getParsedSql();
-    QuarkJdbcStatement stmt = connection.server.getStatement(h);
+  public Object execute(ParserResult parserResult) throws Exception {
+    Object object = null;
     final DataSourceSchema dataSourceSchema =
-        ((SqlQueryParser.SqlQueryParserResult) result).getDataSource();
+        ((SqlQueryParser.SqlQueryParserResult) parserResult).getDataSource();
+
     if (dataSourceSchema != null) {
       Connection conn;
       final String id = dataSourceSchema.getName();
-      Iterator<Object> iterator = null;
       Executor executor = (Executor) dataSourceSchema.getDataSource();
-      String parsedSql = result.getParsedSql();
+      String parsedSql = parserResult.getParsedSql();
+
       LOG.info("Execute query[" + parsedSql + "]");
+
       if (executor instanceof JdbcDB) {
         conn = getExecutorConnection(id, executor);
         Statement statement = conn.createStatement();
@@ -84,15 +65,12 @@ public class QueryPlanExecutor extends PlanExecutor {
         } catch (Exception e) {
           LOG.warn("Couldnot set Query Timeout to " + QUERY_TIMEOUT + " seconds", e);
         }
-        ResultSet resultSet = statement.executeQuery(parsedSql);
-        metaResultSet = QuarkMetaResultSet.create(h.connectionId, h.id, resultSet,
-            maxRowCount);
+        object = statement.executeQuery(parsedSql);
       } else {
-        metaResultSet = getMetaResultSetFromIterator(executor.executeQuery(parsedSql),
-            connection, result, sql, stmt, h, maxRowCount, null);
+        object = executor.executeQuery(parsedSql);
       }
     }
-    return metaResultSet;
+    return object;
   }
 
   private Connection getExecutorConnection(String id, Executor executor)

@@ -31,12 +31,27 @@ import java.util.Properties;
  */
 public class ParserFactory {
   private SqlQueryParser sqlQueryParser;
+  private boolean reloadCache;
 
-  public SqlQueryParser getSqlQueryParser(Properties info, boolean reloadCache)
+  public ParserFactory(Properties info) throws SQLException {
+    sqlQueryParser = getSqlQueryParser(info);
+    reloadCache = false;
+  }
+
+  public void setReloadCache() {
+    this.reloadCache = true;
+  }
+
+  public void clearReloadCache() {
+    this.reloadCache = false;
+  }
+
+  public SqlQueryParser getSqlQueryParser(Properties info)
       throws SQLException {
     if (reloadCache || sqlQueryParser == null) {
       try {
         sqlQueryParser = new SqlQueryParser(info);
+        clearReloadCache();
       } catch (QuarkException e) {
         throw new SQLException(e.getMessage(), e);
       }
@@ -44,7 +59,7 @@ public class ParserFactory {
     return sqlQueryParser;
   }
 
-  public Parser getParser(String sql, Properties info, boolean reloadCache)
+  public Parser getParser(String sql, Properties info)
       throws SQLException {
     SqlParser parser = SqlParser.create(sql,
         SqlParser.configBuilder()
@@ -62,7 +77,7 @@ public class ParserFactory {
     if (sqlNode.getKind().equals(SqlKind.OTHER_DDL)) {
       return new DDLParser();
     } else  {
-      return getSqlQueryParser(info, reloadCache);
+      return getSqlQueryParser(info);
     }
   }
 }
