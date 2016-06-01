@@ -39,6 +39,7 @@ import com.qubole.quark.catalog.db.pojo.View;
 import com.qubole.quark.planner.parser.ParserFactory;
 import com.qubole.quark.planner.parser.ParserResult;
 
+import com.qubole.quark.planner.parser.QuarkParserImpl;
 import com.qubole.quark.planner.parser.sql.SqlAlterQuarkDataSource;
 import com.qubole.quark.planner.parser.sql.SqlAlterQuarkView;
 import com.qubole.quark.planner.parser.sql.SqlCreateQuarkDataSource;
@@ -89,6 +90,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
             .setQuotedCasing(Casing.UNCHANGED)
             .setUnquotedCasing(Casing.UNCHANGED)
             .setQuoting(Quoting.DOUBLE_QUOTE)
+            .setParserFactory(QuarkParserImpl.FACTORY)
             .build());
     SqlNode sqlNode;
     try {

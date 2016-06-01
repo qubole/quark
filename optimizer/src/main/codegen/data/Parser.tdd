@@ -16,7 +16,7 @@
 
 {
   # Generated parser implementation class package and name
-  package: "com.qubole.quark.parser.impl",
+  package: "com.qubole.quark.planner.parser",
   class: "QuarkParserImpl",
 
   # List of import statements.

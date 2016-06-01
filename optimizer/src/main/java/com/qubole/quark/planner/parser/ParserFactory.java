@@ -66,6 +66,7 @@ public class ParserFactory {
             .setQuotedCasing(Casing.UNCHANGED)
             .setUnquotedCasing(Casing.UNCHANGED)
             .setQuoting(Quoting.DOUBLE_QUOTE)
+            .setParserFactory(QuarkParserImpl.FACTORY)
             .build());
     SqlNode sqlNode;
     try {
