@@ -16,19 +16,12 @@ package com.qubole.quark.ee;
 
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.avatica.util.Quoting;
-import org.apache.calcite.sql.SqlAlterQuarkDataSource;
-import org.apache.calcite.sql.SqlAlterQuarkView;
 import org.apache.calcite.sql.SqlBasicCall;
-import org.apache.calcite.sql.SqlCreateQuarkDataSource;
-import org.apache.calcite.sql.SqlCreateQuarkView;
-import org.apache.calcite.sql.SqlDropQuarkDataSource;
-import org.apache.calcite.sql.SqlDropQuarkView;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlNumericLiteral;
-import org.apache.calcite.sql.SqlShowQuark;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
@@ -45,6 +38,14 @@ import com.qubole.quark.catalog.db.pojo.QuboleDbSource;
 import com.qubole.quark.catalog.db.pojo.View;
 import com.qubole.quark.planner.parser.ParserFactory;
 import com.qubole.quark.planner.parser.ParserResult;
+
+import com.qubole.quark.planner.parser.sql.SqlAlterQuarkDataSource;
+import com.qubole.quark.planner.parser.sql.SqlAlterQuarkView;
+import com.qubole.quark.planner.parser.sql.SqlCreateQuarkDataSource;
+import com.qubole.quark.planner.parser.sql.SqlCreateQuarkView;
+import com.qubole.quark.planner.parser.sql.SqlDropQuarkDataSource;
+import com.qubole.quark.planner.parser.sql.SqlDropQuarkView;
+import com.qubole.quark.planner.parser.sql.SqlShowQuark;
 
 import org.skife.jdbi.v2.DBI;
 
