@@ -39,8 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DDLMetaDataTest {
   private static final Logger log = LoggerFactory.getLogger(DDLMetaDataTest.class);
 
-  private static final String dbSchemaUrl = "jdbc:h2:mem:DDLMetaDataTest;DB_CLOSE_DELAY=-1";
-  private static final String inputUrl = "jdbc:h2:mem:DDLMetaDataTest1;DB_CLOSE_DELAY=-1";
+  private static final String dbSchemaUrl = "jdbc:h2:mem:DDLMetaDataTest;DB_CLOSE_DELAY=-1;";
+  private static final String inputUrl = "jdbc:h2:mem:DDLMetaDataTest1;DB_CLOSE_DELAY=-1;";
   protected static String h2Url;
   protected static Properties props;
   static {
@@ -69,7 +69,7 @@ public class DDLMetaDataTest {
 
     Statement stmt = dbConnection.createStatement();
     String sql = "insert into data_sources(name, type, url, ds_set_id, datasource_type) values "
-        + "('H2', 'H2', '" + h2Url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
+        + "('SEEDED', 'H2', '" + h2Url + "', 1, 'JDBC'); insert into jdbc_sources (id, "
         + "username, password) values(1, 'sa', '');"
         + "update ds_sets set default_datasource_id = 1 where id = 1;";
 
@@ -242,9 +242,20 @@ public class DDLMetaDataTest {
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
 
-    ResultSet rs = connection.createStatement().executeQuery("SHOW DATASOURCE where password = ''");
+    ResultSet rs = connection.createStatement().executeQuery("SHOW DATASOURCE");
     assertThat(rs.next()).isEqualTo(true);
-    assertThat(rs.getString("name")).isEqualToIgnoringCase("H2");
+    assertThat(rs.getString("name")).isEqualToIgnoringCase("SEEDED");
+    assertThat(rs.getString("datasource_type")).isEqualToIgnoringCase("JDBC");
+  }
+
+  @Test
+  public void testShowDataSourceLike() throws SQLException {
+    Connection connection =
+        DriverManager.getConnection("jdbc:quark:fat:db:", props);
+
+    ResultSet rs = connection.createStatement().executeQuery("SHOW DATASOURCE like 'SEEDED'");
+    assertThat(rs.next()).isEqualTo(true);
+    assertThat(rs.getString("name")).isEqualToIgnoringCase("SEEDED");
     assertThat(rs.getString("datasource_type")).isEqualToIgnoringCase("JDBC");
   }
 }

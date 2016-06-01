@@ -25,7 +25,6 @@ import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.Transaction;
-import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
@@ -42,6 +41,12 @@ public abstract class JdbcSourceDAO {
       + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
       + "where ds.ds_set_id = :ds_set_id")
   public abstract List<JdbcSource> findByDSSetId(@Bind("ds_set_id") long dsSetId);
+
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
+      + "where ds.name like :like_pattern and ds.ds_set_id = :ds_set_id")
+  public abstract List<JdbcSource> findLikeName(@Bind("like_pattern") String likePattern,
+                                                @Bind("ds_set_id") long dsSetId);
 
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
       + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
@@ -72,9 +77,4 @@ public abstract class JdbcSourceDAO {
     updateJdbc(source);
     return dao.update(source);
   }
-
-  @SqlQuery("select data_sources.id, name, type, datasource_type, url, ds_set_id, "
-      + "jdbc_sources.username, jdbc_sources.password from data_sources join jdbc_sources "
-      + "on data_sources.id = jdbc_sources.id <where>")
-  public abstract List<JdbcSource> findByWhere(@Define("where") String where);
 }

@@ -25,7 +25,6 @@ import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.Transaction;
-import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
@@ -42,6 +41,12 @@ public abstract class QuboleDbSourceDAO {
       + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
       + "where ds.ds_set_id = :ds_set_id")
   public abstract List<QuboleDbSource> findByDSSetId(@Bind("ds_set_id") long dsSetId);
+
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
+      + "where ds.name like :like_pattern and ds.ds_set_id = :ds_set_id")
+  public abstract List<QuboleDbSource> findLikeName(@Bind("like_pattern") String likePattern,
+                                                          @Bind("ds_set_id") long dsSetId);
 
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
       + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
@@ -72,9 +77,4 @@ public abstract class QuboleDbSourceDAO {
     updateQubole(db);
     return dao.update(db);
   }
-
-  @SqlQuery("select data_sources.id, name, type, datasource_type, url, ds_set_id, "
-      + "quboledb_sources.dbtap_id, quboledb_sources.auth_token from data_sources "
-      + "join quboledb_sources on data_sources.id = quboledb_sources.id <where>")
-  public abstract List<QuboleDbSource> findByWhere(@Define("where") String where);
 }

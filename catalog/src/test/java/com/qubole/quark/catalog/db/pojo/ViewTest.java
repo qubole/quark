@@ -108,24 +108,4 @@ public class ViewTest extends DbUtility {
     View view = viewDAO.find(3, 1);
     assertThat(view, notNullValue());
   }
-
-  @Test
-  public void whereSuccessOn1() {
-    List<View> views = viewDAO.findByWhere("and name='warehouse_part'", 1);
-    assertThat(views.size(), equalTo(1));
-    assertThat(views.get(0).getDsSetId(), equalTo(1L));
-  }
-
-  @Test
-  public void whereSuccessOn10() {
-    List<View> views = viewDAO.findByWhere("and name='warehouse_part'", 10);
-    assertThat(views.size(), equalTo(1));
-    assertThat(views.get(0).getDsSetId(), equalTo(10L));
-  }
-
-  @Test
-  public void whereFailureOn1() {
-    List<View> views = viewDAO.findByWhere("and name='customer_address_part_10'", 1);
-    assertThat(views, Matchers.<View>empty());
-  }
 }

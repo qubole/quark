@@ -15,7 +15,6 @@
 package com.qubole.quark.planner.parser.sql;
 
 import org.apache.calcite.sql.SqlCall;
-import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperator;
@@ -29,29 +28,17 @@ import org.apache.calcite.util.ImmutableNullableList;
 import java.util.List;
 
 /**
- * Created by adeshr on 5/3/16.
+ * Created by rajatv on 6/2/16.
  */
-public class SqlShowQuark extends SqlCall {
+public abstract class SqlShowQuark extends SqlCall {
   SqlSpecialOperator operator;
-  String operatorString;
-  SqlIdentifier quarkEntity;
+  SqlNode likePattern;
 
-  SqlNode condition;
-
-  //~ Constructors -----------------------------------------------------------
-
-  public SqlShowQuark(
-      SqlParserPos pos,
-      SqlIdentifier quarkEntity,
-      SqlNode condition) {
+  public SqlShowQuark(SqlParserPos pos, SqlNode likePattern) {
     super(pos);
-    this.quarkEntity = quarkEntity;
-    operator = new SqlSpecialOperator("SHOW_" + quarkEntity.toString(), SqlKind.OTHER_DDL);
-    operatorString = "SHOW " + this.quarkEntity.toString();
-    this.condition = condition;
+    operator = new SqlSpecialOperator("SHOW_DATASOURCE", SqlKind.OTHER_DDL);
+    this.likePattern = likePattern;
   }
-
-  //~ Methods ----------------------------------------------------------------
 
   @Override public SqlKind getKind() {
     return SqlKind.OTHER_DDL;
@@ -62,13 +49,13 @@ public class SqlShowQuark extends SqlCall {
   }
 
   public List<SqlNode> getOperandList() {
-    return ImmutableNullableList.of(condition);
+    return ImmutableNullableList.of(likePattern);
   }
 
   @Override public void setOperand(int i, SqlNode operand) {
     switch (i) {
       case 0:
-        condition = operand;
+        likePattern = operand;
         break;
       default:
         throw new AssertionError(i);
@@ -81,24 +68,13 @@ public class SqlShowQuark extends SqlCall {
    * @return the condition expression for the data to be deleted, or null for
    * all rows in the table
    */
-  public SqlNode getCondition() {
-    return condition;
+  public String getLikePattern() {
+    return likePattern == null ? null : likePattern.toString().replaceAll("^'|'$", "");
   }
 
-  @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
-    final SqlWriter.Frame frame =
-        writer.startList(SqlWriter.FrameTypeEnum.SELECT, operatorString, "");
-    final int opLeft = getOperator().getLeftPrec();
-    final int opRight = getOperator().getRightPrec();
-    if (condition != null) {
-      writer.sep("WHERE");
-      condition.unparse(writer, opLeft, opRight);
-    }
-    writer.endList(frame);
-  }
+  @Override public abstract void unparse(SqlWriter writer, int leftPrec, int rightPrec);
 
   public void validate(SqlValidator validator, SqlValidatorScope scope) {
     throw new UnsupportedOperationException("Validation not supported for Quark's DDL");
   }
 }
-// End SqlShowQuark.java

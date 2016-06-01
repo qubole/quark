@@ -208,31 +208,34 @@ SqlNode SqlDropQuarkView() :
 /**
  * Parses a SHOW DDL statement.
  */
-SqlNode SqlShowQuark() :
+SqlNode SqlShowDataSources() :
 {
-    SqlNode condition;
     SqlParserPos pos;
-    SqlIdentifier quarkEntity;
+    SqlNode likePattern = null;
 }
 {
-    <SHOW>
+    <SHOW> { pos = getPos(); }
+    <DATASOURCE>
+    [
+        <LIKE> { likePattern = StringLiteral(); }
+    ]
     {
-        pos = getPos();
-    }
-    (
-        <DATASOURCE>
-        {
-            quarkEntity = new SqlIdentifier("DATASOURCE", getPos());
-        }
-        |
-        <VIEW>
-        {
-            quarkEntity = new SqlIdentifier("VIEW", getPos());
-        }
-    )
-    condition = WhereOpt()
-    {
-        return new SqlShowQuark(pos, quarkEntity, condition);
+        return new SqlShowDataSources(pos, likePattern);
     }
 }
 
+SqlNode SqlShowViews() :
+{
+    SqlParserPos pos;
+    SqlNode likePattern = null;
+}
+{
+    <SHOW> { pos = getPos(); }
+    <VIEW>
+    [
+        <LIKE> { likePattern = StringLiteral(); }
+    ]
+    {
+        return new SqlShowViews(pos, likePattern);
+    }
+}

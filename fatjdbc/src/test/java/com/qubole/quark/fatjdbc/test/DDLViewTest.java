@@ -221,7 +221,16 @@ public class DDLViewTest {
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
     Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
 
-    ResultSet rs = connection.createStatement().executeQuery("SHOW VIEW WHERE ID=1");
+    ResultSet rs = connection.createStatement().executeQuery("SHOW VIEW");
+    assertThat(rs.next()).isEqualTo(true);
+  }
+
+  @Test
+  public void testShowViewLike() throws SQLException, ClassNotFoundException {
+    Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
+    Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
+
+    ResultSet rs = connection.createStatement().executeQuery("SHOW VIEW LIKE 'warehouse_part'");
     assertThat(rs.next()).isEqualTo(true);
   }
 }

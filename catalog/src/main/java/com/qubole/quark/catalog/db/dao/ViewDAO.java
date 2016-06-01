@@ -23,7 +23,6 @@ import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
@@ -40,6 +39,11 @@ public interface ViewDAO {
       + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
       + "partitions p on p.destination_id = ds.id where ds.ds_set_id = :ds_set_id")
   List<View> findByDSSetId(@Bind("ds_set_id")long dsSetId);
+
+  @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
+      + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
+      + "partitions p on p.destination_id = ds.id where p.name like :like_pattern and ds.ds_set_id = :ds_set_id")
+  List<View> findLikeName(@Bind("like_pattern") String likePattern, @Bind("ds_set_id")long dsSetId);
 
   @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
       + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
@@ -62,8 +66,4 @@ public interface ViewDAO {
 
   @SqlUpdate("delete from partitions where id = :id and ds_set_id = :ds_set_id")
   void delete(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
-
-  @SqlQuery("select id, name, description, query, cost, table_name, schema_name, "
-      + "destination_id, null as destination, ds_set_id from partitions where ds_set_id = :ds_set_id <where>")
-  List<View> findByWhere(@Define("where") String where, @Bind("ds_set_id") long dsSetId);
 }

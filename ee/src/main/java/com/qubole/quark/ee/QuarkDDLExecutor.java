@@ -48,9 +48,12 @@ import com.qubole.quark.planner.parser.sql.SqlCreateQuarkDataSource;
 import com.qubole.quark.planner.parser.sql.SqlCreateQuarkView;
 import com.qubole.quark.planner.parser.sql.SqlDropQuarkDataSource;
 import com.qubole.quark.planner.parser.sql.SqlDropQuarkView;
-import com.qubole.quark.planner.parser.sql.SqlShowQuark;
+import com.qubole.quark.planner.parser.sql.SqlShowDataSources;
+import com.qubole.quark.planner.parser.sql.SqlShowViews;
 
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -63,6 +66,8 @@ import java.util.Properties;
  * Created by adeshr on 5/24/16.
  */
 public class QuarkDDLExecutor implements QuarkExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(QuarkDDLExecutor.class);
+
   private Properties info;
   private final Connection connection;
   private ParserFactory parserFactory;
@@ -120,8 +125,10 @@ public class QuarkDDLExecutor implements QuarkExecutor {
       executeDeleteOnView((SqlDropQuarkView) sqlNode);
       parserFactory.setReloadCache();
       return 0;
-    } else if (sqlNode instanceof SqlShowQuark) {
-      return getListFromDAO((SqlShowQuark) sqlNode);
+    } else if (sqlNode instanceof SqlShowDataSources) {
+      return getDataSourceList((SqlShowDataSources) sqlNode);
+    } else if (sqlNode instanceof SqlShowViews) {
+      return getViewList((SqlShowViews) sqlNode);
     }
     throw new RuntimeException("Cannot handle execution for: " + result.getParsedSql());
   }
@@ -491,52 +498,34 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     viewDAO.delete(id, connection.getDSSet().getId());
   }
 
-  private List getListFromDAO(SqlShowQuark sqlNode) throws SQLException {
+  private List<DataSource> getDataSourceList(SqlShowDataSources sqlNode) throws SQLException {
     DBI dbi = getDbi();
-    String pojoType = sqlNode.getOperator().toString();
-    String whereClause = (sqlNode.getCondition() == null)
-        ? "" : "and " + sqlNode.getCondition();
-
-    switch (pojoType) {
-      case "SHOW_DATASOURCE":
-        return getDataSourceList(whereClause, dbi);
-      case "SHOW_VIEW":
-        ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
-        return viewDAO.findByWhere(whereClause, connection.getDSSet().getId());
-      default:
-        throw new SQLException("Not supported for: " + pojoType);
-    }
-  }
-
-  private List<DataSource> getDataSourceList(String whereClause, DBI dbi) {
-
-    boolean isQuboleDBQuery =
-        whereClause.contains(" `auth_token`") || whereClause.contains(" `dbtap_id`");
-    boolean isJDBCDBQuery =
-        whereClause.contains(" `username`") || whereClause.contains(" `password`");
-
-    whereClause = preProcessWhereClause(whereClause);
-
     JdbcSourceDAO jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
+
     List<DataSource> dataSources = new ArrayList<>();
 
-    if (isJDBCDBQuery) {
-      dataSources.addAll(jdbcSourceDAO.findByWhere(whereClause));
-    } else if (isQuboleDBQuery) {
-      dataSources.addAll(quboleDbSourceDAO.findByWhere(whereClause));
+    if (sqlNode.getLikePattern() == null) {
+      dataSources.addAll(jdbcSourceDAO.findByDSSetId(connection.getDSSet().getId()));
+      dataSources.addAll(quboleDbSourceDAO.findByDSSetId(connection.getDSSet().getId()));
     } else {
-      dataSources.addAll(jdbcSourceDAO.findByWhere(whereClause));
-      dataSources.addAll(quboleDbSourceDAO.findByWhere(whereClause));
+      dataSources.addAll(jdbcSourceDAO.findLikeName(sqlNode.getLikePattern(),
+          connection.getDSSet().getId()));
+      dataSources.addAll(quboleDbSourceDAO.findLikeName(sqlNode.getLikePattern(),
+          connection.getDSSet().getId()));
     }
     return dataSources;
   }
-  private String preProcessWhereClause(String whereClause) {
-    if (whereClause.contains(" `id`")) {
-      whereClause = whereClause.replace(" `id`", " data_sources.id");
+
+  private List<View> getViewList(SqlShowViews sqlNode) throws SQLException {
+    DBI dbi = getDbi();
+    ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
+
+    if (sqlNode.getLikePattern() == null) {
+      return viewDAO.findByDSSetId(connection.getDSSet().getId());
+    } else {
+      return viewDAO.findLikeName(sqlNode.getLikePattern(),
+          connection.getDSSet().getId());
     }
-    whereClause = whereClause.replace(" `username`", " jdbc_sources.username");
-    whereClause = whereClause.replace(" `password`", " jdbc_sources.password");
-    return whereClause;
   }
 }
