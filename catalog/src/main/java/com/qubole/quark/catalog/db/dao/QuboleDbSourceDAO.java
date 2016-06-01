@@ -45,8 +45,8 @@ public abstract class QuboleDbSourceDAO {
 
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
       + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
-      + "where ds.id = :id")
-  public abstract QuboleDbSource find(@Bind("id") int id);
+      + "where ds.id = :id and ds.ds_set_id = :ds_set_id")
+  public abstract QuboleDbSource find(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
 
   @SqlUpdate("insert into quboledb_sources(id, dbtap_id, auth_token) "
       + "values(:id, :dbtap_id, :auth_token)")

@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Created by adeshr on 2/17/16.
@@ -41,6 +42,7 @@ public class QuboleDbSourceTest extends DbUtility {
       IOException, URISyntaxException {
 
     setUpDb(dbSchemaUrl, "sa", "", "tpcds.sql");
+    setUpDb(dbSchemaUrl, "sa", "", "tpcds_2.sql");
 
     DBI dbi = new DBI(dbSchemaUrl, "sa", "");
     quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
@@ -52,4 +54,25 @@ public class QuboleDbSourceTest extends DbUtility {
     List<QuboleDbSource> quboleDbSources = quboleDbSourceDAO.findByDSSetId(1);
     assertThat(quboleDbSources.size(), equalTo(1));
   }
+
+  @Test
+  public void testGetSuccessOn1() {
+    QuboleDbSource quboleDbSource = quboleDbSourceDAO.find(4, 1);
+    assertThat(quboleDbSource.getName(), equalTo("TEST"));
+    assertThat(quboleDbSource.getDsSetId(), equalTo(1L));
+  }
+
+  @Test
+  public void testGetSuccessOn2() {
+    QuboleDbSource quboleDbSource = quboleDbSourceDAO.find(8, 10);
+    assertThat(quboleDbSource.getName(), equalTo("TEST_10"));
+    assertThat(quboleDbSource.getDsSetId(), equalTo(10L));
+  }
+
+  @Test
+  public void testGetFail() {
+    QuboleDbSource quboleDbSource = quboleDbSourceDAO.find(8, 1);
+    assertThat(quboleDbSource, nullValue());
+  }
+
 }

@@ -45,8 +45,8 @@ public abstract class JdbcSourceDAO {
 
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
       + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
-      + "where ds.id = :id")
-  public abstract JdbcSource find(@Bind("id") int id);
+      + "where ds.id = :id and ds.ds_set_id = :ds_set_id")
+  public abstract JdbcSource find(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
 
   @SqlUpdate("insert into jdbc_sources(id, username, password) values(:id, :username, :password)")
   abstract void insert(@Bind("id") long id, @Bind("username") String username,

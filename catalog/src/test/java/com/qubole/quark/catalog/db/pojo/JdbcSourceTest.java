@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Created by adeshr on 2/17/16.
@@ -41,6 +42,7 @@ public class JdbcSourceTest extends DbUtility {
       IOException, URISyntaxException {
 
     setUpDb(dbSchemaUrl, "sa", "", "tpcds.sql");
+    setUpDb(dbSchemaUrl, "sa", "", "tpcds_2.sql");
 
     DBI dbi = new DBI(dbSchemaUrl, "sa", "");
     jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
@@ -52,4 +54,25 @@ public class JdbcSourceTest extends DbUtility {
     List<JdbcSource> jdbcSources = jdbcSourceDAO.findByDSSetId(1);
     assertThat(jdbcSources.size(), equalTo(3));
   }
+
+  @Test
+  public void testGetSuccessOn1() {
+    JdbcSource jdbcSource = jdbcSourceDAO.find(1, 1);
+    assertThat(jdbcSource.getName(), equalTo("CANONICAL"));
+    assertThat(jdbcSource.getDsSetId(), equalTo(1L));
+  }
+
+  @Test
+  public void testGetSuccessOn2() {
+    JdbcSource jdbcSource = jdbcSourceDAO.find(5, 10);
+    assertThat(jdbcSource.getName(), equalTo("CANONICAL"));
+    assertThat(jdbcSource.getDsSetId(), equalTo(10L));
+  }
+
+  @Test
+  public void testGetFail() {
+    JdbcSource jdbcSource = jdbcSourceDAO.find(1, 10);
+    assertThat(jdbcSource, nullValue());
+  }
+
 }

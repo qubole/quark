@@ -6,7 +6,7 @@ insert into data_sources(name, type, url, ds_set_id, datasource_type) values ('T
 insert into jdbc_sources(id, username, password) values(1, '96D37AB243836DBE4D804658D0862476', 'AA698221A5A25D0EDCAF50A3AD8EB6F4');
 insert into jdbc_sources(id, username, password) values(2, '96D37AB243836DBE4D804658D0862476', 'AA698221A5A25D0EDCAF50A3AD8EB6F4');
 insert into jdbc_sources(id, username, password) values(3, '96D37AB243836DBE4D804658D0862476', 'AA698221A5A25D0EDCAF50A3AD8EB6F4');
-insert into quboledb_sources(id, auth_token, dbtap_id) values(3, '087B44B33A051FD17A7EF8D204093446', 1234);
+insert into quboledb_sources(id, auth_token, dbtap_id) values(4, '087B44B33A051FD17A7EF8D204093446', 1234);
 
 insert into cubes(`name`, `description`, `cost`, `query`, `ds_set_id`, `destination_id`, `schema_name`,
 `table_name`, `grouping_column`)
