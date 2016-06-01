@@ -495,7 +495,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     DBI dbi = getDbi();
     String pojoType = sqlNode.getOperator().toString();
     String whereClause = (sqlNode.getCondition() == null)
-        ? "" : "where " + sqlNode.getCondition();
+        ? "" : "and " + sqlNode.getCondition();
 
     switch (pojoType) {
       case "SHOW_DATASOURCE":
