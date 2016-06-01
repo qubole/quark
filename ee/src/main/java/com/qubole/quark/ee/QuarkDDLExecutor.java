@@ -350,14 +350,23 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     }
   }
   private void executeDeleteOnDataSource(SqlDropQuarkDataSource node) throws SQLException {
-    int id = parseCondition(node.getCondition());
     DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDao = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDao = dbi.onDemand(QuboleDbSourceDAO.class);
-    jdbcDao.delete(id);
-    quboleDao.delete(id);
-    dataSourceDAO.delete(id);
+    DataSource jdbcSource = jdbcDao.findByName(node.getIdentifier().getSimple(),
+        connection.getDSSet().getId());
+    if (jdbcSource != null) {
+      jdbcDao.delete(jdbcSource.getId());
+      dataSourceDAO.delete(jdbcSource.getId());
+    } else {
+      DataSource quboleSource = quboleDao.findByName(node.getIdentifier().getSimple(),
+          connection.getDSSet().getId());
+      if (quboleSource != null) {
+        jdbcDao.delete(quboleSource.getId());
+        dataSourceDAO.delete(quboleSource.getId());
+      }
+    }
   }
 
   public int executeAlterView(SqlAlterQuarkView sqlNode) throws SQLException {
@@ -492,10 +501,9 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
 
   private void executeDeleteOnView(SqlDropQuarkView node) throws SQLException {
-    int id = parseCondition(node.getCondition());
     DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
-    viewDAO.delete(id, connection.getDSSet().getId());
+    viewDAO.delete(node.getIdentifier().getSimple(), connection.getDSSet().getId());
   }
 
   private List<DataSource> getDataSourceList(SqlShowDataSources sqlNode) throws SQLException {

@@ -173,7 +173,7 @@ public class DDLMetaDataTest {
     assertThat(catalogList2.size())
         .isEqualTo(catalogList1.size() + 1);
 
-    String sql2 = "DROP DATASOURCE where id = 2";
+    String sql2 = "DROP DATASOURCE H2_2";
     connection.createStatement().executeUpdate(sql2);
 
     List<String> catalogList3 = new ArrayList<>();
@@ -223,7 +223,7 @@ public class DDLMetaDataTest {
     List<String> schemaList1 = new ArrayList<>();
     getSchema(connection, catalogList1, schemaList1);
 
-    String sql1 = "DROP DATASOURCE where id = 10";
+    String sql1 = "DROP DATASOURCE bogus";
     connection.createStatement().executeUpdate(sql1);
 
     List<String> catalogList2 = new ArrayList<>();

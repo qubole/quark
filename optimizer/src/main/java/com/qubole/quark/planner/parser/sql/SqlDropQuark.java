@@ -15,10 +15,9 @@
 package com.qubole.quark.planner.parser.sql;
 
 import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
-import org.apache.calcite.sql.SqlOperator;
-import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.validate.SqlValidator;
@@ -32,18 +31,15 @@ import java.util.List;
  * statements for Quark.
  */
 public abstract class SqlDropQuark extends SqlCall {
-  protected SqlSpecialOperator operator;
-  protected String operatorString;
-
-  SqlNode condition;
+  SqlIdentifier identifier;
 
   //~ Constructors -----------------------------------------------------------
 
   public SqlDropQuark(
       SqlParserPos pos,
-      SqlNode condition) {
+      SqlIdentifier identifier) {
     super(pos);
-    this.condition = condition;
+    this.identifier = identifier;
   }
 
   //~ Methods ----------------------------------------------------------------
@@ -52,22 +48,8 @@ public abstract class SqlDropQuark extends SqlCall {
     return SqlKind.OTHER_DDL;
   }
 
-  public SqlOperator getOperator() {
-    return operator;
-  }
-
   public List<SqlNode> getOperandList() {
-    return ImmutableNullableList.of(condition);
-  }
-
-  @Override public void setOperand(int i, SqlNode operand) {
-    switch (i) {
-      case 0:
-        condition = operand;
-        break;
-      default:
-        throw new AssertionError(i);
-    }
+    return ImmutableNullableList.of((SqlNode) identifier);
   }
 
   /**
@@ -76,21 +58,11 @@ public abstract class SqlDropQuark extends SqlCall {
    * @return the condition expression for the data to be deleted, or null for
    * all rows in the table
    */
-  public SqlNode getCondition() {
-    return condition;
+  public SqlIdentifier getIdentifier() {
+    return identifier;
   }
 
-  @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
-    final SqlWriter.Frame frame =
-        writer.startList(SqlWriter.FrameTypeEnum.SELECT, operatorString, "");
-    final int opLeft = getOperator().getLeftPrec();
-    final int opRight = getOperator().getRightPrec();
-    if (condition != null) {
-      writer.sep("WHERE");
-      condition.unparse(writer, opLeft, opRight);
-    }
-    writer.endList(frame);
-  }
+  @Override public abstract void unparse(SqlWriter writer, int leftPrec, int rightPrec);
 
   public void validate(SqlValidator validator, SqlValidatorScope scope) {
     throw new UnsupportedOperationException("Validation not supported for Quark's DDL");

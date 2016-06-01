@@ -196,7 +196,7 @@ public class DDLViewTest {
   @Test
   public void testNonExistentDrop() throws SQLException, ClassNotFoundException {
     Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
-    String sql1 = "DROP VIEW WHERE id = 1000";
+    String sql1 = "DROP VIEW bogus";
     Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql1);
     connection.close();
@@ -208,7 +208,7 @@ public class DDLViewTest {
     String countQuery = "select count(*) from canonical.public.web_site where web_name = 'Quark'";
     assertThat(getSize(countQuery)).isEqualTo(1);
 
-    String sql1 = "DROP VIEW where id = 1";
+    String sql1 = "DROP VIEW web_site_part";
     Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql1);
     connection.close();

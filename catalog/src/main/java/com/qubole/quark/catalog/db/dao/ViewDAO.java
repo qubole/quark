@@ -64,6 +64,6 @@ public interface ViewDAO {
       + "table_name = :v.table, destination_id = :v.destinationId where id = :v.id and ds_set_id = :ds_set_id")
   int update(@BindBean("v") View view, @Bind("ds_set_id") long dsSetId);
 
-  @SqlUpdate("delete from partitions where id = :id and ds_set_id = :ds_set_id")
-  void delete(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
+  @SqlUpdate("delete from partitions where name = :name and ds_set_id = :ds_set_id")
+  void delete(@Bind("name") String name, @Bind("ds_set_id") long dsSetId);
 }

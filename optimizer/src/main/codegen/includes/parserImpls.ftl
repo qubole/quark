@@ -106,13 +106,10 @@ SqlNode SqlDropQuarkDataSource() :
     SqlParserPos pos;
 }
 {
-    <DROP> <DATASOURCE>
+    <DROP> { pos = getPos(); }
+    <DATASOURCE>
     {
-        pos = getPos();
-    }
-    condition = WhereOpt()
-    {
-        return new SqlDropQuarkDataSource(pos, condition);
+        return new SqlDropQuarkDataSource(pos, CompoundIdentifier());
     }
 }
 
@@ -195,13 +192,10 @@ SqlNode SqlDropQuarkView() :
     SqlParserPos pos;
 }
 {
-    <DROP> <VIEW>
+    <DROP> { pos = getPos(); }
+    <VIEW>
     {
-        pos = getPos();
-    }
-    condition = WhereOpt()
-    {
-        return new SqlDropQuarkView(pos, condition);
+        return new SqlDropQuarkView(pos, CompoundIdentifier());
     }
 }
 

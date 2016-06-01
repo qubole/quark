@@ -53,6 +53,11 @@ public abstract class JdbcSourceDAO {
       + "where ds.id = :id and ds.ds_set_id = :ds_set_id")
   public abstract JdbcSource find(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
 
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "js.username, js.password from data_sources ds join jdbc_sources js on ds.id = js.id "
+      + "where ds.name = :name and ds.ds_set_id = :ds_set_id")
+  public abstract JdbcSource findByName(@Bind("name") String name, @Bind("ds_set_id") long dsSetId);
+
   @SqlUpdate("insert into jdbc_sources(id, username, password) values(:id, :username, :password)")
   abstract void insert(@Bind("id") long id, @Bind("username") String username,
       @Bind("password") String password);
@@ -63,7 +68,7 @@ public abstract class JdbcSourceDAO {
   protected abstract int updateJdbc(@BindBean("j") JdbcSource source);
 
   @SqlUpdate("delete from jdbc_sources where id = :id")
-  public abstract void delete(@Bind("id") int id);
+  public abstract void delete(@Bind("id") long id);
 
   @Transaction
   public int update(JdbcSource source, DataSourceDAO dao, Encrypt encrypt) {

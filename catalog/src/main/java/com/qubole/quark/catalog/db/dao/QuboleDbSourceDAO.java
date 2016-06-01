@@ -53,6 +53,12 @@ public abstract class QuboleDbSourceDAO {
       + "where ds.id = :id and ds.ds_set_id = :ds_set_id")
   public abstract QuboleDbSource find(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
 
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
+      + "where ds.name = :name and ds.ds_set_id = :ds_set_id")
+  public abstract QuboleDbSource findByName(@Bind("name") String name,
+                                            @Bind("ds_set_id") long dsSetId);
+
   @SqlUpdate("insert into quboledb_sources(id, dbtap_id, auth_token) "
       + "values(:id, :dbtap_id, :auth_token)")
   public abstract void insert(@Bind("id") long id, @Bind("dbtap_id") int dbTapId,
@@ -64,7 +70,7 @@ public abstract class QuboleDbSourceDAO {
   protected abstract int updateQubole(@BindBean("d") QuboleDbSource db);
 
   @SqlUpdate("delete from quboledb_sources where id = :id")
-  public abstract void delete(@Bind("id") int id);
+  public abstract void delete(@Bind("id") long id);
 
   @Transaction
   public int update(QuboleDbSource db, DataSourceDAO dao, Encrypt encrypt) {

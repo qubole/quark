@@ -14,9 +14,11 @@
  */
 package com.qubole.quark.planner.parser.sql;
 
+import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.SqlSpecialOperator;
+import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
 /**
@@ -24,14 +26,24 @@ import org.apache.calcite.sql.parser.SqlParserPos;
  * statements for Quark DataSource.
  */
 public class SqlDropQuarkDataSource extends SqlDropQuark {
-  //~ Constructors -----------------------------------------------------------
+  SqlSpecialOperator operator;
 
   public SqlDropQuarkDataSource(
       SqlParserPos pos,
-      SqlNode condition) {
-    super(pos, condition);
+      SqlIdentifier identifier) {
+    super(pos, identifier);
     operator = new SqlSpecialOperator("DROP_DATASOURCE", SqlKind.OTHER_DDL);
-    operatorString = "DROP DATASOURCE";
+  }
+
+  @Override
+  public SqlOperator getOperator() {
+    return operator;
+  }
+
+  @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+    writer.keyword("DROP");
+    writer.keyword("DATASOURCE");
+    identifier.unparse(writer, leftPrec, rightPrec);
   }
 }
 

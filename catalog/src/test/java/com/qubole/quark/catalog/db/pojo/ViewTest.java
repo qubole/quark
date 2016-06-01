@@ -97,14 +97,14 @@ public class ViewTest extends DbUtility {
 
   @Test
   public void testDeleteSuccessOn1() {
-    viewDAO.delete(7, 10);
+    viewDAO.delete("customer_address_part_10", 10);
     View view = viewDAO.find(7, 10);
     assertThat(view, nullValue());
   }
 
   @Test
   public void testDeleteFailureOn1() {
-    viewDAO.delete(3, 10);
+    viewDAO.delete("customer_address_part", 10);
     View view = viewDAO.find(3, 1);
     assertThat(view, notNullValue());
   }
