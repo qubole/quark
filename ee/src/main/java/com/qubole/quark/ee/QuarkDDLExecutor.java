@@ -155,9 +155,9 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
-    DataSource dataSource = jdbcDAO.find(idToUpdate);
+    DataSource dataSource = jdbcDAO.find(idToUpdate, connection.getDSSet().getId());
     if (dataSource == null) {
-      dataSource = quboleDAO.find(idToUpdate);
+      dataSource = quboleDAO.find(idToUpdate, connection.getDSSet().getId());
     }
     if (dataSource == null) {
       return 0;
@@ -358,7 +358,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
-    View view = viewDAO.find(idToUpdate);
+    View view = viewDAO.find(idToUpdate, connection.getDSSet().getId());
     if (view == null) {
       return 0;
     }
@@ -411,7 +411,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
       }
     }
 
-    return viewDAO.update(view);
+    return viewDAO.update(view, connection.getDSSet().getId());
   }
 
   public int executeCreateView(SqlCreateQuarkView sqlNode) throws SQLException {
@@ -488,7 +488,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     int id = parseCondition(node.getCondition());
     DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
-    viewDAO.delete(id);
+    viewDAO.delete(id, connection.getDSSet().getId());
   }
 
   private List getListFromDAO(SqlShowQuark sqlNode) throws SQLException {
@@ -502,7 +502,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
         return getDataSourceList(whereClause, dbi);
       case "SHOW_VIEW":
         ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
-        return viewDAO.findByWhere(whereClause);
+        return viewDAO.findByWhere(whereClause, connection.getDSSet().getId());
       default:
         throw new SQLException("Not supported for: " + pojoType);
     }
