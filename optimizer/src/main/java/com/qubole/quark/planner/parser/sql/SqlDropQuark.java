@@ -61,13 +61,13 @@ public abstract class SqlDropQuark extends SqlCall {
   }
 
   @Override public void setOperand(int i, SqlNode operand) {
-      switch (i) {
-        case 0:
-            condition = operand;
-            break;
-        default:
-            throw new AssertionError(i);
-      }
+    switch (i) {
+      case 0:
+        condition = operand;
+        break;
+      default:
+        throw new AssertionError(i);
+    }
   }
 
   /**

@@ -71,19 +71,20 @@ public abstract class SqlAlterQuark extends SqlCall {
   }
 
   @Override public void setOperand(int i, SqlNode operand) {
-      switch (i) {
-        case 0:
-            targetColumnList = (SqlNodeList) operand;
-            break;
-        case 1:
-            sourceExpressionList = (SqlNodeList) operand;
-            break;
-        case 2:
-            condition = operand;
-            break;
-        default:
-            throw new AssertionError(i);
-      }
+
+    switch (i) {
+      case 0:
+        targetColumnList = (SqlNodeList) operand;
+        break;
+      case 1:
+        sourceExpressionList = (SqlNodeList) operand;
+        break;
+      case 2:
+        condition = operand;
+        break;
+      default:
+        throw new AssertionError(i);
+    }
   }
 
   /**

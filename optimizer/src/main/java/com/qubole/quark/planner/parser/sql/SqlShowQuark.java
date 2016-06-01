@@ -67,11 +67,11 @@ public class SqlShowQuark extends SqlCall {
 
   @Override public void setOperand(int i, SqlNode operand) {
     switch (i) {
-    case 0:
-      condition = operand;
-      break;
-    default:
-      throw new AssertionError(i);
+      case 0:
+        condition = operand;
+        break;
+      default:
+        throw new AssertionError(i);
     }
   }
 

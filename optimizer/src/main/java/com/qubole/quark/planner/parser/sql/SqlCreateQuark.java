@@ -66,14 +66,14 @@ public abstract class SqlCreateQuark extends SqlCall {
 
   @Override public void setOperand(int i, SqlNode operand) {
     switch (i) {
-    case 0:
-      source = operand;
-      break;
-    case 1:
-      columnList = (SqlNodeList) operand;
-      break;
-    default:
-      throw new AssertionError(i);
+      case 0:
+        source = operand;
+        break;
+      case 1:
+        columnList = (SqlNodeList) operand;
+        break;
+      default:
+        throw new AssertionError(i);
     }
   }
 
