@@ -25,6 +25,8 @@ import org.apache.calcite.sql.SqlNumericLiteral;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
+import com.qubole.quark.QuarkException;
+import com.qubole.quark.catalog.db.Connection;
 import com.qubole.quark.catalog.db.dao.DataSourceDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
 import com.qubole.quark.catalog.db.dao.QuboleDbSourceDAO;
@@ -62,28 +64,23 @@ import java.util.Properties;
  */
 public class QuarkDDLExecutor implements QuarkExecutor {
   private Properties info;
+  private final Connection connection;
   private ParserFactory parserFactory;
 
   public QuarkDDLExecutor(ParserFactory parserFactory, Properties info) {
     this.parserFactory = parserFactory;
     this.info = info;
+    this.connection = new Connection(info);
+    this.connection.getDSSet();
   }
 
-  private DBI getDBI() {
-    DBI dbi = new DBI(
-        info.getProperty("url"),
-        info.getProperty("user"),
-        info.getProperty("password"));
-
-    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
-      dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
-    } else {
-      dbi.define("encryptClass", new NoopEncrypt());
+  private DBI getDbi() throws SQLException {
+    try {
+      return this.connection.getDbi();
+    } catch (QuarkException e) {
+      throw new SQLException(e);
     }
-
-    return dbi;
   }
-
   public Object execute(ParserResult result) throws SQLException {
     SqlParser parser = SqlParser.create(result.getParsedSql(),
         SqlParser.configBuilder()
@@ -154,7 +151,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
 
   public int executeAlterDataSource(SqlAlterQuarkDataSource sqlNode) throws SQLException {
     int idToUpdate = parseCondition(sqlNode.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
@@ -238,8 +235,8 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     }
   }
 
-  public int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
-    DBI dbi = getDBI();
+  private int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
+    DBI dbi = getDbi();
     Map<String, Object> commonColumns = new HashMap<>();
     Map<String, Object> dbSpecificColumns = new HashMap<>();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
@@ -347,7 +344,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
   private void executeDeleteOnDataSource(SqlDropQuarkDataSource node) throws SQLException {
     int id = parseCondition(node.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDao = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDao = dbi.onDemand(QuboleDbSourceDAO.class);
@@ -358,7 +355,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
 
   public int executeAlterView(SqlAlterQuarkView sqlNode) throws SQLException {
     int idToUpdate = parseCondition(sqlNode.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
     View view = viewDAO.find(idToUpdate);
@@ -418,7 +415,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
 
   public int executeCreateView(SqlCreateQuarkView sqlNode) throws SQLException {
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     Map<String, Object> columns = new HashMap<>();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
@@ -489,13 +486,13 @@ public class QuarkDDLExecutor implements QuarkExecutor {
 
   private void executeDeleteOnView(SqlDropQuarkView node) throws SQLException {
     int id = parseCondition(node.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
     viewDAO.delete(id);
   }
 
   private List getListFromDAO(SqlShowQuark sqlNode) throws SQLException {
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     String pojoType = sqlNode.getOperator().toString();
     String whereClause = (sqlNode.getCondition() == null)
         ? "" : "where " + sqlNode.getCondition();
