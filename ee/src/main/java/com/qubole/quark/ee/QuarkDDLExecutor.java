@@ -227,9 +227,6 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     for (SqlNode node : sqlNode.getTargetColumnList()) {
       if (node instanceof SqlIdentifier) {
         switch (((SqlIdentifier) node).getSimple()) {
-          case "name":
-            commonColumns.put("name", rowList.get(i).toString());
-            break;
           case "type":
             commonColumns.put("type", rowList.get(i).toString());
             break;
@@ -244,8 +241,8 @@ public class QuarkDDLExecutor implements QuarkExecutor {
             } else if (rowList.get(i).toString().toUpperCase().equals("QUBOLEDB")) {
               quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
             } else {
-              throw new SQLException("Incorrect argument type to variable"
-                  + " 'datasource_type'");
+              throw new SQLException("Incorrect argument type <" + rowList.get(i).toString()
+                  + "> to variable 'datasource_type'");
             }
             commonColumns.put("datasource_type", rowList.get(i).toString());
             break;
@@ -286,7 +283,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
       throw new RuntimeException("Need to pass exact values to create"
           + " data source of type jdbc or quboleDb");
     } else if (jdbcSourceDAO != null) {
-      return dataSourceDAO.insertJDBC((String) commonColumns.get("name"),
+      return dataSourceDAO.insertJDBC((String) sqlNode.getIdentifier().getSimple(),
           (String) commonColumns.get("type"),
           (String) commonColumns.get("url"),
           connection.getDSSet().getId(),
@@ -297,7 +294,7 @@ public class QuarkDDLExecutor implements QuarkExecutor {
               : (String) dbSpecificColumns.get("password"),
           encrypt);
     } else {
-      return dataSourceDAO.insertQuboleDB((String) commonColumns.get("name"),
+      return dataSourceDAO.insertQuboleDB((String) sqlNode.getIdentifier().getSimple(),
           (String) commonColumns.get("type"),
           (String) commonColumns.get("url"),
           connection.getDSSet().getId(),
@@ -400,9 +397,6 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     for (SqlNode node : sqlNode.getTargetColumnList()) {
       if (node instanceof SqlIdentifier) {
         switch (((SqlIdentifier) node).getSimple()) {
-          case "name":
-            columns.put("name", rowList.get(i).toString());
-            break;
           case "description":
             columns.put("description", rowList.get(i).toString());
             break;
@@ -414,8 +408,6 @@ public class QuarkDDLExecutor implements QuarkExecutor {
             break;
           case "table_name":
             columns.put("table_name", rowList.get(i).toString());
-            break;
-          case "ds_set_id":
             break;
           case "cost":
             if (rowList.get(i) instanceof SqlNumericLiteral) {
@@ -440,10 +432,11 @@ public class QuarkDDLExecutor implements QuarkExecutor {
       }
     }
 
-    return viewDAO.insert((String) columns.get("name"), (String) columns.get("description"),
-        (String) columns.get("query"), (long) columns.get("cost"),
-        (long) columns.get("destination_id"), (String) columns.get("schema_name"),
-        (String) columns.get("table_name"), connection.getDSSet().getId());
+    return viewDAO.insert((String) sqlNode.getIdentifier().getSimple(),
+        (String) columns.get("description"), (String) columns.get("query"),
+        (long) columns.get("cost"), (long) columns.get("destination_id"),
+        (String) columns.get("schema_name"), (String) columns.get("table_name"),
+        connection.getDSSet().getId());
   }
 
   private void executeDeleteOnView(SqlDropQuarkView node) throws SQLException {

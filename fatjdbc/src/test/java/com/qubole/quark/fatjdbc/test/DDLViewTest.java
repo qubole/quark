@@ -145,27 +145,14 @@ public class DDLViewTest {
     String sqlQuery = "select count(*) from warehouse as wr where wr.w_warehouse_sq_ft > 100";
     assertThat(getSize(sqlQuery)).isEqualTo(0);
 
-    String sql1 = "CREATE VIEW (name, description, cost, query, ds_set_id, destination_id, schema_name, table_name) "
-        + "values(\"warehouse_part\", \"Warehouse Partition\", 0, "
-        + "\"select * from canonical.public.warehouse as wr where wr.w_warehouse_sq_ft > 100\", "
-        + "1, 2, \"PUBLIC\", \"WAREHOUSE_PARTITION\")";
+    String sql1 = "CREATE VIEW warehouse_part set description = \"Warehouse Partition\", cost = 0, "
+        + "query=\"select * from canonical.public.warehouse as wr where wr.w_warehouse_sq_ft > 100\", "
+        + "destination_id=2, schema_name=\"PUBLIC\", table_name = \"WAREHOUSE_PARTITION\"";
     Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql1);
     connection.close();
 
     assertThat(getSize(sqlQuery)).isEqualTo(1);
-  }
-
-  @Test(expected = SQLException.class)
-  public void testCreateWrongParam() throws SQLException, ClassNotFoundException {
-    Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
-    String sql1 = "CREATE VIEW (name, description, cost, query, ds_set_id, destination_id, schema_name) "
-        + "values(\"warehouse_part\", \"Warehouse Partition\", 0, "
-        + "\"select * from canonical.public.warehouse as wr where wr.w_warehouse_sq_ft > 100\", "
-        + "1, 2, \"PUBLIC\")";
-    Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
-    connection.createStatement().executeUpdate(sql1);
-    connection.close();
   }
 
   @Test
