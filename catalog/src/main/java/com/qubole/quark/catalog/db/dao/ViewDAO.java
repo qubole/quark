@@ -50,6 +50,11 @@ public interface ViewDAO {
       + "partitions p on p.destination_id = ds.id where p.id = :id and ds.ds_set_id = :ds_set_id")
   View find(@Bind("id")long id, @Bind("ds_set_id") long dsSetId);
 
+  @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
+      + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
+      + "partitions p on p.destination_id = ds.id where p.name = :name and ds.ds_set_id = :ds_set_id")
+  View findByName(@Bind("name")String name, @Bind("ds_set_id") long dsSetId);
+
   @GetGeneratedKeys
   @SqlUpdate("insert into partitions(name, description, query, cost, destination_id, "
       + "schema_name, table_name, ds_set_id) values(:name, :description, :query, :cost, "

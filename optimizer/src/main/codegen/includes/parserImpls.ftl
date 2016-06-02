@@ -57,7 +57,7 @@ SqlNode SqlCreateQuarkDataSource() :
  */
 SqlNode SqlAlterQuarkDataSource() :
 {
-    SqlNode condition;
+    SqlIdentifier identifier;
     SqlNodeList sourceExpressionList;
     SqlNodeList targetColumnList;
     SqlIdentifier id;
@@ -71,6 +71,7 @@ SqlNode SqlAlterQuarkDataSource() :
         targetColumnList = new SqlNodeList(pos);
         sourceExpressionList = new SqlNodeList(pos);
     }
+    identifier = SimpleIdentifier()
     <SET> id = SimpleIdentifier()
     {
         targetColumnList.add(id);
@@ -90,10 +91,9 @@ SqlNode SqlAlterQuarkDataSource() :
             sourceExpressionList.add(exp);
         }
     ) *
-    condition = WhereOpt()
     {
         return new SqlAlterQuarkDataSource(pos, targetColumnList, sourceExpressionList,
-            condition);
+            identifier);
     }
 }
 
@@ -143,7 +143,7 @@ SqlNode SqlCreateQuarkView() :
  */
 SqlNode SqlAlterQuarkView() :
 {
-    SqlNode condition;
+    SqlIdentifier identifier;
     SqlNodeList sourceExpressionList;
     SqlNodeList targetColumnList;
     SqlIdentifier id;
@@ -157,6 +157,7 @@ SqlNode SqlAlterQuarkView() :
         targetColumnList = new SqlNodeList(pos);
         sourceExpressionList = new SqlNodeList(pos);
     }
+    identifier = SimpleIdentifier()
     <SET> id = SimpleIdentifier()
     {
         targetColumnList.add(id);
@@ -176,10 +177,9 @@ SqlNode SqlAlterQuarkView() :
             sourceExpressionList.add(exp);
         }
     ) *
-    condition = WhereOpt()
     {
         return new SqlAlterQuarkView(pos, targetColumnList, sourceExpressionList,
-            condition);
+            identifier);
     }
 }
 

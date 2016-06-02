@@ -174,23 +174,13 @@ public class DDLViewTest {
     String countQuery = "select count(*) from customer_address as c where c.ca_street_name='commercialstreet'";
     assertThat(getSize(countQuery)).isEqualTo(1);
 
-    String sql1 = "ALTER VIEW set query = \"select * from canonical.public.customer_address as c "
-      + "where c.ca_street_name='noncommercialstreet'\" where id = 2";
+    String sql1 = "ALTER VIEW customer_address_part set query = \"select * from canonical.public.customer_address as c "
+      + "where c.ca_street_name='noncommercialstreet'\"";
     Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql1);
     connection.close();
 
     assertThat(getSize(countQuery)).isEqualTo(0);
-  }
-
-  @Test(expected = SQLException.class)
-  public void testAlterViewWrongParam() throws SQLException, ClassNotFoundException {
-    Class.forName("com.qubole.quark.fatjdbc.QuarkDriver");
-    String sql1 = "ALTER VIEW set query = \"select * from canonical.public.customer_address as c "
-        + "where c.ca_street_name='noncommercialstreet'\" where cost = 0";
-    Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
-    connection.createStatement().executeUpdate(sql1);
-    connection.close();
   }
 
   @Test

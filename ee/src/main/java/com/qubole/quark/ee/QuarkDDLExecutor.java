@@ -157,14 +157,15 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
 
   public int executeAlterDataSource(SqlAlterQuarkDataSource sqlNode) throws SQLException {
-    int idToUpdate = parseCondition(sqlNode.getCondition());
     DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
-    DataSource dataSource = jdbcDAO.find(idToUpdate, connection.getDSSet().getId());
+    DataSource dataSource = jdbcDAO.findByName(sqlNode.getIdentifier().getSimple(),
+        connection.getDSSet().getId());
     if (dataSource == null) {
-      dataSource = quboleDAO.find(idToUpdate, connection.getDSSet().getId());
+      dataSource = quboleDAO.findByName(sqlNode.getIdentifier().getSimple(),
+          connection.getDSSet().getId());
     }
     if (dataSource == null) {
       return 0;
@@ -184,11 +185,6 @@ public class QuarkDDLExecutor implements QuarkExecutor {
             dataSource.setUrl(rowList.get(i).toString());
             break;
           case "ds_set_id":
-            if (rowList.get(i) instanceof SqlNumericLiteral) {
-              dataSource.setDsSetId(((SqlNumericLiteral) rowList.get(i)).longValue(true));
-            } else {
-              throw new SQLException("Incorrect argument type to variable 'ds_set_id'");
-            }
             break;
           case "datasource_type":
             dataSource.setDatasourceType(rowList.get(i).toString());
@@ -370,11 +366,11 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
 
   public int executeAlterView(SqlAlterQuarkView sqlNode) throws SQLException {
-    int idToUpdate = parseCondition(sqlNode.getCondition());
     DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
-    View view = viewDAO.find(idToUpdate, connection.getDSSet().getId());
+    View view = viewDAO.findByName(sqlNode.getIdentifier().getSimple(),
+        connection.getDSSet().getId());
     if (view == null) {
       return 0;
     }

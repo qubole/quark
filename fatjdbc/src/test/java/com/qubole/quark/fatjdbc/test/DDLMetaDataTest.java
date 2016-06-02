@@ -140,7 +140,7 @@ public class DDLMetaDataTest {
 
   @Test
   public void testAlterJdBc() throws SQLException {
-    String sql = "ALTER DATASOURCE SET name = \"H2_test\" where id = 1";
+    String sql = "ALTER DATASOURCE SEEDED SET name = \"H2_test\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql);
@@ -189,7 +189,7 @@ public class DDLMetaDataTest {
 
   @Test(expected = SQLException.class)
   public void testAlterJdBcWrongParam() throws SQLException {
-    String sql = "ALTER DATASOURCE SET name = \"H2_test\" where name = 'H2'";
+    String sql = "ALTER DATASOURCE H2 SET name = \"H2_test\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:", props);
     connection.createStatement().executeUpdate(sql);
@@ -204,7 +204,7 @@ public class DDLMetaDataTest {
 
   @Test
   public void testAlterNonExistentSource() throws SQLException {
-    String sql = "ALTER DATASOURCE SET name = \"H2_NonExist\" where id = 10";
+    String sql = "ALTER DATASOURCE bogus SET name = \"H2_NonExist\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql);
