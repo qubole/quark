@@ -14,36 +14,38 @@
  */
 package com.qubole.quark.planner.parser.sql;
 
-import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
 /**
- * A <code>SqlDropQuarkView</code> is a node of a parse tree which represents a DROP DDL
- * statements for QuarkView.
+ * Created by adeshr on 5/3/16.
  */
-public class SqlDropQuarkView extends SqlDropQuark {
+public class SqlShowViews extends SqlShowQuark {
   SqlSpecialOperator operator;
+  String operatorString;
 
-  public SqlDropQuarkView(
+  SqlNode likePattern;
+
+  //~ Constructors -----------------------------------------------------------
+
+  public SqlShowViews(
       SqlParserPos pos,
-      SqlIdentifier identifier) {
-    super(pos, identifier);
-    operator = new SqlSpecialOperator("DROP_VIEW", SqlKind.OTHER_DDL);
+      SqlNode likePattern) {
+    super(pos, likePattern);
+    this.likePattern = likePattern;
+    operator = new SqlSpecialOperator("SHOW_VIEW", SqlKind.OTHER_DDL);
+    operatorString = "SHOW VIEW";
   }
 
-  @Override
-  public SqlOperator getOperator() {
-    return operator;
-  }
   @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
-    writer.keyword("DROP");
+    writer.keyword("SHOW");
     writer.keyword("VIEW");
-    identifier.unparse(writer, leftPrec, rightPrec);
+    if (likePattern != null) {
+      writer.sep("LIKE");
+      likePattern.unparse(writer, leftPrec, rightPrec);
+    }
   }
 }
-
-// End SqlDropQuarkView.java

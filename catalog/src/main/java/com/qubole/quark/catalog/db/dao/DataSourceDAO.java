@@ -53,7 +53,7 @@ public abstract class DataSourceDAO {
   public abstract int update(@BindBean("d") DataSource ds);
 
   @SqlUpdate("delete from data_sources where id = :id")
-  public abstract void delete(@Bind("id") int id);
+  public abstract void delete(@Bind("id") long id);
 
   public int insertJDBC(String name, String type, String url, long dsSetId,
                         String dataSourcetype, JdbcSourceDAO jdbcDao, String username,

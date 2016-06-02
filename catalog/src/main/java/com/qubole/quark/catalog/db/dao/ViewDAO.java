@@ -23,7 +23,6 @@ import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
@@ -43,8 +42,13 @@ public interface ViewDAO {
 
   @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
       + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
-      + "partitions p on p.destination_id = ds.id where p.id = :id")
-  View find(@Bind("id")long id);
+      + "partitions p on p.destination_id = ds.id where p.name like :like_pattern and ds.ds_set_id = :ds_set_id")
+  List<View> findLikeName(@Bind("like_pattern") String likePattern, @Bind("ds_set_id")long dsSetId);
+
+  @SqlQuery("select p.id, p.name, p.description, p.query, p.cost, p.table_name, p.schema_name, "
+      + "p.destination_id, ds.name as destination, p.ds_set_id from data_sources ds join "
+      + "partitions p on p.destination_id = ds.id where p.id = :id and ds.ds_set_id = :ds_set_id")
+  View find(@Bind("id")long id, @Bind("ds_set_id") long dsSetId);
 
   @GetGeneratedKeys
   @SqlUpdate("insert into partitions(name, description, query, cost, destination_id, "
@@ -55,16 +59,11 @@ public interface ViewDAO {
              @Bind("destination_id") long destinationId, @Bind("schema_name") String schemaName,
              @Bind("table_name") String tableName, @Bind("ds_set_id") long dsSetId);
 
-  @GetGeneratedKeys
   @SqlUpdate("update partitions set name = :v.name, description = :v.description, "
-      + "query = :v.query, cost = :v.cost, schema_name = :v.schema, ds_set_id = :v.dsSetId, "
-      + "table_name = :v.table, destination_id = :v.destinationId where id = :v.id")
-  int update(@BindBean("v") View view);
+      + "query = :v.query, cost = :v.cost, schema_name = :v.schema, "
+      + "table_name = :v.table, destination_id = :v.destinationId where id = :v.id and ds_set_id = :ds_set_id")
+  int update(@BindBean("v") View view, @Bind("ds_set_id") long dsSetId);
 
-  @SqlUpdate("delete from partitions where id = :id")
-  void delete(@Bind("id") int id);
-
-  @SqlQuery("select id, name, description, query, cost, table_name, schema_name, "
-      + "destination_id, null as destination, ds_set_id from partitions <where>")
-  List<View> findByWhere(@Define("where") String where);
+  @SqlUpdate("delete from partitions where name = :name and ds_set_id = :ds_set_id")
+  void delete(@Bind("name") String name, @Bind("ds_set_id") long dsSetId);
 }

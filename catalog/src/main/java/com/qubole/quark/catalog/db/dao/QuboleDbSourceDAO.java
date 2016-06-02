@@ -25,7 +25,6 @@ import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.Transaction;
-import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
@@ -45,8 +44,20 @@ public abstract class QuboleDbSourceDAO {
 
   @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
       + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
-      + "where ds.id = :id")
-  public abstract QuboleDbSource find(@Bind("id") int id);
+      + "where ds.name like :like_pattern and ds.ds_set_id = :ds_set_id")
+  public abstract List<QuboleDbSource> findLikeName(@Bind("like_pattern") String likePattern,
+                                                          @Bind("ds_set_id") long dsSetId);
+
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
+      + "where ds.id = :id and ds.ds_set_id = :ds_set_id")
+  public abstract QuboleDbSource find(@Bind("id") int id, @Bind("ds_set_id") long dsSetId);
+
+  @SqlQuery("select ds.id, ds.name, ds.type, ds.datasource_type, ds.url, ds.ds_set_id, "
+      + "qs.dbtap_id, qs.auth_token from data_sources ds join quboledb_sources qs on ds.id = qs.id "
+      + "where ds.name = :name and ds.ds_set_id = :ds_set_id")
+  public abstract QuboleDbSource findByName(@Bind("name") String name,
+                                            @Bind("ds_set_id") long dsSetId);
 
   @SqlUpdate("insert into quboledb_sources(id, dbtap_id, auth_token) "
       + "values(:id, :dbtap_id, :auth_token)")
@@ -59,7 +70,7 @@ public abstract class QuboleDbSourceDAO {
   protected abstract int updateQubole(@BindBean("d") QuboleDbSource db);
 
   @SqlUpdate("delete from quboledb_sources where id = :id")
-  public abstract void delete(@Bind("id") int id);
+  public abstract void delete(@Bind("id") long id);
 
   @Transaction
   public int update(QuboleDbSource db, DataSourceDAO dao, Encrypt encrypt) {
@@ -72,9 +83,4 @@ public abstract class QuboleDbSourceDAO {
     updateQubole(db);
     return dao.update(db);
   }
-
-  @SqlQuery("select data_sources.id, name, type, datasource_type, url, ds_set_id, "
-      + "quboledb_sources.dbtap_id, quboledb_sources.auth_token from data_sources "
-      + "join quboledb_sources on data_sources.id = quboledb_sources.id <where>")
-  public abstract List<QuboleDbSource> findByWhere(@Define("where") String where);
 }

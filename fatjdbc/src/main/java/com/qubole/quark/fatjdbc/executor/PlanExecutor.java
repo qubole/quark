@@ -105,9 +105,9 @@ public class PlanExecutor {
   }
 
   private Class getPojoType(String sql) throws SQLException {
-    if (sql.startsWith("SHOW DATASOURCE ")) {
+    if (sql.startsWith("SHOW DATASOURCE")) {
       return DataSource.class;
-    } else if (sql.startsWith("SHOW VIEW ")) {
+    } else if (sql.startsWith("SHOW VIEW")) {
       return View.class;
     }
     throw new SQLException("Unable to determine POJO for: " + sql);

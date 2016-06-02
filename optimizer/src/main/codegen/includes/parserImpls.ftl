@@ -106,13 +106,10 @@ SqlNode SqlDropQuarkDataSource() :
     SqlParserPos pos;
 }
 {
-    <DROP> <DATASOURCE>
+    <DROP> { pos = getPos(); }
+    <DATASOURCE>
     {
-        pos = getPos();
-    }
-    condition = WhereOpt()
-    {
-        return new SqlDropQuarkDataSource(pos, condition);
+        return new SqlDropQuarkDataSource(pos, CompoundIdentifier());
     }
 }
 
@@ -195,44 +192,44 @@ SqlNode SqlDropQuarkView() :
     SqlParserPos pos;
 }
 {
-    <DROP> <VIEW>
+    <DROP> { pos = getPos(); }
+    <VIEW>
     {
-        pos = getPos();
-    }
-    condition = WhereOpt()
-    {
-        return new SqlDropQuarkView(pos, condition);
+        return new SqlDropQuarkView(pos, CompoundIdentifier());
     }
 }
 
 /**
  * Parses a SHOW DDL statement.
  */
-SqlNode SqlShowQuark() :
+SqlNode SqlShowDataSources() :
 {
-    SqlNode condition;
     SqlParserPos pos;
-    SqlIdentifier quarkEntity;
+    SqlNode likePattern = null;
 }
 {
-    <SHOW>
+    <SHOW> { pos = getPos(); }
+    <DATASOURCE>
+    [
+        <LIKE> { likePattern = StringLiteral(); }
+    ]
     {
-        pos = getPos();
-    }
-    (
-        <DATASOURCE>
-        {
-            quarkEntity = new SqlIdentifier("DATASOURCE", getPos());
-        }
-        |
-        <VIEW>
-        {
-            quarkEntity = new SqlIdentifier("VIEW", getPos());
-        }
-    )
-    condition = WhereOpt()
-    {
-        return new SqlShowQuark(pos, quarkEntity, condition);
+        return new SqlShowDataSources(pos, likePattern);
     }
 }
 
+SqlNode SqlShowViews() :
+{
+    SqlParserPos pos;
+    SqlNode likePattern = null;
+}
+{
+    <SHOW> { pos = getPos(); }
+    <VIEW>
+    [
+        <LIKE> { likePattern = StringLiteral(); }
+    ]
+    {
+        return new SqlShowViews(pos, likePattern);
+    }
+}

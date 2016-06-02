@@ -19,14 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.qubole.quark.QuarkException;
 
 import com.qubole.quark.catalog.db.dao.CubeDAO;
-import com.qubole.quark.catalog.db.dao.DSSetDAO;
 import com.qubole.quark.catalog.db.dao.DimensionDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
 import com.qubole.quark.catalog.db.dao.MeasureDAO;
 import com.qubole.quark.catalog.db.dao.QuboleDbSourceDAO;
 import com.qubole.quark.catalog.db.dao.ViewDAO;
-import com.qubole.quark.catalog.db.encryption.AESEncrypt;
-import com.qubole.quark.catalog.db.encryption.NoopEncrypt;
 import com.qubole.quark.catalog.db.pojo.Cube;
 import com.qubole.quark.catalog.db.pojo.DSSet;
 import com.qubole.quark.catalog.db.pojo.DataSource;
@@ -37,7 +34,6 @@ import com.qubole.quark.catalog.db.pojo.View;
 import com.qubole.quark.planner.QuarkFactory;
 import com.qubole.quark.planner.QuarkFactoryResult;
 
-import org.flywaydb.core.Flyway;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,39 +75,18 @@ public class SchemaFactory implements QuarkFactory {
    */
   public QuarkFactoryResult create(Properties info) throws QuarkException {
     try {
-      DBI dbi = new DBI(
-          info.getProperty("url"),
-          info.getProperty("user"),
-          info.getProperty("password"));
+      Connection connection = new Connection(info);
+      connection.runFlyWay();
 
-      if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
-        dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
-      } else {
-        dbi.define("encryptClass", new NoopEncrypt());
-      }
-      Flyway flyway = new Flyway();
-      flyway.setDataSource(
-          info.getProperty("url"),
-          info.getProperty("user"),
-          info.getProperty("password"));
-      flyway.migrate();
+      DSSet dsSet = connection.getDSSet();
+      DBI dbi = connection.getDbi();
 
-      DSSetDAO dsSetDAO = dbi.onDemand(DSSetDAO.class);
       JdbcSourceDAO jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
       QuboleDbSourceDAO quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
       CubeDAO cubeDAO = dbi.onDemand(CubeDAO.class);
       ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
       MeasureDAO measureDAO = dbi.onDemand(MeasureDAO.class);
       DimensionDAO dimensionDAO = dbi.onDemand(DimensionDAO.class);
-
-
-      DSSet dsSet;
-      if (info.containsKey("dsSetId")) {
-        dsSet = dsSetDAO.find(Integer.parseInt(info.getProperty("dsSetId")));
-      } else {
-        List<DSSet> dsSets = dsSetDAO.findAll();
-        dsSet = dsSets.get(0);
-      }
 
       long dsSetId = dsSet.getId();
       long defaultDataSourceId = dsSet.getDefaultDatasourceId();

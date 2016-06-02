@@ -15,8 +15,8 @@
 
 package com.qubole.quark.catalog.db.pojo;
 
-import com.qubole.quark.catalog.db.RelSchema;
 import com.qubole.quark.catalog.db.dao.ViewDAO;
+import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
@@ -28,6 +28,8 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Created by adeshr on 2/17/16.
@@ -41,14 +43,69 @@ public class ViewTest extends DbUtility {
       IOException, URISyntaxException {
 
     setUpDb(dbSchemaUrl, "sa", "", "tpcds.sql");
+    setUpDb(dbSchemaUrl, "sa", "", "tpcds_2.sql");
 
     DBI dbi = new DBI(dbSchemaUrl, "sa", "");
     viewDAO = dbi.onDemand(ViewDAO.class);
   }
 
   @Test
-  public void testGet() {
+  public void testGetAll() {
     List<View> views = viewDAO.findByDSSetId(1);
     assertThat(views.size(), equalTo(4));
+  }
+
+  @Test
+  public void testGetSuccessOn1() {
+    View view = viewDAO.find(1, 1);
+    assertThat(view.getName(), equalTo("warehouse_part"));
+    assertThat(view.getDestinationId(), equalTo(3L));
+  }
+
+  @Test
+  public void testGetSuccessOn2() {
+    View view = viewDAO.find(6, 10);
+    assertThat(view.getName(), equalTo("web_sales_part"));
+    assertThat(view.getDestinationId(), equalTo(7L));
+  }
+
+  @Test
+  public void testGetFail() {
+    View view = viewDAO.find(1, 10);
+    assertThat(view, nullValue());
+  }
+
+  @Test
+  public void testUpdateSuccessOn1() {
+    View view = viewDAO.find(1, 1);
+    view.setName("new_name");
+    int updated = viewDAO.update(view, 1);
+    assertThat(updated, equalTo(1));
+    View updatedView = viewDAO.find(1, 1);
+    assertThat(updatedView.getName(), equalTo("new_name"));
+  }
+
+  @Test
+  public void testUpdateFailureOn1() {
+    View view = viewDAO.find(1, 1);
+    view.setName("new_name");
+    int updated = viewDAO.update(view, 10);
+    assertThat(updated, equalTo(0));
+    View updatedView = viewDAO.find(1, 1);
+    assertThat(updatedView.getName(), equalTo("warehouse_part"));
+  }
+
+  @Test
+  public void testDeleteSuccessOn1() {
+    viewDAO.delete("customer_address_part_10", 10);
+    View view = viewDAO.find(7, 10);
+    assertThat(view, nullValue());
+  }
+
+  @Test
+  public void testDeleteFailureOn1() {
+    viewDAO.delete("customer_address_part", 10);
+    View view = viewDAO.find(3, 1);
+    assertThat(view, notNullValue());
   }
 }

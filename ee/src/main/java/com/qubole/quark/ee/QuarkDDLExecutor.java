@@ -25,6 +25,8 @@ import org.apache.calcite.sql.SqlNumericLiteral;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 
+import com.qubole.quark.QuarkException;
+import com.qubole.quark.catalog.db.Connection;
 import com.qubole.quark.catalog.db.dao.DataSourceDAO;
 import com.qubole.quark.catalog.db.dao.JdbcSourceDAO;
 import com.qubole.quark.catalog.db.dao.QuboleDbSourceDAO;
@@ -46,9 +48,12 @@ import com.qubole.quark.planner.parser.sql.SqlCreateQuarkDataSource;
 import com.qubole.quark.planner.parser.sql.SqlCreateQuarkView;
 import com.qubole.quark.planner.parser.sql.SqlDropQuarkDataSource;
 import com.qubole.quark.planner.parser.sql.SqlDropQuarkView;
-import com.qubole.quark.planner.parser.sql.SqlShowQuark;
+import com.qubole.quark.planner.parser.sql.SqlShowDataSources;
+import com.qubole.quark.planner.parser.sql.SqlShowViews;
 
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -61,29 +66,26 @@ import java.util.Properties;
  * Created by adeshr on 5/24/16.
  */
 public class QuarkDDLExecutor implements QuarkExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(QuarkDDLExecutor.class);
+
   private Properties info;
+  private final Connection connection;
   private ParserFactory parserFactory;
 
   public QuarkDDLExecutor(ParserFactory parserFactory, Properties info) {
     this.parserFactory = parserFactory;
     this.info = info;
+    this.connection = new Connection(info);
+    this.connection.getDSSet();
   }
 
-  private DBI getDBI() {
-    DBI dbi = new DBI(
-        info.getProperty("url"),
-        info.getProperty("user"),
-        info.getProperty("password"));
-
-    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
-      dbi.define("encryptClass", new AESEncrypt(info.getProperty("encryptionKey")));
-    } else {
-      dbi.define("encryptClass", new NoopEncrypt());
+  private DBI getDbi() throws SQLException {
+    try {
+      return this.connection.getDbi();
+    } catch (QuarkException e) {
+      throw new SQLException(e);
     }
-
-    return dbi;
   }
-
   public Object execute(ParserResult result) throws SQLException {
     SqlParser parser = SqlParser.create(result.getParsedSql(),
         SqlParser.configBuilder()
@@ -123,8 +125,10 @@ public class QuarkDDLExecutor implements QuarkExecutor {
       executeDeleteOnView((SqlDropQuarkView) sqlNode);
       parserFactory.setReloadCache();
       return 0;
-    } else if (sqlNode instanceof SqlShowQuark) {
-      return getListFromDAO((SqlShowQuark) sqlNode);
+    } else if (sqlNode instanceof SqlShowDataSources) {
+      return getDataSourceList((SqlShowDataSources) sqlNode);
+    } else if (sqlNode instanceof SqlShowViews) {
+      return getViewList((SqlShowViews) sqlNode);
     }
     throw new RuntimeException("Cannot handle execution for: " + result.getParsedSql());
   }
@@ -154,13 +158,13 @@ public class QuarkDDLExecutor implements QuarkExecutor {
 
   public int executeAlterDataSource(SqlAlterQuarkDataSource sqlNode) throws SQLException {
     int idToUpdate = parseCondition(sqlNode.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
-    DataSource dataSource = jdbcDAO.find(idToUpdate);
+    DataSource dataSource = jdbcDAO.find(idToUpdate, connection.getDSSet().getId());
     if (dataSource == null) {
-      dataSource = quboleDAO.find(idToUpdate);
+      dataSource = quboleDAO.find(idToUpdate, connection.getDSSet().getId());
     }
     if (dataSource == null) {
       return 0;
@@ -238,8 +242,8 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     }
   }
 
-  public int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
-    DBI dbi = getDBI();
+  private int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
+    DBI dbi = getDbi();
     Map<String, Object> commonColumns = new HashMap<>();
     Map<String, Object> dbSpecificColumns = new HashMap<>();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
@@ -346,22 +350,31 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     }
   }
   private void executeDeleteOnDataSource(SqlDropQuarkDataSource node) throws SQLException {
-    int id = parseCondition(node.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDao = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDao = dbi.onDemand(QuboleDbSourceDAO.class);
-    jdbcDao.delete(id);
-    quboleDao.delete(id);
-    dataSourceDAO.delete(id);
+    DataSource jdbcSource = jdbcDao.findByName(node.getIdentifier().getSimple(),
+        connection.getDSSet().getId());
+    if (jdbcSource != null) {
+      jdbcDao.delete(jdbcSource.getId());
+      dataSourceDAO.delete(jdbcSource.getId());
+    } else {
+      DataSource quboleSource = quboleDao.findByName(node.getIdentifier().getSimple(),
+          connection.getDSSet().getId());
+      if (quboleSource != null) {
+        jdbcDao.delete(quboleSource.getId());
+        dataSourceDAO.delete(quboleSource.getId());
+      }
+    }
   }
 
   public int executeAlterView(SqlAlterQuarkView sqlNode) throws SQLException {
     int idToUpdate = parseCondition(sqlNode.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
-    View view = viewDAO.find(idToUpdate);
+    View view = viewDAO.find(idToUpdate, connection.getDSSet().getId());
     if (view == null) {
       return 0;
     }
@@ -414,11 +427,11 @@ public class QuarkDDLExecutor implements QuarkExecutor {
       }
     }
 
-    return viewDAO.update(view);
+    return viewDAO.update(view, connection.getDSSet().getId());
   }
 
   public int executeCreateView(SqlCreateQuarkView sqlNode) throws SQLException {
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     Map<String, Object> columns = new HashMap<>();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
@@ -488,58 +501,39 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
 
   private void executeDeleteOnView(SqlDropQuarkView node) throws SQLException {
-    int id = parseCondition(node.getCondition());
-    DBI dbi = getDBI();
+    DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
-    viewDAO.delete(id);
+    viewDAO.delete(node.getIdentifier().getSimple(), connection.getDSSet().getId());
   }
 
-  private List getListFromDAO(SqlShowQuark sqlNode) throws SQLException {
-    DBI dbi = getDBI();
-    String pojoType = sqlNode.getOperator().toString();
-    String whereClause = (sqlNode.getCondition() == null)
-        ? "" : "where " + sqlNode.getCondition();
-
-    switch (pojoType) {
-      case "SHOW_DATASOURCE":
-        return getDataSourceList(whereClause, dbi);
-      case "SHOW_VIEW":
-        ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
-        return viewDAO.findByWhere(whereClause);
-      default:
-        throw new SQLException("Not supported for: " + pojoType);
-    }
-  }
-
-  private List<DataSource> getDataSourceList(String whereClause, DBI dbi) {
-
-    boolean isQuboleDBQuery =
-        whereClause.contains(" `auth_token`") || whereClause.contains(" `dbtap_id`");
-    boolean isJDBCDBQuery =
-        whereClause.contains(" `username`") || whereClause.contains(" `password`");
-
-    whereClause = preProcessWhereClause(whereClause);
-
+  private List<DataSource> getDataSourceList(SqlShowDataSources sqlNode) throws SQLException {
+    DBI dbi = getDbi();
     JdbcSourceDAO jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
+
     List<DataSource> dataSources = new ArrayList<>();
 
-    if (isJDBCDBQuery) {
-      dataSources.addAll(jdbcSourceDAO.findByWhere(whereClause));
-    } else if (isQuboleDBQuery) {
-      dataSources.addAll(quboleDbSourceDAO.findByWhere(whereClause));
+    if (sqlNode.getLikePattern() == null) {
+      dataSources.addAll(jdbcSourceDAO.findByDSSetId(connection.getDSSet().getId()));
+      dataSources.addAll(quboleDbSourceDAO.findByDSSetId(connection.getDSSet().getId()));
     } else {
-      dataSources.addAll(jdbcSourceDAO.findByWhere(whereClause));
-      dataSources.addAll(quboleDbSourceDAO.findByWhere(whereClause));
+      dataSources.addAll(jdbcSourceDAO.findLikeName(sqlNode.getLikePattern(),
+          connection.getDSSet().getId()));
+      dataSources.addAll(quboleDbSourceDAO.findLikeName(sqlNode.getLikePattern(),
+          connection.getDSSet().getId()));
     }
     return dataSources;
   }
-  private String preProcessWhereClause(String whereClause) {
-    if (whereClause.contains(" `id`")) {
-      whereClause = whereClause.replace(" `id`", " data_sources.id");
+
+  private List<View> getViewList(SqlShowViews sqlNode) throws SQLException {
+    DBI dbi = getDbi();
+    ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
+
+    if (sqlNode.getLikePattern() == null) {
+      return viewDAO.findByDSSetId(connection.getDSSet().getId());
+    } else {
+      return viewDAO.findLikeName(sqlNode.getLikePattern(),
+          connection.getDSSet().getId());
     }
-    whereClause = whereClause.replace(" `username`", " jdbc_sources.username");
-    whereClause = whereClause.replace(" `password`", " jdbc_sources.password");
-    return whereClause;
   }
 }
