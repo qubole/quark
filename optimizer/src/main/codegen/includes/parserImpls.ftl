@@ -32,23 +32,44 @@
  */
 SqlNode SqlCreateQuarkDataSource() :
 {
-    SqlNode source;
-    SqlNodeList columnList = null;
+    SqlIdentifier identifier;
+    SqlNodeList sourceExpressionList;
+    SqlNodeList targetColumnList;
+    SqlIdentifier id;
+    SqlNode exp;
     SqlParserPos pos;
 }
 {
     <CREATE>
+    <DATASOURCE>
     {
         pos = getPos();
+        targetColumnList = new SqlNodeList(pos);
+        sourceExpressionList = new SqlNodeList(pos);
     }
-    <DATASOURCE>
-    [
-        LOOKAHEAD(2)
-        columnList = ParenthesizedSimpleIdentifierList()
-    ]
-    source = OrderedQueryOrExpr(ExprContext.ACCEPT_QUERY)
+    identifier = SimpleIdentifier()
+    <SET> id = SimpleIdentifier()
     {
-        return new SqlCreateQuarkDataSource(pos, source, columnList);
+        targetColumnList.add(id);
+    }
+    <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+    {
+        sourceExpressionList.add(exp);
+    }
+    (
+        <COMMA>
+        id = SimpleIdentifier()
+        {
+            targetColumnList.add(id);
+        }
+        <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+        {
+            sourceExpressionList.add(exp);
+        }
+    ) *
+    {
+        return new SqlCreateQuarkDataSource(pos, targetColumnList, sourceExpressionList,
+            identifier);
     }
 }
 
@@ -118,23 +139,43 @@ SqlNode SqlDropQuarkDataSource() :
  */
 SqlNode SqlCreateQuarkView() :
 {
-    SqlNode source;
-    SqlNodeList columnList = null;
+    SqlIdentifier identifier;
+    SqlNodeList sourceExpressionList;
+    SqlNodeList targetColumnList;
+    SqlIdentifier id;
+    SqlNode exp;
     SqlParserPos pos;
 }
 {
-    <CREATE>
+    <CREATE> <VIEW>
     {
         pos = getPos();
+        targetColumnList = new SqlNodeList(pos);
+        sourceExpressionList = new SqlNodeList(pos);
     }
-    <VIEW>
-    [
-        LOOKAHEAD(2)
-        columnList = ParenthesizedSimpleIdentifierList()
-    ]
-    source = OrderedQueryOrExpr(ExprContext.ACCEPT_QUERY)
+    identifier = SimpleIdentifier()
+    <SET> id = SimpleIdentifier()
     {
-        return new SqlCreateQuarkView(pos, source, columnList);
+        targetColumnList.add(id);
+    }
+    <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+    {
+        sourceExpressionList.add(exp);
+    }
+    (
+        <COMMA>
+        id = SimpleIdentifier()
+        {
+            targetColumnList.add(id);
+        }
+        <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+        {
+            sourceExpressionList.add(exp);
+        }
+    ) *
+    {
+        return new SqlCreateQuarkView(pos, targetColumnList, sourceExpressionList,
+            identifier);
     }
 }
 
