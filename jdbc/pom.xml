@@ -21,12 +21,12 @@
   <parent>
     <artifactId>quark-parent</artifactId>
     <groupId>com.qubole</groupId>
-    <version>5.3.1-SNAPSHOT</version>
+    <version>5.3.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>quark-jdbc</artifactId>
-  <version>5.3.1-SNAPSHOT</version>
+  <version>5.3.1</version>
   <name>Quark JDBC</name>
 
 

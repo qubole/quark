@@ -20,12 +20,12 @@
     <parent>
         <artifactId>quark-parent</artifactId>
         <groupId>com.qubole</groupId>
-        <version>5.3.1-SNAPSHOT</version>
+        <version>5.3.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>quark-catalog</artifactId>
-    <version>5.3.1-SNAPSHOT</version>
+    <version>5.3.1</version>
     <name>Quark Catalog</name>
     <packaging>jar</packaging>
 
@@ -69,12 +69,12 @@
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-optimizer</artifactId>
-            <version>5.3.1-SNAPSHOT</version>
+            <version>5.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-plugins</artifactId>
-            <version>5.3.1-SNAPSHOT</version>
+            <version>5.3.1</version>
         </dependency>
 
         <dependency>
