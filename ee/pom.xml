@@ -21,12 +21,12 @@
     <parent>
         <artifactId>quark-parent</artifactId>
         <groupId>com.qubole</groupId>
-        <version>5.3.0-SNAPSHOT</version>
+        <version>5.3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>quark-ee</artifactId>
-    <version>5.3.0-SNAPSHOT</version>
+    <version>5.3.0</version>
     <name>Quark EE</name>
 
 
@@ -39,17 +39,17 @@
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-optimizer</artifactId>
-            <version>5.3.0-SNAPSHOT</version>
+            <version>5.3.0</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-plugins</artifactId>
-            <version>5.3.0-SNAPSHOT</version>
+            <version>5.3.0</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-catalog</artifactId>
-            <version>5.3.0-SNAPSHOT</version>
+            <version>5.3.0</version>
         </dependency>
     </dependencies>
 
