@@ -16,9 +16,7 @@ package com.qubole.quark.ee;
 
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.avatica.util.Quoting;
-import org.apache.calcite.sql.SqlBasicCall;
 import org.apache.calcite.sql.SqlIdentifier;
-import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlNumericLiteral;
@@ -133,38 +131,16 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     throw new RuntimeException("Cannot handle execution for: " + result.getParsedSql());
   }
 
-  private int parseCondition(SqlNode cond) throws SQLException {
-    if (cond instanceof SqlBasicCall) {
-      final SqlBasicCall condCall = (SqlBasicCall) cond;
-      if (condCall.getOperator().getKind() == SqlKind.EQUALS) {
-        if (condCall.getOperandList().size() == 2) {
-          if (condCall.operand(0) instanceof SqlIdentifier
-              && condCall.operand(1) instanceof SqlNumericLiteral) {
-            if (((SqlIdentifier) condCall.operand(0)).getSimple().equals("id")) {
-              return ((SqlNumericLiteral) condCall.operand(1)).intValue(true);
-            }
-          } else if (condCall.operand(1) instanceof SqlIdentifier
-              && condCall.operand(0) instanceof SqlNumericLiteral) {
-            if (((SqlIdentifier) condCall.operand(1)).getSimple().equals("id")) {
-              return ((SqlNumericLiteral) condCall.operand(0)).intValue(true);
-            }
-          }
-        }
-      }
-    }
-    throw new SQLException("Only condition supported by ALTER DATASOURCE is"
-        + " 'id = <constant>'");
-  }
-
   public int executeAlterDataSource(SqlAlterQuarkDataSource sqlNode) throws SQLException {
-    int idToUpdate = parseCondition(sqlNode.getCondition());
     DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
     QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
-    DataSource dataSource = jdbcDAO.find(idToUpdate, connection.getDSSet().getId());
+    DataSource dataSource = jdbcDAO.findByName(sqlNode.getIdentifier().getSimple(),
+        connection.getDSSet().getId());
     if (dataSource == null) {
-      dataSource = quboleDAO.find(idToUpdate, connection.getDSSet().getId());
+      dataSource = quboleDAO.findByName(sqlNode.getIdentifier().getSimple(),
+          connection.getDSSet().getId());
     }
     if (dataSource == null) {
       return 0;
@@ -184,11 +160,6 @@ public class QuarkDDLExecutor implements QuarkExecutor {
             dataSource.setUrl(rowList.get(i).toString());
             break;
           case "ds_set_id":
-            if (rowList.get(i) instanceof SqlNumericLiteral) {
-              dataSource.setDsSetId(((SqlNumericLiteral) rowList.get(i)).longValue(true));
-            } else {
-              throw new SQLException("Incorrect argument type to variable 'ds_set_id'");
-            }
             break;
           case "datasource_type":
             dataSource.setDatasourceType(rowList.get(i).toString());
@@ -244,111 +215,97 @@ public class QuarkDDLExecutor implements QuarkExecutor {
 
   private int executeCreateDataSource(SqlCreateQuarkDataSource sqlNode) throws SQLException {
     DBI dbi = getDbi();
+
     Map<String, Object> commonColumns = new HashMap<>();
     Map<String, Object> dbSpecificColumns = new HashMap<>();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
     JdbcSourceDAO jdbcSourceDAO = null;
     QuboleDbSourceDAO quboleDbSourceDAO = null;
-    SqlNode source = sqlNode.getSource();
-    if (source instanceof SqlBasicCall) {
-      SqlBasicCall rowCall = ((SqlBasicCall) source).operand(0);
-      int i = 0;
-      for (SqlNode node : sqlNode.getTargetColumnList()) {
-        if (node instanceof SqlIdentifier) {
-          switch (((SqlIdentifier) node).getSimple()) {
-            case "name":
-              commonColumns.put("name", rowCall.operand(i).toString());
-              break;
-            case "type":
-              commonColumns.put("type", rowCall.operand(i).toString());
-              break;
-            case "url":
-              commonColumns.put("url", rowCall.operand(i).toString());
-              break;
-            case "ds_set_id":
-              if (rowCall.operand(i) instanceof SqlNumericLiteral) {
-                commonColumns.put("ds_set_id",
-                    ((SqlNumericLiteral) rowCall.operand(i)).longValue(true));
-              } else {
-                throw new SQLException("Incorrect argument type to variable 'ds_set_id'");
-              }
-              break;
-            case "datasource_type":
-              if (rowCall.operand(i).toString().toUpperCase().equals("JDBC")) {
-                jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
-              } else if (rowCall.operand(i).toString().toUpperCase().equals("QUBOLEDB")) {
-                quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
-              } else {
-                throw new SQLException("Incorrect argument type to variable"
-                    + " 'datasource_type'");
-              }
-              commonColumns.put("datasource_type", rowCall.operand(i).toString());
-              break;
-            case "username":
-              dbSpecificColumns.put("username", rowCall.operand(i).toString());
-              break;
-            case "password":
-              dbSpecificColumns.put("password", rowCall.operand(i).toString());
-              break;
-            case "dbtap_id":
-              if (rowCall.operand(i) instanceof SqlNumericLiteral) {
-                dbSpecificColumns.put("dbtap_id",
-                    ((SqlNumericLiteral) rowCall.operand(i)).intValue(true));
-              } else {
-                throw new SQLException("Incorrect argument type to variable"
-                    + " 'dbtap_id'");
-              }
-              break;
-            case "auth_token":
-              dbSpecificColumns.put("auth_token", rowCall.operand(i).toString());
-              break;
-            default:
-              throw new SQLException("Unknown parameter: " + ((SqlIdentifier) node).getSimple());
-          }
-        } else {
-          throw new RuntimeException("Error in parsing the DDL "
-              + "statement to create DataSource");
+
+    int i = 0;
+    SqlNodeList rowList = sqlNode.getSourceExpressionList();
+    for (SqlNode node : sqlNode.getTargetColumnList()) {
+      if (node instanceof SqlIdentifier) {
+        switch (((SqlIdentifier) node).getSimple()) {
+          case "type":
+            commonColumns.put("type", rowList.get(i).toString());
+            break;
+          case "url":
+            commonColumns.put("url", rowList.get(i).toString());
+            break;
+          case "ds_set_id":
+            break;
+          case "datasource_type":
+            if (rowList.get(i).toString().toUpperCase().equals("JDBC")) {
+              jdbcSourceDAO = dbi.onDemand(JdbcSourceDAO.class);
+            } else if (rowList.get(i).toString().toUpperCase().equals("QUBOLEDB")) {
+              quboleDbSourceDAO = dbi.onDemand(QuboleDbSourceDAO.class);
+            } else {
+              throw new SQLException("Incorrect argument type <" + rowList.get(i).toString()
+                  + "> to variable 'datasource_type'");
+            }
+            commonColumns.put("datasource_type", rowList.get(i).toString());
+            break;
+          case "username":
+            dbSpecificColumns.put("username", rowList.get(i).toString());
+            break;
+          case "password":
+            dbSpecificColumns.put("password", rowList.get(i).toString());
+            break;
+          case "dbtap_id":
+            if (rowList.get(i) instanceof SqlNumericLiteral) {
+              dbSpecificColumns.put("dbtap_id",
+                  ((SqlNumericLiteral) rowList.get(i)).intValue(true));
+            } else {
+              throw new SQLException("Incorrect argument type to variable"
+                  + " 'dbtap_id'");
+            }
+            break;
+          case "auth_token":
+            dbSpecificColumns.put("auth_token", rowList.get(i).toString());
+            break;
+          default:
+            throw new SQLException("Unknown parameter: " + ((SqlIdentifier) node).getSimple());
         }
         i++;
       }
+    }
 
-      Encrypt encrypt;
-      if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
-        encrypt = new AESEncrypt(info.getProperty("encryptionKey"));
-      } else {
-        encrypt = new NoopEncrypt();
-      }
-
-      if ((jdbcSourceDAO == null && quboleDbSourceDAO == null)
-          || (jdbcSourceDAO != null && quboleDbSourceDAO != null)) {
-        throw new RuntimeException("Need to pass exact values to create"
-            + " data source of type jdbc or quboleDb");
-      } else if (jdbcSourceDAO != null) {
-        return dataSourceDAO.insertJDBC((String) commonColumns.get("name"),
-            (String) commonColumns.get("type"),
-            (String) commonColumns.get("url"),
-            (long) commonColumns.get("ds_set_id"),
-            (String) commonColumns.get("datasource_type"),
-            jdbcSourceDAO,
-            (String) dbSpecificColumns.get("username"),
-            (dbSpecificColumns.get("password") == null) ? ""
-                : (String) dbSpecificColumns.get("password"),
-            encrypt);
-      } else {
-        return dataSourceDAO.insertQuboleDB((String) commonColumns.get("name"),
-            (String) commonColumns.get("type"),
-            (String) commonColumns.get("url"),
-            (long) commonColumns.get("ds_set_id"),
-            (String) commonColumns.get("datasource_type"),
-            quboleDbSourceDAO,
-            (int) dbSpecificColumns.get("dbtap_id"),
-            (String) dbSpecificColumns.get("auth_token"),
-            encrypt);
-      }
+    Encrypt encrypt;
+    if (Boolean.parseBoolean(info.getProperty("encrypt", "false"))) {
+      encrypt = new AESEncrypt(info.getProperty("encryptionKey"));
     } else {
-      throw new RuntimeException("Incorrect DDL Statement to create Datasources");
+      encrypt = new NoopEncrypt();
+    }
+
+    if ((jdbcSourceDAO == null && quboleDbSourceDAO == null)
+        || (jdbcSourceDAO != null && quboleDbSourceDAO != null)) {
+      throw new RuntimeException("Need to pass exact values to create"
+          + " data source of type jdbc or quboleDb");
+    } else if (jdbcSourceDAO != null) {
+      return dataSourceDAO.insertJDBC((String) sqlNode.getIdentifier().getSimple(),
+          (String) commonColumns.get("type"),
+          (String) commonColumns.get("url"),
+          connection.getDSSet().getId(),
+          (String) commonColumns.get("datasource_type"),
+          jdbcSourceDAO,
+          (String) dbSpecificColumns.get("username"),
+          (dbSpecificColumns.get("password") == null) ? ""
+              : (String) dbSpecificColumns.get("password"),
+          encrypt);
+    } else {
+      return dataSourceDAO.insertQuboleDB((String) sqlNode.getIdentifier().getSimple(),
+          (String) commonColumns.get("type"),
+          (String) commonColumns.get("url"),
+          connection.getDSSet().getId(),
+          (String) commonColumns.get("datasource_type"),
+          quboleDbSourceDAO,
+          (int) dbSpecificColumns.get("dbtap_id"),
+          (String) dbSpecificColumns.get("auth_token"),
+          encrypt);
     }
   }
+
   private void executeDeleteOnDataSource(SqlDropQuarkDataSource node) throws SQLException {
     DBI dbi = getDbi();
     DataSourceDAO dataSourceDAO = dbi.onDemand(DataSourceDAO.class);
@@ -370,11 +327,11 @@ public class QuarkDDLExecutor implements QuarkExecutor {
   }
 
   public int executeAlterView(SqlAlterQuarkView sqlNode) throws SQLException {
-    int idToUpdate = parseCondition(sqlNode.getCondition());
     DBI dbi = getDbi();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
-    View view = viewDAO.find(idToUpdate, connection.getDSSet().getId());
+    View view = viewDAO.findByName(sqlNode.getIdentifier().getSimple(),
+        connection.getDSSet().getId());
     if (view == null) {
       return 0;
     }
@@ -435,69 +392,51 @@ public class QuarkDDLExecutor implements QuarkExecutor {
     Map<String, Object> columns = new HashMap<>();
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
-    SqlNode source = sqlNode.getSource();
-    if (source instanceof SqlBasicCall) {
-      SqlBasicCall rowCall = ((SqlBasicCall) source).operand(0);
-      int i = 0;
-      for (SqlNode node : sqlNode.getTargetColumnList()) {
-        if (node instanceof SqlIdentifier) {
-          switch (((SqlIdentifier) node).getSimple()) {
-            case "name":
-              columns.put("name", rowCall.operand(i).toString());
-              break;
-            case "description":
-              columns.put("description", rowCall.operand(i).toString());
-              break;
-            case "query":
-              columns.put("query", rowCall.operand(i).toString());
-              break;
-            case "schema_name":
-              columns.put("schema_name", rowCall.operand(i).toString());
-              break;
-            case "table_name":
-              columns.put("table_name", rowCall.operand(i).toString());
-              break;
-            case "ds_set_id":
-              if (rowCall.operand(i) instanceof SqlNumericLiteral) {
-                columns.put("ds_set_id",
-                    ((SqlNumericLiteral) rowCall.operand(i)).longValue(true));
-              } else {
-                throw new SQLException("Incorrect argument type to variable 'ds_set_id'");
-              }
-              break;
-            case "cost":
-              if (rowCall.operand(i) instanceof SqlNumericLiteral) {
-                columns.put("cost",
-                    ((SqlNumericLiteral) rowCall.operand(i)).longValue(true));
-              } else {
-                throw new SQLException("Incorrect argument type to variable 'cost'");
-              }
-              break;
-            case "destination_id":
-              if (rowCall.operand(i) instanceof SqlNumericLiteral) {
-                columns.put("destination_id",
-                    ((SqlNumericLiteral) rowCall.operand(i)).longValue(true));
-              } else {
-                throw new SQLException("Incorrect argument type to variable 'destination_id'");
-              }
-              break;
-            default:
-              throw new SQLException("Unknown parameter: " + ((SqlIdentifier) node).getSimple());
-          }
-        } else {
-          throw new RuntimeException("Error in parsing the DDL "
-              + "statement to create View");
+    SqlNodeList rowList = sqlNode.getSourceExpressionList();
+    int i = 0;
+    for (SqlNode node : sqlNode.getTargetColumnList()) {
+      if (node instanceof SqlIdentifier) {
+        switch (((SqlIdentifier) node).getSimple()) {
+          case "description":
+            columns.put("description", rowList.get(i).toString());
+            break;
+          case "query":
+            columns.put("query", rowList.get(i).toString());
+            break;
+          case "schema_name":
+            columns.put("schema_name", rowList.get(i).toString());
+            break;
+          case "table_name":
+            columns.put("table_name", rowList.get(i).toString());
+            break;
+          case "cost":
+            if (rowList.get(i) instanceof SqlNumericLiteral) {
+              columns.put("cost",
+                  ((SqlNumericLiteral) rowList.get(i)).longValue(true));
+            } else {
+              throw new SQLException("Incorrect argument type to variable 'cost'");
+            }
+            break;
+          case "destination_id":
+            if (rowList.get(i) instanceof SqlNumericLiteral) {
+              columns.put("destination_id",
+                  ((SqlNumericLiteral) rowList.get(i)).longValue(true));
+            } else {
+              throw new SQLException("Incorrect argument type to variable 'destination_id'");
+            }
+            break;
+          default:
+            throw new SQLException("Unknown parameter: " + ((SqlIdentifier) node).getSimple());
         }
         i++;
       }
-
-      return viewDAO.insert((String) columns.get("name"), (String) columns.get("description"),
-          (String) columns.get("query"), (long) columns.get("cost"),
-          (long) columns.get("destination_id"), (String) columns.get("schema_name"),
-          (String) columns.get("table_name"), (long) columns.get("ds_set_id"));
-    } else {
-      throw new RuntimeException("Incorrect DDL Statement to create View");
     }
+
+    return viewDAO.insert((String) sqlNode.getIdentifier().getSimple(),
+        (String) columns.get("description"), (String) columns.get("query"),
+        (long) columns.get("cost"), (long) columns.get("destination_id"),
+        (String) columns.get("schema_name"), (String) columns.get("table_name"),
+        connection.getDSSet().getId());
   }
 
   private void executeDeleteOnView(SqlDropQuarkView node) throws SQLException {

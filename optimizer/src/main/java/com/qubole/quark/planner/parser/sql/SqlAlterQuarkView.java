@@ -14,11 +14,14 @@
  */
 package com.qubole.quark.planner.parser.sql;
 
+import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlSpecialOperator;
+import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.util.Pair;
 
 /**
  * A <code>SqlAlterQuarkView</code> is a node of a parse tree which represents an ALTER
@@ -30,11 +33,28 @@ public class SqlAlterQuarkView extends SqlAlterQuark {
   public SqlAlterQuarkView(SqlParserPos pos,
                        SqlNodeList targetColumnList,
                        SqlNodeList sourceExpressionList,
-                       SqlNode condition) {
-    super(pos, targetColumnList, sourceExpressionList, condition);
+                       SqlIdentifier identifier) {
+    super(pos, targetColumnList, sourceExpressionList, identifier);
     operator = new SqlSpecialOperator("ALTER_VIEW", SqlKind.OTHER_DDL);
     operatorString = "ALTER VIEW";
   }
+
+  @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+    writer.keyword("ALTER");
+    writer.keyword("VIEW");
+    identifier.unparse(writer, leftPrec, rightPrec);
+    writer.keyword("SET");
+    for (Pair<SqlNode, SqlNode> pair
+        : Pair.zip(getTargetColumnList(), getSourceExpressionList())) {
+      writer.sep(",");
+      SqlIdentifier id = (SqlIdentifier) pair.left;
+      id.unparse(writer, leftPrec, rightPrec);
+      writer.keyword("=");
+      SqlNode sourceExp = pair.right;
+      sourceExp.unparse(writer, leftPrec, rightPrec);
+    }
+  }
+
 }
 
 // End SqlAlterQuarkView.java

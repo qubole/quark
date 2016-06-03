@@ -90,33 +90,8 @@ public class DDLMetaDataTest {
 
   @Test
   public void testCreateJdBc() throws SQLException {
-    String sql = "CREATE DATASOURCE (name, type, url, ds_set_id, username, datasource_type)" +
-        " values(\"H2_new\", \"H2\", \"" + inputUrl + "\", 1, \"sa\", \"JDBC\")";
-    Connection connection =
-        DriverManager.getConnection("jdbc:quark:fat:db:", props);
-    List<String> catalogList1 = new ArrayList<>();
-    List<String> schemaList1 = new ArrayList<>();
-    getSchema(connection, catalogList1, schemaList1);
-    connection.createStatement().executeUpdate(sql);
-
-    List<String> catalogList2 = new ArrayList<>();
-    List<String> schemaList2 = new ArrayList<>();
-    getSchema(connection, catalogList2, schemaList2);
-    connection.close();
-
-    assertThat(schemaList2).contains("PUBLIC");
-    assertThat(schemaList2.size())
-        .isEqualTo(schemaList1.size() + 1);
-
-    assertThat(catalogList2).contains("H2_new");
-    assertThat(catalogList2.size())
-        .isEqualTo(catalogList1.size() + 1);
-  }
-
-  @Test(expected = SQLException.class)
-  public void testCreateWrongParam() throws SQLException {
-    String sql = "CREATE DATASOURCE (name, type, url, ds_set_id, username, datasource_type)" +
-        " values(\"H2_new\", \"H2\", \"" + inputUrl + "\", \"1\", \"sa\", \"JDBC\")";
+    String sql = "CREATE DATASOURCE H2_new set type = \"H2\", url = \"" + inputUrl
+      + "\", username = \"sa\", datasource_type = \"JDBC\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
     List<String> catalogList1 = new ArrayList<>();
@@ -140,7 +115,7 @@ public class DDLMetaDataTest {
 
   @Test
   public void testAlterJdBc() throws SQLException {
-    String sql = "ALTER DATASOURCE SET name = \"H2_test\" where id = 1";
+    String sql = "ALTER DATASOURCE SEEDED SET name = \"H2_test\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql);
@@ -155,8 +130,8 @@ public class DDLMetaDataTest {
 
   @Test
   public void testDropJdbc() throws SQLException {
-    String sql1 = "CREATE DATASOURCE (name, type, url, ds_set_id, username, datasource_type)" +
-        " values(\"H2_2\", \"H2\", \"" + inputUrl + "\", 1, \"sa\", \"JDBC\")";
+    String sql1 = "CREATE DATASOURCE H2_2 set type = \"H2\", url = \"" + inputUrl
+        + "\", username = \"sa\", datasource_type = \"JDBC\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
     List<String> catalogList1 = new ArrayList<>();
@@ -189,7 +164,7 @@ public class DDLMetaDataTest {
 
   @Test(expected = SQLException.class)
   public void testAlterJdBcWrongParam() throws SQLException {
-    String sql = "ALTER DATASOURCE SET name = \"H2_test\" where name = 'H2'";
+    String sql = "ALTER DATASOURCE H2 SET name = \"H2_test\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:", props);
     connection.createStatement().executeUpdate(sql);
@@ -204,7 +179,7 @@ public class DDLMetaDataTest {
 
   @Test
   public void testAlterNonExistentSource() throws SQLException {
-    String sql = "ALTER DATASOURCE SET name = \"H2_NonExist\" where id = 10";
+    String sql = "ALTER DATASOURCE bogus SET name = \"H2_NonExist\"";
     Connection connection =
         DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql);

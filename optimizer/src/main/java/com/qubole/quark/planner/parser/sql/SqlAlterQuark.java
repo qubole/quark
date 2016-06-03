@@ -26,7 +26,6 @@ import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql.validate.SqlValidatorScope;
 import org.apache.calcite.util.ImmutableNullableList;
-import org.apache.calcite.util.Pair;
 
 import java.util.List;
 
@@ -40,18 +39,18 @@ public abstract class SqlAlterQuark extends SqlCall {
 
   SqlNodeList targetColumnList;
   SqlNodeList sourceExpressionList;
-  SqlNode condition;
+  SqlIdentifier identifier;
 
   //~ Constructors -----------------------------------------------------------
 
   public SqlAlterQuark(SqlParserPos pos,
                        SqlNodeList targetColumnList,
                        SqlNodeList sourceExpressionList,
-                       SqlNode condition) {
+                       SqlIdentifier identifier) {
     super(pos);
     this.targetColumnList = targetColumnList;
     this.sourceExpressionList = sourceExpressionList;
-    this.condition = condition;
+    this.identifier = identifier;
     assert sourceExpressionList.size() == targetColumnList.size();
   }
 
@@ -67,7 +66,7 @@ public abstract class SqlAlterQuark extends SqlCall {
 
   public List<SqlNode> getOperandList() {
     return ImmutableNullableList.of(targetColumnList,
-        sourceExpressionList, condition);
+        sourceExpressionList, identifier);
   }
 
   @Override public void setOperand(int i, SqlNode operand) {
@@ -80,7 +79,7 @@ public abstract class SqlAlterQuark extends SqlCall {
         sourceExpressionList = (SqlNodeList) operand;
         break;
       case 2:
-        condition = operand;
+        identifier = (SqlIdentifier) operand;
         break;
       default:
         throw new AssertionError(i);
@@ -107,33 +106,11 @@ public abstract class SqlAlterQuark extends SqlCall {
    * @return the condition expression for the data to be updated, or null for
    * all rows in the table
    */
-  public SqlNode getCondition() {
-    return condition;
+  public SqlIdentifier getIdentifier() {
+    return identifier;
   }
 
-  @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
-    final SqlWriter.Frame frame =
-        writer.startList(SqlWriter.FrameTypeEnum.SELECT, operatorString, "");
-    final int opLeft = getOperator().getLeftPrec();
-    final int opRight = getOperator().getRightPrec();
-    final SqlWriter.Frame setFrame =
-        writer.startList(SqlWriter.FrameTypeEnum.UPDATE_SET_LIST, "SET", "");
-    for (Pair<SqlNode, SqlNode> pair
-        : Pair.zip(getTargetColumnList(), getSourceExpressionList())) {
-      writer.sep(",");
-      SqlIdentifier id = (SqlIdentifier) pair.left;
-      id.unparse(writer, opLeft, opRight);
-      writer.keyword("=");
-      SqlNode sourceExp = pair.right;
-      sourceExp.unparse(writer, opLeft, opRight);
-    }
-    writer.endList(setFrame);
-    if (condition != null) {
-      writer.sep("WHERE");
-      condition.unparse(writer, opLeft, opRight);
-    }
-    writer.endList(frame);
-  }
+  @Override public abstract void unparse(SqlWriter writer, int leftPrec, int rightPrec);
 
   public void validate(SqlValidator validator, SqlValidatorScope scope) {
     throw new UnsupportedOperationException("No validation supported for"

@@ -32,32 +32,7 @@
  */
 SqlNode SqlCreateQuarkDataSource() :
 {
-    SqlNode source;
-    SqlNodeList columnList = null;
-    SqlParserPos pos;
-}
-{
-    <CREATE>
-    {
-        pos = getPos();
-    }
-    <DATASOURCE>
-    [
-        LOOKAHEAD(2)
-        columnList = ParenthesizedSimpleIdentifierList()
-    ]
-    source = OrderedQueryOrExpr(ExprContext.ACCEPT_QUERY)
-    {
-        return new SqlCreateQuarkDataSource(pos, source, columnList);
-    }
-}
-
-/**
- * Parses an ALTER DATASOURCE statement.
- */
-SqlNode SqlAlterQuarkDataSource() :
-{
-    SqlNode condition;
+    SqlIdentifier identifier;
     SqlNodeList sourceExpressionList;
     SqlNodeList targetColumnList;
     SqlIdentifier id;
@@ -65,12 +40,14 @@ SqlNode SqlAlterQuarkDataSource() :
     SqlParserPos pos;
 }
 {
-    <ALTER> <DATASOURCE>
+    <CREATE>
+    <DATASOURCE>
     {
         pos = getPos();
         targetColumnList = new SqlNodeList(pos);
         sourceExpressionList = new SqlNodeList(pos);
     }
+    identifier = SimpleIdentifier()
     <SET> id = SimpleIdentifier()
     {
         targetColumnList.add(id);
@@ -90,10 +67,54 @@ SqlNode SqlAlterQuarkDataSource() :
             sourceExpressionList.add(exp);
         }
     ) *
-    condition = WhereOpt()
+    {
+        return new SqlCreateQuarkDataSource(pos, targetColumnList, sourceExpressionList,
+            identifier);
+    }
+}
+
+/**
+ * Parses an ALTER DATASOURCE statement.
+ */
+SqlNode SqlAlterQuarkDataSource() :
+{
+    SqlIdentifier identifier;
+    SqlNodeList sourceExpressionList;
+    SqlNodeList targetColumnList;
+    SqlIdentifier id;
+    SqlNode exp;
+    SqlParserPos pos;
+}
+{
+    <ALTER> <DATASOURCE>
+    {
+        pos = getPos();
+        targetColumnList = new SqlNodeList(pos);
+        sourceExpressionList = new SqlNodeList(pos);
+    }
+    identifier = SimpleIdentifier()
+    <SET> id = SimpleIdentifier()
+    {
+        targetColumnList.add(id);
+    }
+    <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+    {
+        sourceExpressionList.add(exp);
+    }
+    (
+        <COMMA>
+        id = SimpleIdentifier()
+        {
+            targetColumnList.add(id);
+        }
+        <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+        {
+            sourceExpressionList.add(exp);
+        }
+    ) *
     {
         return new SqlAlterQuarkDataSource(pos, targetColumnList, sourceExpressionList,
-            condition);
+            identifier);
     }
 }
 
@@ -118,32 +139,7 @@ SqlNode SqlDropQuarkDataSource() :
  */
 SqlNode SqlCreateQuarkView() :
 {
-    SqlNode source;
-    SqlNodeList columnList = null;
-    SqlParserPos pos;
-}
-{
-    <CREATE>
-    {
-        pos = getPos();
-    }
-    <VIEW>
-    [
-        LOOKAHEAD(2)
-        columnList = ParenthesizedSimpleIdentifierList()
-    ]
-    source = OrderedQueryOrExpr(ExprContext.ACCEPT_QUERY)
-    {
-        return new SqlCreateQuarkView(pos, source, columnList);
-    }
-}
-
-/**
- * Parses an ALTER VIEW statement.
- */
-SqlNode SqlAlterQuarkView() :
-{
-    SqlNode condition;
+    SqlIdentifier identifier;
     SqlNodeList sourceExpressionList;
     SqlNodeList targetColumnList;
     SqlIdentifier id;
@@ -151,12 +147,13 @@ SqlNode SqlAlterQuarkView() :
     SqlParserPos pos;
 }
 {
-    <ALTER> <VIEW>
+    <CREATE> <VIEW>
     {
         pos = getPos();
         targetColumnList = new SqlNodeList(pos);
         sourceExpressionList = new SqlNodeList(pos);
     }
+    identifier = SimpleIdentifier()
     <SET> id = SimpleIdentifier()
     {
         targetColumnList.add(id);
@@ -176,10 +173,54 @@ SqlNode SqlAlterQuarkView() :
             sourceExpressionList.add(exp);
         }
     ) *
-    condition = WhereOpt()
+    {
+        return new SqlCreateQuarkView(pos, targetColumnList, sourceExpressionList,
+            identifier);
+    }
+}
+
+/**
+ * Parses an ALTER VIEW statement.
+ */
+SqlNode SqlAlterQuarkView() :
+{
+    SqlIdentifier identifier;
+    SqlNodeList sourceExpressionList;
+    SqlNodeList targetColumnList;
+    SqlIdentifier id;
+    SqlNode exp;
+    SqlParserPos pos;
+}
+{
+    <ALTER> <VIEW>
+    {
+        pos = getPos();
+        targetColumnList = new SqlNodeList(pos);
+        sourceExpressionList = new SqlNodeList(pos);
+    }
+    identifier = SimpleIdentifier()
+    <SET> id = SimpleIdentifier()
+    {
+        targetColumnList.add(id);
+    }
+    <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+    {
+        sourceExpressionList.add(exp);
+    }
+    (
+        <COMMA>
+        id = SimpleIdentifier()
+        {
+            targetColumnList.add(id);
+        }
+        <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
+        {
+            sourceExpressionList.add(exp);
+        }
+    ) *
     {
         return new SqlAlterQuarkView(pos, targetColumnList, sourceExpressionList,
-            condition);
+            identifier);
     }
 }
 
