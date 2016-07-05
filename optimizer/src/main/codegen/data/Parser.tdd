@@ -28,6 +28,7 @@
   keywords: [
     "DATASOURCE",
     "SHOW",
+    "STORED",
   ]
 
   # List of methods for parsing custom SQL statements.

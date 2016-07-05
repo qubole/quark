@@ -135,47 +135,26 @@ SqlNode SqlDropQuarkDataSource() :
 }
 
 /**
- * Parses an CREATE VIEW statement.
+ * Parses a create view or replace existing view statement.
+ *   CREATE [OR REPLACE] VIEW view_name [ (field1, field2 ...) ] AS select_statement
  */
 SqlNode SqlCreateQuarkView() :
 {
-    SqlIdentifier identifier;
-    SqlNodeList sourceExpressionList;
-    SqlNodeList targetColumnList;
-    SqlIdentifier id;
-    SqlNode exp;
     SqlParserPos pos;
+    SqlIdentifier viewName;
+    SqlIdentifier tableName;
+    SqlNode query;
 }
 {
     <CREATE> <VIEW>
+    { pos = getPos(); }
+    viewName = SimpleIdentifier()
+    <STORED> <IN>
+    tableName = CompoundIdentifier()
+    <AS>
+    query = OrderedQueryOrExpr(ExprContext.ACCEPT_QUERY)
     {
-        pos = getPos();
-        targetColumnList = new SqlNodeList(pos);
-        sourceExpressionList = new SqlNodeList(pos);
-    }
-    identifier = SimpleIdentifier()
-    <SET> id = SimpleIdentifier()
-    {
-        targetColumnList.add(id);
-    }
-    <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
-    {
-        sourceExpressionList.add(exp);
-    }
-    (
-        <COMMA>
-        id = SimpleIdentifier()
-        {
-            targetColumnList.add(id);
-        }
-        <EQ> exp = Expression(ExprContext.ACCEPT_SUBQUERY)
-        {
-            sourceExpressionList.add(exp);
-        }
-    ) *
-    {
-        return new SqlCreateQuarkView(pos, targetColumnList, sourceExpressionList,
-            identifier);
+        return new SqlCreateQuarkView(pos, viewName, tableName, query);
     }
 }
 

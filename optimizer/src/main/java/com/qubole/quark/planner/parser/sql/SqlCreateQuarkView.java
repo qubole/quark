@@ -14,44 +14,101 @@
  */
 package com.qubole.quark.planner.parser.sql;
 
+import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
-import org.apache.calcite.sql.SqlNodeList;
+import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.SqlSpecialOperator;
 import org.apache.calcite.sql.SqlWriter;
 import org.apache.calcite.sql.parser.SqlParserPos;
-import org.apache.calcite.util.Pair;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
+import java.util.List;
 
 /**
  * A <code>SqlCreateQuarkView</code> is a node of a parse tree which represents an INSERT
  * statement.
  */
-public class SqlCreateQuarkView extends SqlAlterQuark {
-  //~ Constructors -----------------------------------------------------------
-  public SqlCreateQuarkView(SqlParserPos pos,
-                       SqlNodeList targetColumnList,
-                       SqlNodeList sourceExpressionList,
-                       SqlIdentifier identifier) {
-    super(pos, targetColumnList, sourceExpressionList, identifier);
-    operator = new SqlSpecialOperator("CREATE_VIEW", SqlKind.OTHER_DDL);
-    operatorString = "CREATE VIEW";
+public class SqlCreateQuarkView extends SqlCall {
+  public static final SqlSpecialOperator OPERATOR =
+      new SqlSpecialOperator("CREATE_VIEW", SqlKind.OTHER) {
+    @Override
+    public SqlCall createCall(SqlLiteral functionQualifier, SqlParserPos pos,
+                              SqlNode... operands) {
+      return new SqlCreateQuarkView(pos, (SqlIdentifier) operands[0],
+          (SqlIdentifier) operands[1], operands[2]);
+    }
+  };
+
+  private SqlIdentifier viewName;
+  private SqlIdentifier tableName;
+  private SqlNode query;
+
+  public SqlCreateQuarkView(SqlParserPos pos, SqlIdentifier viewName,
+                            SqlIdentifier tableName, SqlNode query) {
+    super(pos);
+    this.viewName = viewName;
+    this.query = query;
+    this.tableName = tableName;
   }
 
-  @Override public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
+  @Override
+  public SqlOperator getOperator() {
+    return OPERATOR;
+  }
+
+  @Override
+  public SqlKind getKind() {
+    return SqlKind.OTHER_DDL;
+  }
+
+  @Override
+  public List<SqlNode> getOperandList() {
+    List<SqlNode> ops = Lists.newArrayList();
+    ops.add(viewName);
+    ops.add(tableName);
+    ops.add(query);
+    return ops;
+  }
+
+  @Override
+  public void unparse(SqlWriter writer, int leftPrec, int rightPrec) {
     writer.keyword("CREATE");
     writer.keyword("VIEW");
-    identifier.unparse(writer, leftPrec, rightPrec);
-    writer.keyword("SET");
-    for (Pair<SqlNode, SqlNode> pair
-        : Pair.zip(getTargetColumnList(), getSourceExpressionList())) {
-      writer.sep(",");
-      SqlIdentifier id = (SqlIdentifier) pair.left;
-      id.unparse(writer, leftPrec, rightPrec);
-      writer.keyword("=");
-      SqlNode sourceExp = pair.right;
-      sourceExp.unparse(writer, leftPrec, rightPrec);
+    viewName.unparse(writer, leftPrec, rightPrec);
+    writer.keyword("STORED");
+    writer.keyword("IN");
+    tableName.unparse(writer, leftPrec, rightPrec);
+    writer.keyword("AS");
+    query.unparse(writer, leftPrec, rightPrec);
+  }
+
+  public List<String> getSchemaPath() {
+    if (viewName.isSimple()) {
+      return ImmutableList.of();
     }
+
+    return viewName.names.subList(0, viewName.names.size() - 1);
+  }
+
+  public String getName() {
+    if (viewName.isSimple()) {
+      return viewName.getSimple();
+    }
+
+    return viewName.names.get(viewName.names.size() - 1);
+  }
+
+  public SqlIdentifier getTableName() {
+    return tableName;
+  }
+
+  public SqlNode getQuery() {
+    return query;
   }
 }
 
