@@ -16,12 +16,14 @@ package com.qubole.quark.ee;
 
 import org.apache.calcite.avatica.util.Casing;
 import org.apache.calcite.avatica.util.Quoting;
+import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.SqlNumericLiteral;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.pretty.SqlPrettyWriter;
 
 import com.qubole.quark.QuarkException;
 import com.qubole.quark.catalog.db.Connection;
@@ -389,53 +391,36 @@ public class QuarkDDLExecutor implements QuarkExecutor {
 
   public int executeCreateView(SqlCreateQuarkView sqlNode) throws SQLException {
     DBI dbi = getDbi();
-    Map<String, Object> columns = new HashMap<>();
+    List<String> tableNameList = sqlNode.getTableName().names;
+    String dataSourceName = tableNameList.get(0);
+
     ViewDAO viewDAO = dbi.onDemand(ViewDAO.class);
 
-    SqlNodeList rowList = sqlNode.getSourceExpressionList();
-    int i = 0;
-    for (SqlNode node : sqlNode.getTargetColumnList()) {
-      if (node instanceof SqlIdentifier) {
-        switch (((SqlIdentifier) node).getSimple()) {
-          case "description":
-            columns.put("description", rowList.get(i).toString());
-            break;
-          case "query":
-            columns.put("query", rowList.get(i).toString());
-            break;
-          case "schema_name":
-            columns.put("schema_name", rowList.get(i).toString());
-            break;
-          case "table_name":
-            columns.put("table_name", rowList.get(i).toString());
-            break;
-          case "cost":
-            if (rowList.get(i) instanceof SqlNumericLiteral) {
-              columns.put("cost",
-                  ((SqlNumericLiteral) rowList.get(i)).longValue(true));
-            } else {
-              throw new SQLException("Incorrect argument type to variable 'cost'");
-            }
-            break;
-          case "destination_id":
-            if (rowList.get(i) instanceof SqlNumericLiteral) {
-              columns.put("destination_id",
-                  ((SqlNumericLiteral) rowList.get(i)).longValue(true));
-            } else {
-              throw new SQLException("Incorrect argument type to variable 'destination_id'");
-            }
-            break;
-          default:
-            throw new SQLException("Unknown parameter: " + ((SqlIdentifier) node).getSimple());
-        }
-        i++;
-      }
+    JdbcSourceDAO jdbcDAO = dbi.onDemand(JdbcSourceDAO.class);
+    QuboleDbSourceDAO quboleDAO = dbi.onDemand(QuboleDbSourceDAO.class);
+    DataSource dataSource = jdbcDAO.findByName(dataSourceName,
+        connection.getDSSet().getId());
+    if (dataSource == null) {
+      dataSource = quboleDAO.findByName(dataSourceName, connection.getDSSet().getId());
     }
 
-    return viewDAO.insert((String) sqlNode.getIdentifier().getSimple(),
-        (String) columns.get("description"), (String) columns.get("query"),
-        (long) columns.get("cost"), (long) columns.get("destination_id"),
-        (String) columns.get("schema_name"), (String) columns.get("table_name"),
+    if (dataSource == null) {
+      throw new SQLException("DataSource with name '" + dataSourceName + "' not found");
+    }
+
+    SqlPrettyWriter writer = new SqlPrettyWriter(SqlDialect.CALCITE);
+    writer.setAlwaysUseParentheses(false);
+    writer.setSelectListItemsOnSeparateLines(false);
+    writer.setIndentation(0);
+    writer.setQuoteAllIdentifiers(true);
+    sqlNode.getQuery().unparse(writer, 0, 0);
+    final String sql = writer.toString();
+
+    LOG.debug(sql);
+    return viewDAO.insert(sqlNode.getName(),
+        "No Description", sql,
+        0L, dataSource.getId(),
+        tableNameList.get(1), tableNameList.get(2),
         connection.getDSSet().getId());
   }
 

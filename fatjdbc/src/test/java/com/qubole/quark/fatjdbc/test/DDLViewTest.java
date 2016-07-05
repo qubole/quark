@@ -145,9 +145,8 @@ public class DDLViewTest {
     String sqlQuery = "select count(*) from warehouse as wr where wr.w_warehouse_sq_ft > 100";
     assertThat(getSize(sqlQuery)).isEqualTo(0);
 
-    String sql1 = "CREATE VIEW warehouse_part set description = \"Warehouse Partition\", cost = 0, "
-        + "query=\"select * from canonical.public.warehouse as wr where wr.w_warehouse_sq_ft > 100\", "
-        + "destination_id=2, schema_name=\"PUBLIC\", table_name = \"WAREHOUSE_PARTITION\"";
+    String sql1 = "CREATE VIEW warehouse_part STORED IN VIEWS.PUBLIC.WAREHOUSE_PARTITION" +
+        " AS select * from CANONICAL.PUBLIC.WAREHOUSE as WR where WR.W_WAREHOUSE_SQ_FT > 100";
     Connection connection = DriverManager.getConnection("jdbc:quark:fat:db:", props);
     connection.createStatement().executeUpdate(sql1);
     connection.close();
