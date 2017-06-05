@@ -27,8 +27,11 @@
   # List of keywords.
   keywords: [
     "DATASOURCE",
-    "SHOW",
     "STORED",
+  ]
+
+  # List of keywords from "keywords" section that are not reserved.
+  nonReservedKeywords: [
   ]
 
   # List of methods for parsing custom SQL statements.
@@ -50,6 +53,22 @@
 
   # List of methods for parsing custom data types.
   dataTypeParserMethods: [
+  ]
+
+  # List of methods for parsing extensions to "ALTER <scope>" calls.
+  # Each must accept arguments "(SqlParserPos pos, String scope)".
+  # Example: "SqlUploadJarNode"
+  alterStatementParserMethods: [
+  ]
+
+  # List of methods for parsing extensions to "CREATE [OR REPLACE]" calls.
+  # Each must accept arguments "(SqlParserPos pos, boolean replace)".
+  createStatementParserMethods: [
+  ]
+
+  # List of methods for parsing extensions to "DROP" calls.
+  # Each must accept arguments "(SqlParserPos pos)".
+  dropStatementParserMethods: [
   ]
 
   # List of files in @includes directory that have parser method

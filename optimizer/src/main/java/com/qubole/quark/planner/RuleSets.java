@@ -81,7 +81,7 @@ public class RuleSets {
           JoinPushThroughJoinRule.RIGHT,
           JoinPushThroughJoinRule.LEFT,
           SortProjectTransposeRule.INSTANCE,
-          SemiJoinRule.INSTANCE,
+          SemiJoinRule.JOIN,
           MaterializedViewFilterScanRule.INSTANCE,
           AggregateRemoveRule.INSTANCE,
           UnionToDistinctRule.INSTANCE,

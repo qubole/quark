@@ -76,7 +76,7 @@ public abstract class MaterializedViewFilterScanRule extends RelOptRule {
     RelOptPlanner planner = call.getPlanner();
     if (planner instanceof VolcanoPlanner) {
       List<RelOptMaterialization> materializations
-          = ((VolcanoPlanner) planner).getApplicableMaterializations();
+          = ((VolcanoPlanner) planner).getMaterializations();
       for (RelOptMaterialization materialization : materializations) {
         if (scan.getRowType().equals(materialization.queryRel.getRowType())) {
           RelNode target = materialization.queryRel;

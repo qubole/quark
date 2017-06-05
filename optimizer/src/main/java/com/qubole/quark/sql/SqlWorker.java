@@ -29,6 +29,7 @@ import org.apache.calcite.materialize.MaterializationService;
 import org.apache.calcite.plan.ConventionTraitDef;
 import org.apache.calcite.plan.QuarkMaterializeCluster;
 import org.apache.calcite.plan.RelOptLattice;
+import org.apache.calcite.plan.RelOptMaterialization;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptUtil;
@@ -171,7 +172,9 @@ public class SqlWorker {
     }
 
     public RelNode run(RelOptPlanner planner, RelNode rel,
-                       RelTraitSet requiredOutputTraits) {
+                       RelTraitSet requiredOutputTraits,
+                       List<RelOptMaterialization> materializations,
+                       List<RelOptLattice> lattices) {
       planner.clear();
 
       planner.addRelTraitDef(ConventionTraitDef.INSTANCE);
