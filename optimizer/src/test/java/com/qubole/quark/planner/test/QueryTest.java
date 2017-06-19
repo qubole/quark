@@ -173,7 +173,7 @@ public class QueryTest {
           "test.many_columns.j > 100 and test.many_columns.i = 10");
       failBecauseExceptionWasNotThrown(SQLException.class);
     } catch (SQLException e) {
-      assertThat((Throwable) e).hasMessageContaining("Table 'TEST.MANY_COLUM' not found");
+      assertThat((Throwable) e).hasMessageContaining("Object 'MANY_COLUM' not found within 'TEST'");
     }
   }
 }
