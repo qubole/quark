@@ -123,15 +123,15 @@ public class QueryContext {
           SchemaPlus schemaPlus = rootSchema.add(schema.getName(), schema);
           schema.setSchemaPlus(schemaPlus);
         }
-        for (QuarkSchema schema : schemas) {
-          schema.initialize(this);
-        }
         if (info.getProperty("defaultSchema") == null) {
           throw new QuarkException(new Throwable("Default schema has to be specified"));
         }
         final ObjectMapper mapper = new ObjectMapper();
         defaultSchema =
               Arrays.asList(mapper.readValue(info.getProperty("defaultSchema"), String[].class));
+        for (QuarkSchema schema : schemas) {
+          schema.initialize(this);
+        }
       }
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
         | IOException e) {
