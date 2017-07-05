@@ -83,7 +83,7 @@ public class ViewsTest {
             info,
             "SELECT WEB_REC_START_DATE, SUM(WEB_TAX_PERCENTAGE), WEB_COUNTY " +
                 "FROM TPCDS.WEB_SITE_PARTITION " +
-                "WHERE WEB_REC_START_DATE > '2015-06-30' " +
+                "WHERE WEB_REC_START_DATE > DATE '2015-06-30' " +
                 "AND (WEB_COUNTY = 'fr' OR WEB_COUNTY = 'de') " +
                 "GROUP BY WEB_REC_START_DATE, WEB_COUNTY " +
                 "ORDER BY WEB_REC_START_DATE");

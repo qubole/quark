@@ -323,7 +323,7 @@ public class SchemaTest {
     QuarkTestUtil.checkParsedSql(
         "select p_salesid from tpch.sales where p_saledate > \'2016-10-07\'",
         parser,
-        "SELECT P_SALESID FROM TPCH.SALES_greater0610215 WHERE P_SALEDATE > '2016-10-07'");
+        "SELECT P_SALESID FROM TPCH.SALES_greater0610215 WHERE P_SALEDATE > DATE '2016-10-07'");
 
   }
 

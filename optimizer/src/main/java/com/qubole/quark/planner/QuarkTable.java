@@ -133,11 +133,17 @@ public class QuarkTable extends AbstractTable
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (this.getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (this.getClass() != obj.getClass()) {
+      return false;
+    }
     QuarkTable other = (QuarkTable) obj;
-    return (schema.equals(other.schema) && name.equals(other.name) && columns.equals(other.columns));
+    return schema.equals(other.schema) && name.equals(other.name) && columns.equals(other.columns);
   }
 
   @Override

@@ -113,7 +113,7 @@ public abstract class MetadataSchema extends QuarkSchema {
                   calciteCatalogReader,
                   rowType,
                   backupTable,
-                  Schemas.path(viewSchema, view.alias));
+                  Schemas.path(rootSchema, view.alias));
               QuarkViewTable table = new QuarkViewTable(parentSchema, view.table,
                   relOptTable,
                   (QuarkTable) backupTable,
