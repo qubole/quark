@@ -56,12 +56,12 @@ public class SchemaTest {
     protected Map<String, Table> getTableMap() {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-      QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable simple = new QuarkTable(this, "SIMPLE", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("I", Types.INTEGER));
       }});
       builder.put("SIMPLE", simple);
 
-      QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable many_columns = new QuarkTable(this, "MANY_COLUMNS", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("I", Types.INTEGER));
         add(new QuarkColumn("J", Types.INTEGER));
         add(new QuarkColumn("K", Types.VARCHAR));
@@ -96,7 +96,7 @@ public class SchemaTest {
     protected Map<String, Table> getTableMap() {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-      QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable simple = new QuarkTable(this, "NAME", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("N_NATIONKEY", Types.INTEGER));
         add(new QuarkColumn("N_NAME", Types.VARCHAR));
         add(new QuarkColumn("N_REGIONKEY", Types.INTEGER));
@@ -104,14 +104,14 @@ public class SchemaTest {
       }});
       builder.put("NATION", simple);
 
-      QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable many_columns = new QuarkTable(this, "REGION", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("R_REGIONKEY", Types.INTEGER));
         add(new QuarkColumn("R_NAME", Types.VARCHAR));
         add(new QuarkColumn("R_COMMENT", Types.VARCHAR));
       }});
       builder.put("REGION", many_columns);
 
-      QuarkTable part = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable part = new QuarkTable(this, "PART", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("P_PARTKEY", Types.INTEGER));
         add(new QuarkColumn("P_NAME", Types.VARCHAR));
         add(new QuarkColumn("P_MFGR", Types.VARCHAR));
@@ -124,7 +124,7 @@ public class SchemaTest {
       }});
       builder.put("PART", part);
 
-      QuarkTable part_comp1 = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable part_comp1 = new QuarkTable(this, "PART_COMP1", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("P_PARTKEY", Types.INTEGER));
         add(new QuarkColumn("P_NAME", Types.VARCHAR));
         add(new QuarkColumn("P_MFGR", Types.VARCHAR));
@@ -137,7 +137,7 @@ public class SchemaTest {
       }});
       builder.put("PART_COMP1", part_comp1);
 
-      QuarkTable part_100 = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable part_100 = new QuarkTable(this, "PART_100", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("P_PARTKEY", Types.INTEGER));
         add(new QuarkColumn("P_NAME", Types.VARCHAR));
         add(new QuarkColumn("P_MFGR", Types.VARCHAR));
@@ -150,7 +150,7 @@ public class SchemaTest {
       }});
       builder.put("PART_100", part_100);
 
-      QuarkTable sales = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable sales = new QuarkTable(this, "SALES", new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("P_SALESID", Types.INTEGER));
         add(new QuarkColumn("P_PRODUCTKEY", Types.INTEGER));
         add(new QuarkColumn("P_SALEDATE", Types.DATE));
@@ -158,7 +158,8 @@ public class SchemaTest {
       }});
       builder.put("SALES", sales);
 
-      QuarkTable sales_greater0610215 = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable sales_greater0610215 = new QuarkTable(this, "SALES_greater0610215",
+              new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("P_SALESID", Types.INTEGER));
         add(new QuarkColumn("P_PRODUCTKEY", Types.INTEGER));
         add(new QuarkColumn("P_SALEDATE", Types.DATE));

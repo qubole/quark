@@ -55,7 +55,8 @@ public class MetricsTest {
     protected Map<String, Table> getTableMap() {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-      QuarkTable metrics = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+      QuarkTable metrics = new QuarkTable(this, "METRICS",
+              new ImmutableList.Builder<QuarkColumn>()
           .add(new QuarkColumn("NAME", Types.VARCHAR))
           .add(new QuarkColumn("VALUE", Types.DOUBLE))
           .add(new QuarkColumn("QUERY_HISTS_ID", Types.INTEGER))
@@ -64,7 +65,8 @@ public class MetricsTest {
 
       builder.put("METRICS", metrics);
 
-      QuarkTable metrics_s3 = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+      QuarkTable metrics_s3 = new QuarkTable(this, "METRICS_S3",
+              new ImmutableList.Builder<QuarkColumn>()
           .add(new QuarkColumn("NAME", Types.VARCHAR))
           .add(new QuarkColumn("VALUE", Types.DOUBLE))
           .add(new QuarkColumn("QUERY_HISTS_ID", Types.INTEGER))

@@ -37,7 +37,8 @@ public class Foodmart extends TestSchema {
   public Map<String, Table> getTableMap() {
     final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-    QuarkTable account = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable account = new QuarkTable(this, "ACCOUNT",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("account_id", Types.INTEGER));
       add(new QuarkColumn("account_parent", Types.INTEGER));
       add(new QuarkColumn("account_description", Types.VARCHAR));
@@ -47,7 +48,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("ACCOUNT", account);
 
-    QuarkTable category = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable category = new QuarkTable(this, "CATEGORY",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("category_id", Types.VARCHAR));
       add(new QuarkColumn("category_parent", Types.VARCHAR));
       add(new QuarkColumn("category_description", Types.VARCHAR));
@@ -55,7 +57,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("CATEGORY", category);
 
-    QuarkTable currency = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable currency = new QuarkTable(this, "CURRENCY",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("currency_id", Types.INTEGER));
       add(new QuarkColumn("date", Types.DATE));
       add(new QuarkColumn("currency", Types.VARCHAR));
@@ -63,7 +66,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("CURRENCY", currency);
 
-    QuarkTable customer = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable customer = new QuarkTable(this, "CUSTOMER",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("customer_id", Types.INTEGER));
       add(new QuarkColumn("account_num", Types.INTEGER));
       add(new QuarkColumn("lname", Types.VARCHAR));
@@ -96,19 +100,22 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("CUSTOMER", customer);
 
-    QuarkTable days = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable days = new QuarkTable(this, "DAYS",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("day", Types.INTEGER));
       add(new QuarkColumn("week_day", Types.VARCHAR));
     }});
     builder.put("DAYS", days);
 
-    QuarkTable department = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable department = new QuarkTable(this, "DEPARTMENT",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("department_id", Types.INTEGER));
       add(new QuarkColumn("department_description", Types.VARCHAR));
     }});
     builder.put("DEPARTMENT", department);
 
-    QuarkTable employee = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable employee = new QuarkTable(this, "EMPLOYEE",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("employee_id", Types.INTEGER));
       add(new QuarkColumn("full_name", Types.VARCHAR));
       add(new QuarkColumn("first_name", Types.VARCHAR));
@@ -128,14 +135,16 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("EMPLOYEE", employee);
 
-    QuarkTable employee_closure = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable employee_closure = new QuarkTable(this, "EMPLOYEE_CLOSURE",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("employee_id", Types.INTEGER));
       add(new QuarkColumn("supervisor_id", Types.INTEGER));
       add(new QuarkColumn("distance", Types.INTEGER));
     }});
     builder.put("EMPLOYEE_CLOSURE", employee_closure);
 
-    QuarkTable expense_fact = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable expense_fact = new QuarkTable(this, "EXPENSE_FACT",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("store_id", Types.INTEGER));
       add(new QuarkColumn("account_id", Types.INTEGER));
       add(new QuarkColumn("exp_date", Types.TIMESTAMP));
@@ -145,7 +154,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("EXPENSE_FACT", expense_fact);
 
-    QuarkTable position = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable position = new QuarkTable(this, "POSITION",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("position_id", Types.INTEGER));
       add(new QuarkColumn("position_title", Types.VARCHAR));
       add(new QuarkColumn("pay_type", Types.VARCHAR));
@@ -155,7 +165,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("POSITION", position);
 
-    QuarkTable product = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable product = new QuarkTable(this, "PRODUCT",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("product_class_id", Types.INTEGER));
       add(new QuarkColumn("product_id", Types.INTEGER));
       add(new QuarkColumn("brand_name", Types.VARCHAR));
@@ -173,7 +184,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("PRODUCT", product);
 
-    QuarkTable product_class = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable product_class = new QuarkTable(this, "PRODUCT_CLASS",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("product_class_id", Types.INTEGER));
       add(new QuarkColumn("product_sub_category", Types.VARCHAR));
       add(new QuarkColumn("product_category", Types.VARCHAR));
@@ -182,7 +194,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("PRODUCT_CLASS", product_class);
 
-    QuarkTable promotion = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable promotion = new QuarkTable(this, "PROMOTION",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("promotion_id", Types.INTEGER));
       add(new QuarkColumn("promotion_district_id", Types.INTEGER));
       add(new QuarkColumn("promotion_name", Types.VARCHAR));
@@ -193,7 +206,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("PROMOTION", promotion);
 
-    QuarkTable region = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable region = new QuarkTable(this, "REGION",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("region_id", Types.INTEGER));
       add(new QuarkColumn("sales_city", Types.VARCHAR));
       add(new QuarkColumn("sales_state_province", Types.VARCHAR));
@@ -204,7 +218,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("REGION", region);
 
-    QuarkTable reserve_employee = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable reserve_employee = new QuarkTable(this, "RESERVE_EMPLOYEE",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("employee_id", Types.INTEGER));
       add(new QuarkColumn("full_name", Types.VARCHAR));
       add(new QuarkColumn("first_name", Types.VARCHAR));
@@ -224,7 +239,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("RESERVE_EMPLOYEE", reserve_employee);
 
-    QuarkTable salary = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable salary = new QuarkTable(this, "SALARY",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("pay_date", Types.TIMESTAMP));
       add(new QuarkColumn("employee_id", Types.INTEGER));
       add(new QuarkColumn("department_id", Types.INTEGER));
@@ -236,7 +252,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("SALARY", salary);
 
-    QuarkTable store = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable store = new QuarkTable(this, "STORE",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("store_id", Types.INTEGER));
       add(new QuarkColumn("store_type", Types.VARCHAR));
       add(new QuarkColumn("region_id", Types.INTEGER));
@@ -264,7 +281,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("STORE", store);
 
-    QuarkTable sales_fact_1997 = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable sales_fact_1997 = new QuarkTable(this, "SALES_FACT_1997",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("product_id", Types.INTEGER));
       add(new QuarkColumn("time_id", Types.INTEGER));
       add(new QuarkColumn("customer_id", Types.INTEGER));
@@ -276,7 +294,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("SALES_FACT_1997", sales_fact_1997);
 
-    QuarkTable time_by_day = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable time_by_day = new QuarkTable(this, "TIME_BY_DAY",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("time_id", Types.INTEGER));
       add(new QuarkColumn("the_date", Types.TIMESTAMP));
       add(new QuarkColumn("the_day", Types.VARCHAR));
@@ -290,7 +309,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("TIME_BY_DAY", time_by_day);
 
-    QuarkTable warehouse = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable warehouse = new QuarkTable(this, "WAREHOUSE",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("warehouse_id", Types.INTEGER));
       add(new QuarkColumn("warehouse_class_id", Types.INTEGER));
       add(new QuarkColumn("stores_id", Types.INTEGER));
@@ -309,13 +329,15 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("WAREHOUSE", warehouse);
 
-    QuarkTable warehouse_class = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable warehouse_class = new QuarkTable(this, "WAREHOUSE_CLASS",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("warehouse_class_id", Types.INTEGER));
       add(new QuarkColumn("description", Types.VARCHAR));
     }});
     builder.put("WAREHOUSE_CLASS", warehouse_class);
 
-    QuarkTable inventory_fact = new QuarkTable(new ArrayList<QuarkColumn>() {{
+    QuarkTable inventory_fact = new QuarkTable(this, "INVENTORY_FACT",
+            new ArrayList<QuarkColumn>() {{
       add(new QuarkColumn("product_id", Types.INTEGER));
       add(new QuarkColumn("time_id", Types.INTEGER));
       add(new QuarkColumn("warehouse_id", Types.INTEGER));
@@ -328,7 +350,8 @@ public class Foodmart extends TestSchema {
     }});
     builder.put("INVENTORY_FACT", inventory_fact);
 
-    QuarkTable count_fact_tile = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable count_fact_tile = new QuarkTable(this, "COUNT_FACT_TILE",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("the_year", Types.INTEGER))
         .add(new QuarkColumn("quarter", Types.VARCHAR))
         .add(new QuarkColumn("grouping_id", Types.VARCHAR))

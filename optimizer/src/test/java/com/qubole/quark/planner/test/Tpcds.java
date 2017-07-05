@@ -36,7 +36,8 @@ public class Tpcds extends TestSchema {
   public Map<String, Table> getTableMap() {
     final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-    QuarkTable customer_demographics = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable customer_demographics = new QuarkTable(this, "CUSTOMER_DEMOGRAPHICS",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("cd_demo_sk", Types.INTEGER))
         .add(new QuarkColumn("cd_gender", Types.VARCHAR))
         .add(new QuarkColumn("cd_marital_status", Types.VARCHAR))
@@ -50,7 +51,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("CUSTOMER_DEMOGRAPHICS", customer_demographics);
 
-    QuarkTable date_dim = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable date_dim = new QuarkTable(this, "DATE_DIM",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("d_date_sk", Types.INTEGER))
         .add(new QuarkColumn("d_date_id", Types.VARCHAR))
         .add(new QuarkColumn("d_date", Types.DATE))
@@ -83,7 +85,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("DATE_DIM", date_dim);
 
-    QuarkTable time_dim = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable time_dim = new QuarkTable(this, "TIME_DIM",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("t_time_sk", Types.INTEGER))
         .add(new QuarkColumn("t_time_id", Types.VARCHAR))
         .add(new QuarkColumn("t_time", Types.INTEGER))
@@ -98,7 +101,7 @@ public class Tpcds extends TestSchema {
 
     builder.put("TIME_DIM", time_dim);
 
-    QuarkTable item = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable item = new QuarkTable(this, "ITEM", new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("i_item_sk", Types.INTEGER))
         .add(new QuarkColumn("i_item_id", Types.VARCHAR))
         .add(new QuarkColumn("i_rec_start_date", Types.DATE))
@@ -125,7 +128,7 @@ public class Tpcds extends TestSchema {
 
     builder.put("ITEM", item);
 
-    QuarkTable customer = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable customer = new QuarkTable(this, "CUSTOMER", new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("c_customer_sk", Types.INTEGER))
         .add(new QuarkColumn("c_customer_id", Types.VARCHAR))
         .add(new QuarkColumn("c_current_cdemo_sk", Types.INTEGER))
@@ -148,7 +151,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("CUSTOMER", customer);
 
-    QuarkTable web_returns = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable web_returns = new QuarkTable(this, "WEB_RETURNS",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("wr_returned_date_sk", Types.INTEGER))
         .add(new QuarkColumn("wr_returned_time_sk", Types.INTEGER))
         .add(new QuarkColumn("wr_item_sk", Types.INTEGER))
@@ -177,7 +181,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("WEB_RETURNS", web_returns);
 
-    QuarkTable web_returns_cube = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable web_returns_cube = new QuarkTable(this, "WEB_RETURNS_CUBE",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("i_item_id", Types.VARCHAR))
         .add(new QuarkColumn("d_year", Types.INTEGER))
         .add(new QuarkColumn("d_qoy", Types.INTEGER))
@@ -192,7 +197,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("WEB_RETURNS_CUBE", web_returns_cube);
 
-    QuarkTable store_sales = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable store_sales = new QuarkTable(this, "STORE_SALES",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("ss_sold_date_sk", Types.INTEGER))
         .add(new QuarkColumn("ss_sold_time_sk", Types.INTEGER))
         .add(new QuarkColumn("ss_item_sk", Types.INTEGER))
@@ -220,7 +226,7 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES", store_sales);
 
-    QuarkTable web_site = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable web_site = new QuarkTable(this, "WEB_SITE", new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("web_site_sk", Types.INTEGER))
         .add(new QuarkColumn("web_site_id", Types.CHAR))
         .add(new QuarkColumn("web_rec_start_date", Types.DATE))
@@ -251,7 +257,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("WEB_SITE", web_site);
 
-    QuarkTable store_sales_cube = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable store_sales_cube = new QuarkTable(this, "STORE_SALES_CUBE",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("i_item_id", Types.VARCHAR))
         .add(new QuarkColumn("c_customer_id", Types.VARCHAR))
         .add(new QuarkColumn("d_year", Types.INTEGER))
@@ -268,7 +275,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES_CUBE", store_sales_cube);
 
-    QuarkTable store_sales_cube_partial = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable store_sales_cube_partial = new QuarkTable(this, "STORE_SALES_CUBE_PARTIAL",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("i_item_id", Types.VARCHAR))
         .add(new QuarkColumn("c_customer_id", Types.VARCHAR))
         .add(new QuarkColumn("d_year", Types.INTEGER))
@@ -284,7 +292,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES_CUBE_PARTIAL", store_sales_cube_partial);
 
-    QuarkTable store_sales_cube_daily = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable store_sales_cube_daily = new QuarkTable(this, "STORE_SALES_CUBE_DAILY",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("d_year", Types.INTEGER))
         .add(new QuarkColumn("d_moy", Types.INTEGER))
         .add(new QuarkColumn("d_dom", Types.INTEGER))
@@ -296,7 +305,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES_CUBE_DAILY", store_sales_cube_daily);
 
-    QuarkTable store_sales_cube_weekly = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable store_sales_cube_weekly = new QuarkTable(this, "STORE_SALES_CUBE_WEEKLY",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("d_year", Types.INTEGER))
         .add(new QuarkColumn("d_moy", Types.INTEGER))
         .add(new QuarkColumn("d_week_seq", Types.INTEGER))
@@ -308,7 +318,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES_CUBE_WEEKLY", store_sales_cube_weekly);
 
-    QuarkTable store_sales_cube_monthly = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable store_sales_cube_monthly = new QuarkTable(this, "STORE_SALES_CUBE_MONTHLY",
+            new ImmutableList.Builder<QuarkColumn>()
         .add(new QuarkColumn("d_year", Types.INTEGER))
         .add(new QuarkColumn("d_moy", Types.INTEGER))
         .add(new QuarkColumn("cd_gender", Types.VARCHAR))
@@ -319,7 +330,8 @@ public class Tpcds extends TestSchema {
 
     builder.put("STORE_SALES_CUBE_MONTHLY", store_sales_cube_monthly);
 
-    QuarkTable web_site_partition = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+    QuarkTable web_site_partition = new QuarkTable(this, "WEB_SITE_PARTITION",
+            new ImmutableList.Builder<QuarkColumn>()
             .add(new QuarkColumn("web_site_sk", Types.INTEGER))
             .add(new QuarkColumn("web_rec_start_date", Types.DATE))
             .add(new QuarkColumn("web_county", Types.VARCHAR))

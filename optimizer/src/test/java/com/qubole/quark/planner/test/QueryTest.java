@@ -63,12 +63,14 @@ public class QueryTest {
     protected Map<String, Table> getTableMap() {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-      QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable simple = new QuarkTable(this, "SIMPLE",
+              new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("I", Types.INTEGER));
       }});
       builder.put("SIMPLE", simple);
 
-      QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable many_columns = new QuarkTable(this, "MANY_COLUMNS",
+              new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("I", Types.INTEGER));
         add(new QuarkColumn("J", Types.INTEGER));
         add(new QuarkColumn("K", Types.VARCHAR));

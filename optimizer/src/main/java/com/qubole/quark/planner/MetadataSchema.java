@@ -72,6 +72,7 @@ public abstract class MetadataSchema extends QuarkSchema {
   @Override
   public void initialize(final QueryContext queryContext) throws QuarkException {
     CalciteSchema calciteSchema = CalciteSchema.from(schemaPlus);
+    CalciteSchema rootSchema = calciteSchema.root();
     CalciteCatalogReader calciteCatalogReader = new CalciteCatalogReader(
         calciteSchema.root(),
         false,
@@ -80,6 +81,7 @@ public abstract class MetadataSchema extends QuarkSchema {
 
     for (final QuarkView view : this.getViews()) {
       LOG.debug("Adding view " + view.name);
+      QuarkSchema parentSchema = this;
 
       MaterializationService.TableFactory tableFactory =
           new MaterializationService.TableFactory() {
@@ -112,7 +114,7 @@ public abstract class MetadataSchema extends QuarkSchema {
                   rowType,
                   backupTable,
                   Schemas.path(viewSchema, view.alias));
-              QuarkViewTable table = new QuarkViewTable(view.table,
+              QuarkViewTable table = new QuarkViewTable(parentSchema, view.table,
                   relOptTable,
                   (QuarkTable) backupTable,
                   viewSchema);
@@ -162,7 +164,7 @@ public abstract class MetadataSchema extends QuarkSchema {
                 assert tileTEntry != null;
                 return new QuarkTileTable(nzTile, calciteCatalogReader,
                     tileTEntry.getTable().getRowType(queryContext.getTypeFactory()),
-                    Schemas.path(tileSchema, nzTile.alias),
+                    Schemas.path(rootSchema, nzTile.alias),
                     (QuarkTable) tileTEntry.getTable());
               }
             };
