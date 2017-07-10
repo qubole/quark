@@ -63,7 +63,7 @@
         <joda.time.version>2.7</joda.time.version>
         <jackson.asl.version>1.9.13</jackson.asl.version>
         <jackson.version>2.4.0</jackson.version>
-        <calcite.version>1.13.0-q2-SNAPSHOT</calcite.version>
+        <calcite.version>1.13.0-q2</calcite.version>
         <avatica.version>1.10.0</avatica.version>
         <assertj.version>2.3.0</assertj.version>
         <!-- check if there is a better way -->
