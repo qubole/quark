@@ -35,6 +35,8 @@
     <url>https://github.com/qubole/quark</url>
 
     <scm>
+        <connection>scm:git:git@github.com:qubole/quark.git</connection>
+        <developerConnection>scm:git:git@github.com:qubole/quark.git</developerConnection>
         <url>https://github.com/qubole/quark.git</url>
     </scm>
 
