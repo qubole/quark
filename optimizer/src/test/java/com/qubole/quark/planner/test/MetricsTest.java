@@ -26,6 +26,7 @@ import com.qubole.quark.planner.QuarkView;
 import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Table;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -83,7 +84,7 @@ public class MetricsTest {
     ViewSchema() {}
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.cubes = ImmutableList.of();
       ImmutableList.Builder<QuarkView> viewHolderBuilder =
           new ImmutableList.Builder<>();
@@ -103,7 +104,7 @@ public class MetricsTest {
               "name='FileSystemCounters.S3_WRITE_OPS'",
           "METRICS_S3", metricsSchema, ImmutableList.<String>of("METRICS_SCHEMA", "METRICS_S3")));
       this.views = viewHolderBuilder.build();
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 

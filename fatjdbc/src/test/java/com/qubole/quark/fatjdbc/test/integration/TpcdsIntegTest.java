@@ -17,6 +17,7 @@ package com.qubole.quark.fatjdbc.test.integration;
 
 import com.qubole.quark.fatjdbc.test.integration.utility.IntegTest;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -74,6 +75,7 @@ public class TpcdsIntegTest extends IntegTest {
     assertThat(wrOrderNumber.get(0), equalTo("10"));
   }
 
+  @Ignore
   @Test
   public void simpleCubeQuery() throws SQLException, ClassNotFoundException {
     String query = "select sum(wr_net_loss), dd.d_year "

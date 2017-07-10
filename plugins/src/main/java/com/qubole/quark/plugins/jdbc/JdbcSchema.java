@@ -15,6 +15,7 @@
 
 package com.qubole.quark.plugins.jdbc;
 
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Table;
 
 import com.google.common.collect.ImmutableList;
@@ -83,7 +84,12 @@ public class JdbcSchema extends QuarkSchema {
   }
 
   @Override
-  public void initialize(QueryContext queryContext) {}
+  public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) {
+    this.schemaPlus = schemaPlus;
+    for (Map.Entry<String, Table> entry : tableMap.entrySet()) {
+      this.schemaPlus.add(entry.getKey(), entry.getValue());
+    }
+  }
 
   @Override
   public Map<String, Table> getTableMap() {

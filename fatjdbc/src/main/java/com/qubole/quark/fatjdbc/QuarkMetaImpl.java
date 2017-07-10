@@ -345,7 +345,6 @@ public class QuarkMetaImpl extends MetaImpl {
     return h;
   }
 
-  @Override
   public Meta.ExecuteResult prepareAndExecute(Meta.StatementHandle h,
                                               String sql,
                                               long maxRowCount,
@@ -368,10 +367,27 @@ public class QuarkMetaImpl extends MetaImpl {
   }
 
   @Override
-  public ExecuteResult prepareAndExecute(StatementHandle statementHandle, String s, long l,
-                                         int i, PrepareCallback prepareCallback)
+  public ExecuteResult prepareAndExecute(StatementHandle statementHandle, String sql,
+                                         long maxRowCount,
+                                         int maxRowsInFirstFrame,
+                                         PrepareCallback prepareCallback)
           throws NoSuchStatementException {
-    return null;
+    try {
+      MetaResultSet metaResultSet;
+      synchronized (prepareCallback.getMonitor()) {
+        prepareCallback.clear();
+        ParserResult result = getConnection().parse(sql);
+        metaResultSet = new PlanExecutor(statementHandle, getConnection(),
+            connectionCache, maxRowCount).execute(result);
+        prepareCallback.assign(metaResultSet.signature, metaResultSet.firstFrame,
+            metaResultSet.updateCount);
+      }
+      prepareCallback.execute();
+      return new ExecuteResult(ImmutableList.of(metaResultSet));
+    } catch (Exception e) {
+      throw propagate(e);
+    }
+
   }
 
   @Override

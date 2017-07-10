@@ -42,9 +42,6 @@ public abstract class QuarkSchema extends AbstractSchema {
     return name;
   }
 
-  public void setSchemaPlus(SchemaPlus schemaPlus) {
-    this.schemaPlus = schemaPlus;
-  }
-
-  public abstract void initialize(QueryContext queryContext) throws QuarkException;
+  public abstract void initialize(QueryContext queryContext, SchemaPlus schemaPlus)
+      throws QuarkException;
 }

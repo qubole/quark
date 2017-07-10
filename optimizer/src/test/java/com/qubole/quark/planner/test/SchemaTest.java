@@ -24,6 +24,7 @@ import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Table;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -175,7 +176,7 @@ public class SchemaTest {
     TpchViewSchema() {}
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.cubes = ImmutableList.of();
       ImmutableList.Builder<QuarkView> viewHolderBuilder =
           new ImmutableList.Builder<>();
@@ -207,7 +208,7 @@ public class SchemaTest {
           tpch, ImmutableList.<String>of("TPCH", "PART_COMP1")));
 
       this.views = viewHolderBuilder.build();
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 

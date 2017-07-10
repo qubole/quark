@@ -17,6 +17,7 @@ package com.qubole.quark.planner.test;
 
 import com.qubole.quark.planner.QuarkSchema;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 
 /**
  * Created by rajatv on 11/10/15.
@@ -27,5 +28,7 @@ public class TestSchema extends QuarkSchema {
   }
 
   @Override
-  public void initialize(QueryContext queryContext) {}
+  public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) {
+    this.schemaPlus =schemaPlus;
+  }
 }

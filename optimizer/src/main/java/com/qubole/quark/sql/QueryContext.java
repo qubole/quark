@@ -100,29 +100,21 @@ public class QueryContext {
       if (obj instanceof QuarkFactory) {
         final QuarkFactory schemaFactory = (QuarkFactory) schemaFactoryClazz.newInstance();
         QuarkFactoryResult factoryResult = schemaFactory.create(info);
+
+        this.defaultDataSource = factoryResult.defaultSchema;
+        defaultSchema = parseDefaultSchema(info);
+
         for (DataSourceSchema schema : factoryResult.dataSourceSchemas) {
           SchemaPlus schemaPlus = rootSchema.add(schema.getName(), schema);
-          schema.setSchemaPlus(schemaPlus);
+          schema.initialize(this, schemaPlus);
         }
 
         SchemaPlus metadataPlus = rootSchema.add(factoryResult.metadataSchema.getName(),
             factoryResult.metadataSchema);
-        factoryResult.metadataSchema.setSchemaPlus(metadataPlus);
-
-        for (DataSourceSchema dataSourceSchema : factoryResult.dataSourceSchemas) {
-          dataSourceSchema.initialize(this);
-        }
-        factoryResult.metadataSchema.initialize(this);
-
-        this.defaultDataSource = factoryResult.defaultSchema;
-        defaultSchema = parseDefaultSchema(info);
+        factoryResult.metadataSchema.initialize(this, metadataPlus);
       } else {
         final TestFactory schemaFactory = (TestFactory) schemaFactoryClazz.newInstance();
         List<QuarkSchema> schemas = schemaFactory.create(info);
-        for (QuarkSchema schema : schemas) {
-          SchemaPlus schemaPlus = rootSchema.add(schema.getName(), schema);
-          schema.setSchemaPlus(schemaPlus);
-        }
         if (info.getProperty("defaultSchema") == null) {
           throw new QuarkException(new Throwable("Default schema has to be specified"));
         }
@@ -130,7 +122,8 @@ public class QueryContext {
         defaultSchema =
               Arrays.asList(mapper.readValue(info.getProperty("defaultSchema"), String[].class));
         for (QuarkSchema schema : schemas) {
-          schema.initialize(this);
+          SchemaPlus schemaPlus = rootSchema.add(schema.getName(), schema);
+          schema.initialize(this, schemaPlus);
         }
       }
     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException

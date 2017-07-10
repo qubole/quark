@@ -26,6 +26,7 @@ import com.qubole.quark.planner.QuarkSchema;
 import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -123,10 +124,10 @@ public class LayeredCubeTest {
     }
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.views = ImmutableList.of();
       this.cubes = ImmutableList.of(storeSalesCubeDaily(), storeSalesCubeWeekly(), storeSalesCubeMonthly());
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 

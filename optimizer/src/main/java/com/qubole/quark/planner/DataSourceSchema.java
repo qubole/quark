@@ -72,8 +72,14 @@ public abstract class DataSourceSchema extends QuarkSchema {
   }
 
   @Override
-  public void initialize(QueryContext queryContext) throws QuarkException {
+  public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
     subSchemaMap = this.getDataSource().getSchemas();
+    this.schemaPlus = schemaPlus;
+    for (Map.Entry<String, Schema> entry : subSchemaMap.entrySet()) {
+      SchemaPlus subSchemaPlus = this.schemaPlus.add(entry.getKey(), entry.getValue());
+      QuarkSchema quarkSchema = (QuarkSchema) entry.getValue();
+      quarkSchema.initialize(queryContext, subSchemaPlus);
+    }
   }
 
   @Override

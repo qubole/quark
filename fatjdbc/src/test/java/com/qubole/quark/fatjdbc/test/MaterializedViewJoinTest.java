@@ -7,6 +7,7 @@ import org.apache.calcite.sql.SqlDialect;
 import org.flywaydb.core.Flyway;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -62,12 +63,12 @@ public class MaterializedViewJoinTest {
         + " `destination_id`,`schema_name`, `table_name`)"
         + " VALUES('test_hist_part1', 'Test History Partition1', 0, "
         + "'select * from h2.public.test_hist as h where to_date(h.created_at) < \''2015-02-01\''',"
-        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION');"*/
+        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION');"
         + "insert into partitions(`name`, `description`, `cost`, `query`, `ds_set_id`,"
         + " `destination_id`,`schema_name`, `table_name`)"
         + " VALUES('test_hist_part12', 'Test History Partition2', 0, "
         + "'select * from h2.public.test_hist as h where to_date(h.created_at) > DATE_SUB(FROM_UNIXTIME(UNIX_TIMESTAMP()), 60)',"
-        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION1');";
+        + " 1, 1, 'PUBLIC', 'TEST_HIST_PARTITION1');"*/;
 
     stmt.execute(sql);
     stmt.close();
@@ -135,6 +136,7 @@ public class MaterializedViewJoinTest {
         "GROUP BY CREATED_AT ORDER BY CREATED_AT", hiveQuery);
   }
 
+  @Ignore
   @Test
   public void testNoOptWeakerFilter() throws Exception {
     String sql = "select\n" +
@@ -171,6 +173,8 @@ public class MaterializedViewJoinTest {
         "LIKE '%\\\"HIVE_VERSION\\\":\\\"1.2\\\"%') " +
         "GROUP BY CREATED_AT ORDER BY CREATED_AT", hiveQuery);
   }
+
+  @Ignore
   @Test
   public void testMVOptWithJoinAndhiveOp() throws Exception {
     String sql = "select\n" +
@@ -210,6 +214,7 @@ public class MaterializedViewJoinTest {
         + "ORDER BY DT", hiveQuery);
   }
 
+  @Ignore
   @Test
   public void testNoOptWithHiveOp() throws Exception {
     String sql = "select\n" +

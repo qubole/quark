@@ -21,6 +21,7 @@ import org.apache.calcite.materialize.MaterializationService;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Schemas;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.util.Util;
@@ -70,7 +71,10 @@ public abstract class MetadataSchema extends QuarkSchema {
   }
 
   @Override
-  public void initialize(final QueryContext queryContext) throws QuarkException {
+  public void initialize(final QueryContext queryContext, SchemaPlus schemaPlus)
+      throws QuarkException {
+    this.schemaPlus = schemaPlus;
+
     CalciteSchema calciteSchema = CalciteSchema.from(schemaPlus);
     CalciteSchema rootSchema = calciteSchema.root();
     CalciteCatalogReader calciteCatalogReader = new CalciteCatalogReader(
