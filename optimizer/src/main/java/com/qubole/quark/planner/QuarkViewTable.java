@@ -45,17 +45,16 @@ import com.google.common.collect.ImmutableList;
  */
 public class QuarkViewTable extends QuarkTable {
 
-  private final String name;
   private final RelOptTableImpl backUpRelOptTable; // This is of the backup table
   private final QuarkTable backupTable;
   private final CalciteSchema backupTableSchema;
 
-  public QuarkViewTable(String name,
+  public QuarkViewTable(QuarkSchema schema,
+                        String name,
                         RelOptTableImpl relOptTable,
                         QuarkTable backupTable,
                         CalciteSchema tableSchema) {
-    super(backupTable.getColumns());
-    this.name = name;
+    super(schema, name, backupTable.getColumns());
     this.backUpRelOptTable = relOptTable;
     this.backupTable = backupTable;
     this.backupTableSchema = tableSchema;

@@ -26,6 +26,7 @@ import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -138,10 +139,10 @@ public class LatticeTest {
     }
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.views = ImmutableList.of();
       this.cubes = ImmutableList.of(webReturnsCube(), storeSalesCube(), foodmartSalesCube());
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 
@@ -230,7 +231,7 @@ public class LatticeTest {
         parser,
         "SELECT D_YEAR, D_QOY, CD_GENDER, SUM(SUM_SALES_PRICE) " +
             "FROM TPCDS.STORE_SALES_CUBE " +
-            "WHERE CD_GENDER = 'M' AND GROUPING_ID = '76' " +
+            "WHERE GROUPING_ID = '76' AND CD_GENDER = 'M' " +
             "GROUP BY D_YEAR, D_QOY, CD_GENDER");
   }
 
@@ -246,9 +247,10 @@ public class LatticeTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT D_YEAR, D_QOY, SUM(SUM_SALES_PRICE)" +
-            " FROM TPCDS.STORE_SALES_CUBE WHERE CD_GENDER = 'M'" +
-            " AND GROUPING_ID = '12' GROUP BY D_YEAR, D_QOY");
+        "SELECT D_YEAR, D_QOY, SUM(SUM(SUM_SALES_PRICE)) FROM " +
+                "(SELECT D_YEAR, D_QOY, CD_GENDER, SUM(SUM_SALES_PRICE) FROM " +
+                "TPCDS.STORE_SALES_CUBE WHERE GROUPING_ID = '76' AND CD_GENDER = 'M' " +
+                "GROUP BY D_YEAR, D_QOY, CD_GENDER) AS t0 GROUP BY D_YEAR, D_QOY");
   }
 
   /*

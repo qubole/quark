@@ -26,28 +26,24 @@ import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Created by rajatv on 3/19/15.
  */
 public class LatticeWithFilterTest {
-  private static final Logger log = LoggerFactory.getLogger(LatticeWithFilterTest.class);
   private static SqlQueryParser parser;
 
   public static class CubeSchema extends MetadataSchema {
     CubeSchema() {}
 
-    public QuarkCube webReturnsCube() {
+    private QuarkCube webReturnsCube() {
       final List<QuarkCube.Measure> measures = new ImmutableList.Builder<QuarkCube.Measure>()
           .add(new QuarkCube.Measure("sum", "wr_net_loss".toUpperCase(), "TOTAL_NET_LOSS"))
           .build();
@@ -68,7 +64,7 @@ public class LatticeWithFilterTest {
           .add(Dimension.builder("D_DATE", "", "DD", "D_DATE" , "D_DATE", 4).build())
           .build();
 
-      final QuarkCube count_fact = new QuarkCube("web_returns_cube",
+      return new QuarkCube("web_returns_cube",
           "select 1 from tpcds.web_returns as w " +
               "join tpcds.item as i on w.wr_item_sk = i.i_item_sk " +
               "join tpcds.customer as c on w.wr_refunded_cdemo_sk = c.c_customer_sk " +
@@ -76,11 +72,9 @@ public class LatticeWithFilterTest {
               "join tpcds.customer_demographics cd on c.c_current_cdemo_sk = cd.cd_demo_sk " +
               "where dd.d_year > 2007",
           measures, dimensions, ImmutableList.of("TPCDS", "WEB_RETURNS_CUBE"), "GROUPING_ID");
-
-      return count_fact;
     }
 
-    public QuarkCube storeSalesCube() {
+    private QuarkCube storeSalesCube() {
       final List<QuarkCube.Measure> measures = new ImmutableList.Builder<QuarkCube.Measure>()
           .add(new QuarkCube.Measure("sum", "ss_ext_sales_price".toUpperCase(),
               "sum_extended_sales_price".toUpperCase()))
@@ -105,7 +99,7 @@ public class LatticeWithFilterTest {
               "CD_EDUCATION_STATUS", 8).build())
           .build();
 
-      final QuarkCube count_fact = new QuarkCube("store_sales_cube",
+      return new QuarkCube("store_sales_cube",
           "select 1 from tpcds.store_sales as ss " +
               "join tpcds.item as i on ss.ss_item_sk = i.i_item_sk " +
               "join tpcds.customer as c on ss.ss_customer_sk = c.c_customer_sk " +
@@ -113,11 +107,9 @@ public class LatticeWithFilterTest {
               "join tpcds.customer_demographics cd on ss.ss_cdemo_sk = cd.cd_demo_sk " +
               "where cd.CD_GENDER = 'M'",
           measures, dimensions, ImmutableList.of("TPCDS", "STORE_SALES_CUBE"), "GROUPING_ID");
-
-      return count_fact;
     }
 
-    public QuarkCube foodmartSalesCube() {
+    private QuarkCube foodmartSalesCube() {
       final List<QuarkCube.Measure> measures = new ImmutableList.Builder<QuarkCube.Measure>()
           .add(new QuarkCube.Measure("sum", "unit_sales".toUpperCase(), "TOTAL_UNIT_SALES"))
           .add(new QuarkCube.Measure("sum", "store_sales".toUpperCase(), "TOTAL_STORE_SALES")
@@ -129,22 +121,20 @@ public class LatticeWithFilterTest {
           .add(Dimension.builder("QUARTER", "", "T", "QUARTER" , "QUARTER", 1).build())
           .build();
 
-      final QuarkCube count_fact = new QuarkCube("count_fact",
+      return new QuarkCube("count_fact",
           "select 1 from foodmart.sales_fact_1997 as s "
               + "join foodmart.product as p using (product_id) "
               + "join foodmart.time_by_day as t using (time_id) "
               + "join foodmart.product_class as pc on p.product_class_id = pc.product_class_id "
               + "where t.quarter > 2",
           measures, dimensions, ImmutableList.of("FOODMART", "COUNT_FACT_TILE"), "GROUPING_ID");
-
-      return count_fact;
     }
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.views = ImmutableList.of();
       this.cubes = ImmutableList.of(webReturnsCube(), storeSalesCube(), foodmartSalesCube());
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 
@@ -206,8 +196,9 @@ public class LatticeWithFilterTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT THE_YEAR, SUM(TOTAL_UNIT_SALES) FROM FOODMART.COUNT_FACT_TILE "
-            + "WHERE QUARTER = 3 AND GROUPING_ID = '1' GROUP BY THE_YEAR");
+        "SELECT THE_YEAR, SUM(SUM(TOTAL_UNIT_SALES)) FROM (SELECT THE_YEAR, QUARTER, " +
+                "SUM(TOTAL_UNIT_SALES) FROM FOODMART.COUNT_FACT_TILE WHERE GROUPING_ID = '3' AND " +
+                "QUARTER = 3 GROUP BY THE_YEAR, QUARTER) AS t0 GROUP BY THE_YEAR");
   }
 
   @Test
@@ -239,9 +230,9 @@ public class LatticeWithFilterTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT D_MOY, SUM(TOTAL_NET_LOSS) " +
-            "FROM TPCDS.WEB_RETURNS_CUBE WHERE D_YEAR = 2010 " +
-            "AND GROUPING_ID = '8' GROUP BY D_MOY");
+        "SELECT D_MOY, SUM(SUM(TOTAL_NET_LOSS)) FROM (SELECT D_YEAR, D_MOY, SUM(TOTAL_NET_LOSS) " +
+                "FROM TPCDS.WEB_RETURNS_CUBE WHERE GROUPING_ID = '10' AND D_YEAR = 2010 GROUP BY D_YEAR, D_MOY) " +
+                "AS t0 GROUP BY D_MOY");
   }
 
   @Test
@@ -276,7 +267,7 @@ public class LatticeWithFilterTest {
         sql,
         parser,
         "SELECT D_YEAR, D_QOY, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-            "FROM TPCDS.STORE_SALES_CUBE WHERE CD_GENDER = 'M' AND GROUPING_ID = '76' " +
+            "FROM TPCDS.STORE_SALES_CUBE WHERE GROUPING_ID = '76' AND CD_GENDER = 'M' " +
             "GROUP BY D_YEAR, D_QOY, CD_GENDER");
   }
 
@@ -292,9 +283,9 @@ public class LatticeWithFilterTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT D_YEAR, D_QOY, SUM(SUM_SALES_PRICE)" +
-            " FROM TPCDS.STORE_SALES_CUBE WHERE CD_GENDER = 'M'" +
-            " AND GROUPING_ID = '12' GROUP BY D_YEAR, D_QOY");
+        "SELECT D_YEAR, D_QOY, SUM(SUM(SUM_SALES_PRICE)) FROM (SELECT D_YEAR, D_QOY, " +
+                "CD_GENDER, SUM(SUM_SALES_PRICE) FROM TPCDS.STORE_SALES_CUBE WHERE GROUPING_ID = '76' " +
+                "AND CD_GENDER = 'M' GROUP BY D_YEAR, D_QOY, CD_GENDER) AS t0 GROUP BY D_YEAR, D_QOY");
   }
 
   /*

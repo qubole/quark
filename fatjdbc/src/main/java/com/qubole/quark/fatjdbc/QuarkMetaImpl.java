@@ -259,7 +259,7 @@ public class QuarkMetaImpl extends MetaImpl {
       } catch (NoSuchFieldException e) {
         throw new RuntimeException(e);
       }
-      columns.add(columnMetaData(name, index, field.getType()));
+      columns.add(columnMetaData(name, index, field.getType(), false));
       fields.add(field);
       fieldNames.add(fieldName);
     }
@@ -287,7 +287,7 @@ public class QuarkMetaImpl extends MetaImpl {
       final CalcitePrepare.CalciteSignature<Object> signature =
           new CalcitePrepare.CalciteSignature<Object>("",
               ImmutableList.<AvaticaParameter>of(), internalParameters, null,
-              columns, cursorFactory, ImmutableList.<RelCollation>of(), -1,
+              columns, cursorFactory, null, ImmutableList.<RelCollation>of(), -1,
               null, Meta.StatementType.SELECT) {
             @Override public Enumerable<Object> enumerable(
                 DataContext dataContext) {
@@ -345,7 +345,6 @@ public class QuarkMetaImpl extends MetaImpl {
     return h;
   }
 
-  @Override
   public Meta.ExecuteResult prepareAndExecute(Meta.StatementHandle h,
                                               String sql,
                                               long maxRowCount,
@@ -365,6 +364,44 @@ public class QuarkMetaImpl extends MetaImpl {
     } catch (Exception e) {
       throw propagate(e);
     }
+  }
+
+  @Override
+  public ExecuteResult prepareAndExecute(StatementHandle statementHandle, String sql,
+                                         long maxRowCount,
+                                         int maxRowsInFirstFrame,
+                                         PrepareCallback prepareCallback)
+          throws NoSuchStatementException {
+    try {
+      MetaResultSet metaResultSet;
+      synchronized (prepareCallback.getMonitor()) {
+        prepareCallback.clear();
+        ParserResult result = getConnection().parse(sql);
+        metaResultSet = new PlanExecutor(statementHandle, getConnection(),
+            connectionCache, maxRowCount).execute(result);
+        prepareCallback.assign(metaResultSet.signature, metaResultSet.firstFrame,
+            metaResultSet.updateCount);
+      }
+      prepareCallback.execute();
+      return new ExecuteResult(ImmutableList.of(metaResultSet));
+    } catch (Exception e) {
+      throw propagate(e);
+    }
+
+  }
+
+  @Override
+  public ExecuteBatchResult prepareAndExecuteBatch(StatementHandle statementHandle,
+                                                   List<String> list)
+          throws NoSuchStatementException {
+    return null;
+  }
+
+  @Override
+  public ExecuteBatchResult executeBatch(StatementHandle statementHandle,
+                                         List<List<TypedValue>> list)
+          throws NoSuchStatementException {
+    return null;
   }
 
   @Override
@@ -632,16 +669,16 @@ public class QuarkMetaImpl extends MetaImpl {
               typeSystem.getLiteral(sqlTypeName, true),
               typeSystem.getLiteral(sqlTypeName, false),
               // All types are nullable
-              DatabaseMetaData.typeNullable,
+              (short) DatabaseMetaData.typeNullable,
               typeSystem.isCaseSensitive(sqlTypeName),
               // Making all type searchable; we may want to
               // be specific and declare under SqlTypeName
-              DatabaseMetaData.typeSearchable,
+              (short) DatabaseMetaData.typeSearchable,
               false,
               false,
               typeSystem.isAutoincrement(sqlTypeName),
-              sqlTypeName.getMinScale(),
-              typeSystem.getMaxScale(sqlTypeName),
+              (short) sqlTypeName.getMinScale(),
+              (short) typeSystem.getMaxScale(sqlTypeName),
               typeSystem.getNumTypeRadix(sqlTypeName)));
     }
     return allTypeList.build();
@@ -804,6 +841,14 @@ public class QuarkMetaImpl extends MetaImpl {
     } catch (SQLException e) {
       throw propagate(e);
     }
+  }
+
+  @Override
+  public ExecuteResult execute(StatementHandle statementHandle,
+                               List<TypedValue> list,
+                               int i)
+          throws NoSuchStatementException {
+    return null;
   }
 
 //  @Override

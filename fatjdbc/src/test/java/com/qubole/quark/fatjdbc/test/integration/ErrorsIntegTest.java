@@ -56,7 +56,8 @@ public class ErrorsIntegTest extends IntegTest {
       failBecauseExceptionWasNotThrown(SQLException.class);
     } catch (SQLException e) {
       log.info(e.getMessage());
-      assertThat((Throwable) e).hasMessageContaining("Table 'CANONICAL.PUBLIC.WEB_RTURNS' not found");
+      assertThat((Throwable) e).hasMessageContaining(
+          "Object 'WEB_RTURNS' not found within 'CANONICAL.PUBLIC'");
     }
   }
 }

@@ -17,17 +17,13 @@ package com.qubole.quark.plugins.jdbc;
 
 import org.apache.calcite.runtime.ResultSetEnumerable;
 import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.Table;
 
 import org.apache.commons.lang.Validate;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import com.qubole.quark.QuarkException;
 
-import com.qubole.quark.planner.QuarkColumn;
-import com.qubole.quark.planner.QuarkTable;
 import com.qubole.quark.plugins.Executor;
 
 import org.slf4j.Logger;
@@ -127,46 +123,13 @@ public abstract class JdbcDB implements Executor {
 
     while (!rs.isAfterLast()) {
       String currentSchema = rs.getString(1);
-      ImmutableMap.Builder<String, Table> tableBuilder = new ImmutableMap.Builder<>();
-      while (!rs.isAfterLast() && rs.getString(1).equals(currentSchema)) {
-        ImmutableList.Builder<QuarkColumn> columnBuilder =
-            new ImmutableList.Builder<>();
-        String currentTable = rs.getString(2);
-        while (rs.getString(2).equals(currentTable)) {
-          String columnName = rs.getString(3);
-          if (!this.isCaseSensitive()) {
-            columnName = columnName.toUpperCase();
-          }
-          Integer dataType = null;
-          for (String key: dataTypes.keySet()) {
-            if (rs.getString(4).toUpperCase().matches(key)) {
-              dataType = dataTypes.get(key);
-              break;
-            }
-          }
-          if (dataType == null) {
-            throw new SQLException("DataType `" + rs.getString(4) + "` is not supported");
-          }
-          columnBuilder.add(new QuarkColumn(columnName, dataType));
-          LOG.debug("Adding column:  " + rs.getString(1) + " : " + rs.getString(2)
-              + " : " + rs.getString(3) + " : " + rs.getString(4));
-          if (!rs.next()) {
-            break;
-          }
-        }
-
-        if (!this.isCaseSensitive()) {
-          currentTable = currentTable.toUpperCase();
-        }
-        tableBuilder.put(currentTable, new QuarkTable(columnBuilder.build()));
-      }
+      String schemaKey = currentSchema;
       if (!this.isCaseSensitive()) {
-        currentSchema = currentSchema.toUpperCase();
+        schemaKey = currentSchema.toUpperCase();
       }
 
-      schemaBuilder.put(currentSchema,
-          new com.qubole.quark.plugins.SimpleSchema(currentSchema.toUpperCase(),
-              tableBuilder.build()));
+      schemaBuilder.put(schemaKey, new JdbcSchema(currentSchema,
+          rs, this.isCaseSensitive(), dataTypes));
     }
     return schemaBuilder.build();
   }

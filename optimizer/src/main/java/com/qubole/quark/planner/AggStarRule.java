@@ -31,19 +31,14 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Aggregate;
 import org.apache.calcite.rel.core.AggregateCall;
 import org.apache.calcite.rel.core.Project;
-import org.apache.calcite.rel.logical.LogicalFilter;
 import org.apache.calcite.rel.rules.AggregateProjectMergeRule;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.RexBuilder;
-import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.impl.StarTable;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.Pair;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.math.LongMath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,26 +140,19 @@ public class AggStarRule extends RelOptRule {
       groupSet.set(tileKey.dimensions.indexOf(key));
     }
 
-    //Create a filter
-
-    RexBuilder rexBuilder = rel.getCluster().getRexBuilder();
-    List<RexNode> filterArgs = Lists.newArrayList();
-    filterArgs.add(rexBuilder.makeInputRef(rel, aggregateTable.quarkTile.groupingColumn));
-    filterArgs.add(rexBuilder.makeLiteral(bitSetToString(aggregateTable.quarkTile.groupingValue)));
-
-    rel = LogicalFilter.create(rel, rexBuilder.makeCall(SqlStdOperatorTable.EQUALS, filterArgs));
-
-    //Create a project list
+    //Create a project list to remove any unnecessary measures
     List<Integer> posList = Lists.newArrayList();
+    int columnCount = 0;
     for (QuarkTile.Column quarkColumn : aggregateTable.quarkTile.cubeColumns) {
-      posList.add(quarkColumn.cubeOrdinal);
+      posList.add(columnCount++);
     }
 
     for (Lattice.Measure measure : aggregateTable.quarkTile.measures) {
       for (Lattice.Measure m : measures) {
         if (m.equals(measure)) {
-          posList.add(((QuarkTile.Measure) measure).ordinal);
+          posList.add(columnCount);
         }
+        columnCount++;
       }
     }
 
@@ -185,14 +173,5 @@ public class AggStarRule extends RelOptRule {
       rel = postProject.copy(postProject.getTraitSet(), ImmutableList.of(rel));
     }
     call.transformTo(rel);
-  }
-
-  String bitSetToString(ImmutableBitSet bits) {
-    long result = 0;
-    for (Integer i : bits) {
-      result += LongMath.checkedPow(2, i);
-    }
-
-    return String.valueOf(result);
   }
 }

@@ -70,8 +70,8 @@ public class PartialCubeTest {
           sql,
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 1 " +
-              "AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND D_YEAR = 2007 AND " +
+              "D_MOY = 1 AND D_DOM = 1 GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
     }
 
     @Test
@@ -116,8 +116,8 @@ public class PartialCubeTest {
           sql,
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 2" +
-              " AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND D_YEAR = 2007 AND " +
+              "D_MOY = 1 AND D_DOM = 2 GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
     }
 
     @Test
@@ -130,8 +130,8 @@ public class PartialCubeTest {
               "d_year, d_moy, d_dom, cd_gender",
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 1" +
-              " AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND D_YEAR = 2007 AND " +
+              "D_MOY = 1 AND D_DOM = 1 GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
 
     }
 
@@ -145,9 +145,9 @@ public class PartialCubeTest {
               "d_year, d_moy, d_dom, cd_gender",
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE D_YEAR = 2007 AND D_MOY = 1 AND (D_DOM =" +
-              " 2 OR D_DOM = 3)" +
-              " AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND " +
+              "D_YEAR = 2007 AND D_MOY = 1 AND (D_DOM = 2 OR D_DOM = 3)" +
+              " GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
 
     }
 
@@ -182,8 +182,8 @@ public class PartialCubeTest {
               "d_year, d_moy, d_dom, cd_gender",
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 14" +
-              " AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND D_YEAR = 2007 AND " +
+              "D_MOY = 1 AND D_DOM = 14 GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
     }
 
     @Test
@@ -196,8 +196,8 @@ public class PartialCubeTest {
               "d_year, d_moy, d_dom, cd_gender",
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 25" +
-              " AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND D_YEAR = 2007 AND " +
+              "D_MOY = 1 AND D_DOM = 25 GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
     }
 
     @Test
@@ -234,9 +234,8 @@ public class PartialCubeTest {
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
               "FROM TPCDS.STORE_SALES_CUBE_PARTIAL " +
-              "WHERE (D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 14 " +
+              "WHERE GROUPING_ID = '60' AND (D_YEAR = 2007 AND D_MOY = 1 AND D_DOM = 14 " +
               "OR D_YEAR = 2007 AND D_MOY = 2 AND D_DOM = 18) " +
-              "AND GROUPING_ID = '60' " +
               "GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
     }
 
@@ -331,8 +330,8 @@ public class PartialCubeTest {
               "d_year, d_moy, d_dom, cd_gender",
           parser,
           "SELECT D_YEAR, D_MOY, D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE CD_GENDER = 'M'" +
-              " AND GROUPING_ID = '60' GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
+              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE GROUPING_ID = '60' AND CD_GENDER = 'M'" +
+              " GROUP BY D_YEAR, D_MOY, D_DOM, CD_GENDER");
     }
 
     @Test
@@ -344,9 +343,10 @@ public class PartialCubeTest {
               "where CD_GENDER = 'M' group by " +
               "d_year, d_moy, d_dom",
           parser,
-          "SELECT D_YEAR, D_MOY, D_DOM, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE CD_GENDER = 'M'" +
-              " AND GROUPING_ID = '28' GROUP BY D_YEAR, D_MOY, D_DOM");
+          "SELECT D_YEAR, D_MOY, D_DOM, SUM(SUM(SUM_SALES_PRICE)) FROM (SELECT D_YEAR, D_MOY, " +
+                  "D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) FROM TPCDS.STORE_SALES_CUBE_PARTIAL " +
+                  "WHERE GROUPING_ID = '60' AND CD_GENDER = 'M' GROUP BY D_YEAR, D_MOY, " +
+                  "D_DOM, CD_GENDER) AS t0 GROUP BY D_YEAR, D_MOY, D_DOM");
     }
 
     @Test

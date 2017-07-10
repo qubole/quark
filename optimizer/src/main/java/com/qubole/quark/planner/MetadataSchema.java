@@ -21,6 +21,7 @@ import org.apache.calcite.materialize.MaterializationService;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Schemas;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.util.Util;
@@ -70,8 +71,12 @@ public abstract class MetadataSchema extends QuarkSchema {
   }
 
   @Override
-  public void initialize(final QueryContext queryContext) throws QuarkException {
+  public void initialize(final QueryContext queryContext, SchemaPlus schemaPlus)
+      throws QuarkException {
+    this.schemaPlus = schemaPlus;
+
     CalciteSchema calciteSchema = CalciteSchema.from(schemaPlus);
+    CalciteSchema rootSchema = calciteSchema.root();
     CalciteCatalogReader calciteCatalogReader = new CalciteCatalogReader(
         calciteSchema.root(),
         false,
@@ -80,6 +85,7 @@ public abstract class MetadataSchema extends QuarkSchema {
 
     for (final QuarkView view : this.getViews()) {
       LOG.debug("Adding view " + view.name);
+      QuarkSchema parentSchema = this;
 
       MaterializationService.TableFactory tableFactory =
           new MaterializationService.TableFactory() {
@@ -111,8 +117,8 @@ public abstract class MetadataSchema extends QuarkSchema {
                   calciteCatalogReader,
                   rowType,
                   backupTable,
-                  Schemas.path(viewSchema, view.alias));
-              QuarkViewTable table = new QuarkViewTable(view.table,
+                  Schemas.path(rootSchema, view.alias));
+              QuarkViewTable table = new QuarkViewTable(parentSchema, view.table,
                   relOptTable,
                   (QuarkTable) backupTable,
                   viewSchema);
@@ -162,7 +168,7 @@ public abstract class MetadataSchema extends QuarkSchema {
                 assert tileTEntry != null;
                 return new QuarkTileTable(nzTile, calciteCatalogReader,
                     tileTEntry.getTable().getRowType(queryContext.getTypeFactory()),
-                    Schemas.path(tileSchema, nzTile.alias),
+                    Schemas.path(rootSchema, nzTile.alias),
                     (QuarkTable) tileTEntry.getTable());
               }
             };

@@ -63,12 +63,14 @@ public class QueryTest {
     protected Map<String, Table> getTableMap() {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-      QuarkTable simple = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable simple = new QuarkTable(this, "SIMPLE",
+              new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("I", Types.INTEGER));
       }});
       builder.put("SIMPLE", simple);
 
-      QuarkTable many_columns = new QuarkTable(new ArrayList<QuarkColumn>() {{
+      QuarkTable many_columns = new QuarkTable(this, "MANY_COLUMNS",
+              new ArrayList<QuarkColumn>() {{
         add(new QuarkColumn("I", Types.INTEGER));
         add(new QuarkColumn("J", Types.INTEGER));
         add(new QuarkColumn("K", Types.VARCHAR));
@@ -173,7 +175,7 @@ public class QueryTest {
           "test.many_columns.j > 100 and test.many_columns.i = 10");
       failBecauseExceptionWasNotThrown(SQLException.class);
     } catch (SQLException e) {
-      assertThat((Throwable) e).hasMessageContaining("Table 'TEST.MANY_COLUM' not found");
+      assertThat((Throwable) e).hasMessageContaining("Object 'MANY_COLUM' not found within 'TEST'");
     }
   }
 }

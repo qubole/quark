@@ -51,9 +51,13 @@ public class QuarkTable extends AbstractTable
 
   protected static final Logger LOG = LoggerFactory.getLogger(QuarkTable.class);
 
+  protected final QuarkSchema schema;
+  protected final String name;
   protected final List<QuarkColumn> columns;
 
-  public QuarkTable(List<QuarkColumn> columns) {
+  public QuarkTable(QuarkSchema schema, String name, List<QuarkColumn> columns) {
+    this.schema = schema;
+    this.name = name;
     this.columns = columns;
   }
 
@@ -70,20 +74,24 @@ public class QuarkTable extends AbstractTable
     };
   }
 
+  @Override
   public Expression getExpression(SchemaPlus schema, String tableName,
                                   Class clazz) {
     return Schemas.tableExpression(schema, getElementType(), tableName, clazz);
   }
 
+  @Override
   public Type getElementType() {
     return Object[].class;
   }
 
+  @Override
   public <T> Queryable<T> asQueryable(QueryProvider queryProvider,
                                       SchemaPlus schema, String tableName) {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public RelNode toRel(
       RelOptTable.ToRelContext context,
       RelOptTable relOptTable) {
@@ -91,6 +99,7 @@ public class QuarkTable extends AbstractTable
     return new QuarkTableScan(context.getCluster(), relOptTable, this);
   }
 
+  @Override
   public RelDataType getRowType(RelDataTypeFactory typeFactory) {
     final List<String> names = new ArrayList<>();
     final List<RelDataType> types = new ArrayList<>();
@@ -120,5 +129,25 @@ public class QuarkTable extends AbstractTable
     }
 
     throw new RuntimeException("Column " + columnName + " not found in " + this.toString());
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (this.getClass() != obj.getClass()) {
+      return false;
+    }
+    QuarkTable other = (QuarkTable) obj;
+    return schema.equals(other.schema) && name.equals(other.name) && columns.equals(other.columns);
+  }
+
+  @Override
+  public int hashCode() {
+    return schema.hashCode() + name.hashCode() * 31 + columns.hashCode() * 47;
   }
 }

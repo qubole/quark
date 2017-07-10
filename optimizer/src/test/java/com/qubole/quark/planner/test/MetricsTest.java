@@ -26,6 +26,7 @@ import com.qubole.quark.planner.QuarkView;
 import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Table;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,7 +56,8 @@ public class MetricsTest {
     protected Map<String, Table> getTableMap() {
       final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
 
-      QuarkTable metrics = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+      QuarkTable metrics = new QuarkTable(this, "METRICS",
+              new ImmutableList.Builder<QuarkColumn>()
           .add(new QuarkColumn("NAME", Types.VARCHAR))
           .add(new QuarkColumn("VALUE", Types.DOUBLE))
           .add(new QuarkColumn("QUERY_HISTS_ID", Types.INTEGER))
@@ -64,7 +66,8 @@ public class MetricsTest {
 
       builder.put("METRICS", metrics);
 
-      QuarkTable metrics_s3 = new QuarkTable(new ImmutableList.Builder<QuarkColumn>()
+      QuarkTable metrics_s3 = new QuarkTable(this, "METRICS_S3",
+              new ImmutableList.Builder<QuarkColumn>()
           .add(new QuarkColumn("NAME", Types.VARCHAR))
           .add(new QuarkColumn("VALUE", Types.DOUBLE))
           .add(new QuarkColumn("QUERY_HISTS_ID", Types.INTEGER))
@@ -81,7 +84,7 @@ public class MetricsTest {
     ViewSchema() {}
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.cubes = ImmutableList.of();
       ImmutableList.Builder<QuarkView> viewHolderBuilder =
           new ImmutableList.Builder<>();
@@ -101,7 +104,7 @@ public class MetricsTest {
               "name='FileSystemCounters.S3_WRITE_OPS'",
           "METRICS_S3", metricsSchema, ImmutableList.<String>of("METRICS_SCHEMA", "METRICS_S3")));
       this.views = viewHolderBuilder.build();
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 

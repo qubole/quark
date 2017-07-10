@@ -39,9 +39,7 @@ import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.schema.impl.StarTable;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.Pair;
@@ -54,8 +52,10 @@ import com.google.common.math.LongMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * Rule to replace an filtered aggregation with a materialized tile.
@@ -163,18 +163,25 @@ public class FilterAggStarRule extends RelOptRule {
     // Filters on non-dimensions cannot be converted to tile.
     final QuarkTile quarkTile = aggregateTable.quarkTile;
     ImmutableBitSet rCols = RelOptUtil.InputFinder.bits(pushedDownfilter.getCondition());
-    ImmutableBitSet dims = ImmutableBitSet.of(quarkTile.dimensionToCubeColumn.keySet());
+    Set<Integer> dimSet = new HashSet<>();
+    ListIterator<QuarkTile.Column> iter = quarkTile.cubeColumns.listIterator();
+    while (iter.hasNext()) {
+      dimSet.add(iter.next().ordinal);
+    }
+    ImmutableBitSet dims = ImmutableBitSet.of(dimSet);
     if (!dims.contains(rCols)) {
       return;
     }
     final int[] adjustments = new int[scan.getRowType().getFieldList().size()];
-    for (Map.Entry<Integer, Integer> e : quarkTile.dimensionToCubeColumn.entrySet()) {
-      adjustments[e.getKey()] = e.getValue() - e.getKey();
+    iter = quarkTile.cubeColumns.listIterator();
+    while (iter.hasNext()) {
+      QuarkTile.Column column = iter.next();
+      adjustments[column.ordinal] = iter.previousIndex() - column.ordinal;
     }
     RexNode filterConditionOnTile = pushedDownfilter.getCondition().accept(
         new RelOptUtil.RexInputConverter(scan.getCluster().getRexBuilder(),
             scan.getRowType().getFieldList(),
-            aggregateRelOptTable.getRowType().getFieldList(),
+            aggregateTableRowType.getFieldList(),
             adjustments));
 
     //STEP 6: Construct the final rel on the Tile
@@ -208,26 +215,21 @@ public class FilterAggStarRule extends RelOptRule {
     }
 
     //Create a filter on tile
-    RexBuilder rexBuilder = rel.getCluster().getRexBuilder();
-    List<RexNode> filterArgs = Lists.newArrayList();
-    filterArgs.add(rexBuilder.makeInputRef(rel, quarkTile.groupingColumn));
-    filterArgs.add(rexBuilder.makeLiteral(bitSetToString(quarkTile.groupingValue)));
+    rel = LogicalFilter.create(rel, filterConditionOnTile);
 
-    rel = LogicalFilter.create(rel,
-        RexUtil.composeConjunction(rexBuilder, ImmutableList.of(filterConditionOnTile,
-            rexBuilder.makeCall(SqlStdOperatorTable.EQUALS, filterArgs)), true));
-
-    //Create a project list
+    int columnCount = 0;
+    //Create a project list to remove any unnecessary measures
     List<Integer> posList = Lists.newArrayList();
     for (QuarkTile.Column quarkColumn : quarkTile.cubeColumns) {
-      posList.add(quarkColumn.cubeOrdinal);
+      posList.add(columnCount++);
     }
 
     for (Lattice.Measure measure : quarkTile.measures) {
       for (Lattice.Measure m : measures) {
         if (m.equals(measure)) {
-          posList.add(((QuarkTile.Measure) measure).ordinal);
+          posList.add(columnCount);
         }
+        columnCount++;
       }
     }
 

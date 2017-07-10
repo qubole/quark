@@ -5,6 +5,7 @@ import com.qubole.quark.QuarkException;
 import com.qubole.quark.planner.MetadataSchema;
 import com.qubole.quark.planner.QuarkCube;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 
 import java.util.List;
 
@@ -59,9 +60,9 @@ public class PartialCubeSchema extends MetadataSchema {
   }
 
   @Override
-  public void initialize(QueryContext queryContext) throws QuarkException {
+  public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
     this.views = ImmutableList.of();
     this.cubes = ImmutableList.of(storeSalesCubePartial());
-    super.initialize(queryContext);
+    super.initialize(queryContext, schemaPlus);
   }
 }

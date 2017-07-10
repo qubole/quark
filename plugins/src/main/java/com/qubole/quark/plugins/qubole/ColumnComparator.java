@@ -13,22 +13,19 @@
  *    limitations under the License.
  */
 
-package com.qubole.quark.planner.test;
+package com.qubole.quark.plugins.qubole;
 
-import com.qubole.quark.planner.QuarkSchema;
-import com.qubole.quark.sql.QueryContext;
-import org.apache.calcite.schema.SchemaPlus;
+import com.qubole.qds.sdk.java.entities.NameTypePosition;
+
+import java.util.Comparator;
 
 /**
- * Created by rajatv on 11/10/15.
+ * Created by dev on 11/13/15.
  */
-public class TestSchema extends QuarkSchema {
-  public TestSchema(String name) {
-    super(name);
-  }
-
+class ColumnComparator implements Comparator<NameTypePosition> {
   @Override
-  public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) {
-    this.schemaPlus =schemaPlus;
+  public int compare(NameTypePosition col1, NameTypePosition col2) {
+    return Integer.parseInt(col1.getOrdinal_position())
+            - (Integer.parseInt(col2.getOrdinal_position()));
   }
 }

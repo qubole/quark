@@ -315,7 +315,6 @@ public class PlanExecutor {
     }
     switch (sqlTypeName) {
       case INTERVAL_YEAR_MONTH:
-      case INTERVAL_DAY_TIME:
         // e.g. "INTERVAL_MONTH" or "INTERVAL_YEAR_MONTH"
         return "INTERVAL_"
             + type.getIntervalQualifier().toString().replace(' ', '_');

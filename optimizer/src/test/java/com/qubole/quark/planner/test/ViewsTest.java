@@ -10,6 +10,7 @@ import com.qubole.quark.planner.TestFactory;
 import com.qubole.quark.planner.parser.SqlQueryParser;
 import com.qubole.quark.planner.test.utilities.QuarkTestUtil;
 import com.qubole.quark.sql.QueryContext;
+import org.apache.calcite.schema.SchemaPlus;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,10 +43,10 @@ public class ViewsTest {
     }
 
     @Override
-    public void initialize(QueryContext queryContext) throws QuarkException {
+    public void initialize(QueryContext queryContext, SchemaPlus schemaPlus) throws QuarkException {
       this.views = ImmutableList.of(webSitePartition());
       this.cubes = ImmutableList.of();
-      super.initialize(queryContext);
+      super.initialize(queryContext, schemaPlus);
     }
   }
 
@@ -83,7 +84,7 @@ public class ViewsTest {
             info,
             "SELECT WEB_REC_START_DATE, SUM(WEB_TAX_PERCENTAGE), WEB_COUNTY " +
                 "FROM TPCDS.WEB_SITE_PARTITION " +
-                "WHERE WEB_REC_START_DATE > '2015-06-30' " +
+                "WHERE WEB_REC_START_DATE > DATE '2015-06-30' " +
                 "AND (WEB_COUNTY = 'fr' OR WEB_COUNTY = 'de') " +
                 "GROUP BY WEB_REC_START_DATE, WEB_COUNTY " +
                 "ORDER BY WEB_REC_START_DATE");
