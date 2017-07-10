@@ -246,9 +246,10 @@ public class LatticeTest {
     QuarkTestUtil.checkParsedSql(
         sql,
         parser,
-        "SELECT D_YEAR, D_QOY, SUM(SUM_SALES_PRICE)" +
-            " FROM TPCDS.STORE_SALES_CUBE WHERE CD_GENDER = 'M'" +
-            " AND GROUPING_ID = '12' GROUP BY D_YEAR, D_QOY");
+        "SELECT D_YEAR, D_QOY, SUM(SUM(SUM_SALES_PRICE)) FROM " +
+                "(SELECT D_YEAR, D_QOY, CD_GENDER, SUM(SUM_SALES_PRICE) FROM " +
+                "TPCDS.STORE_SALES_CUBE WHERE GROUPING_ID = '76' AND CD_GENDER = 'M' " +
+                "GROUP BY D_YEAR, D_QOY, CD_GENDER) AS t0 GROUP BY D_YEAR, D_QOY");
   }
 
   /*

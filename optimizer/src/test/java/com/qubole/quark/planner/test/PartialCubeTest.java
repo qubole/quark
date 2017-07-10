@@ -343,9 +343,10 @@ public class PartialCubeTest {
               "where CD_GENDER = 'M' group by " +
               "d_year, d_moy, d_dom",
           parser,
-          "SELECT D_YEAR, D_MOY, D_DOM, SUM(SUM_SALES_PRICE) " +
-              "FROM TPCDS.STORE_SALES_CUBE_PARTIAL WHERE CD_GENDER = 'M'" +
-              " AND GROUPING_ID = '28' GROUP BY D_YEAR, D_MOY, D_DOM");
+          "SELECT D_YEAR, D_MOY, D_DOM, SUM(SUM(SUM_SALES_PRICE)) FROM (SELECT D_YEAR, D_MOY, " +
+                  "D_DOM, CD_GENDER, SUM(SUM_SALES_PRICE) FROM TPCDS.STORE_SALES_CUBE_PARTIAL " +
+                  "WHERE GROUPING_ID = '60' AND CD_GENDER = 'M' GROUP BY D_YEAR, D_MOY, " +
+                  "D_DOM, CD_GENDER) AS t0 GROUP BY D_YEAR, D_MOY, D_DOM");
     }
 
     @Test

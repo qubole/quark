@@ -52,8 +52,10 @@ import com.google.common.math.LongMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * Rule to replace an filtered aggregation with a materialized tile.
@@ -161,12 +163,17 @@ public class FilterAggStarRule extends RelOptRule {
     // Filters on non-dimensions cannot be converted to tile.
     final QuarkTile quarkTile = aggregateTable.quarkTile;
     ImmutableBitSet rCols = RelOptUtil.InputFinder.bits(pushedDownfilter.getCondition());
-    ImmutableBitSet dims = ImmutableBitSet.of(quarkTile.dimensionToCubeColumn.keySet());
+    Set<Integer> dimSet = new HashSet<>();
+    ListIterator<QuarkTile.Column> iter = quarkTile.cubeColumns.listIterator();
+    while (iter.hasNext()) {
+      dimSet.add(iter.next().ordinal);
+    }
+    ImmutableBitSet dims = ImmutableBitSet.of(dimSet);
     if (!dims.contains(rCols)) {
       return;
     }
     final int[] adjustments = new int[scan.getRowType().getFieldList().size()];
-    ListIterator<QuarkTile.Column> iter = quarkTile.cubeColumns.listIterator();
+    iter = quarkTile.cubeColumns.listIterator();
     while (iter.hasNext()) {
       QuarkTile.Column column = iter.next();
       adjustments[column.ordinal] = iter.previousIndex() - column.ordinal;
