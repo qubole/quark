@@ -276,7 +276,7 @@ public class LatticeWithFilterTest {
         sql,
         parser,
         "SELECT D_YEAR, D_QOY, CD_GENDER, SUM(SUM_SALES_PRICE) " +
-            "FROM TPCDS.STORE_SALES_CUBE WHERE CD_GENDER = 'M' AND GROUPING_ID = '76' " +
+            "FROM TPCDS.STORE_SALES_CUBE WHERE GROUPING_ID = '76' AND CD_GENDER = 'M' " +
             "GROUP BY D_YEAR, D_QOY, CD_GENDER");
   }
 

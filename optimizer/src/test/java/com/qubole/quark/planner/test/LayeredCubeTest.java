@@ -165,8 +165,8 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT D_YEAR, D_MOY, D_DOM, SUM(SUM_SALES_PRICE) " +
-            "FROM TPCDS.STORE_SALES_CUBE_DAILY WHERE D_YEAR = 2015 AND D_MOY = 12 AND D_DOM = 1 " +
-            "AND GROUPING_ID = '7' GROUP BY D_YEAR, D_MOY, D_DOM");
+            "FROM TPCDS.STORE_SALES_CUBE_DAILY WHERE GROUPING_ID = '7' AND D_YEAR = 2015 AND " +
+            "D_MOY = 12 AND D_DOM = 1 GROUP BY D_YEAR, D_MOY, D_DOM");
   }
 
   @Test
@@ -180,9 +180,9 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT D_YEAR, D_MOY, D_DOM, SUM(SUM_SALES_PRICE) " +
-            "FROM TPCDS.STORE_SALES_CUBE_DAILY WHERE D_YEAR = 2015 AND D_MOY = 12 AND " +
-            "D_DOM >= 1 AND D_DOM <= 7 " +
-            "AND GROUPING_ID = '7' GROUP BY D_YEAR, D_MOY, D_DOM");
+            "FROM TPCDS.STORE_SALES_CUBE_DAILY WHERE GROUPING_ID = '7' AND D_YEAR = 2015 AND D_MOY = 12 " +
+            "AND D_DOM >= 1 AND D_DOM <= 7 " +
+            "GROUP BY D_YEAR, D_MOY, D_DOM");
   }
 
   @Test
@@ -225,8 +225,8 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT D_YEAR, D_MOY, D_WEEK_SEQ, SUM(SUM_SALES_PRICE) " +
-            "FROM TPCDS.STORE_SALES_CUBE_WEEKLY WHERE D_YEAR = 2015 AND " +
-            "D_MOY = 7 AND D_WEEK_SEQ = 27 AND GROUPING_ID = '7' " +
+            "FROM TPCDS.STORE_SALES_CUBE_WEEKLY WHERE GROUPING_ID = '7' AND D_YEAR = 2015 AND " +
+            "D_MOY = 7 AND D_WEEK_SEQ = 27 " +
             "GROUP BY D_YEAR, D_MOY, D_WEEK_SEQ");
   }
 
@@ -290,8 +290,7 @@ public class LayeredCubeTest {
         sql,
         parser,
         "SELECT D_YEAR, D_MOY, SUM(SUM_SALES_PRICE) " +
-            "FROM TPCDS.STORE_SALES_CUBE_MONTHLY WHERE D_YEAR = 2015 AND D_MOY = 2 " +
-            "AND GROUPING_ID = '3' " +
+            "FROM TPCDS.STORE_SALES_CUBE_MONTHLY WHERE GROUPING_ID = '3' AND D_YEAR = 2015 AND D_MOY = 2 " +
             "GROUP BY D_YEAR, D_MOY");
   }
 
