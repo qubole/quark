@@ -218,7 +218,7 @@ public class FilterAggStarRule extends RelOptRule {
     rel = LogicalFilter.create(rel, filterConditionOnTile);
 
     int columnCount = 0;
-    //Create a project list
+    //Create a project list to remove any unnecessary measures
     List<Integer> posList = Lists.newArrayList();
     for (QuarkTile.Column quarkColumn : quarkTile.cubeColumns) {
       posList.add(columnCount++);

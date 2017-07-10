@@ -19,7 +19,6 @@ import org.apache.calcite.materialize.Lattice;
 import org.apache.calcite.runtime.Utilities;
 import org.apache.calcite.util.ImmutableBitSet;
 
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Ordering;
 
 
@@ -64,15 +63,13 @@ public class QuarkTile extends Lattice.Tile {
   public final int groupingColumn;
   public final ImmutableBitSet groupingValue;
   public final List<String> alias;
-  public final ImmutableBiMap<Integer, Integer> dimensionToCubeColumn;
 
   public QuarkTile(List<Lattice.Measure> measures,
                    List<Lattice.Column> dimensions,
                    List<QuarkTile.Column> cubeColumns,
                    int groupingColumn,
                    ImmutableBitSet groupingValue,
-                   List<String> tableName, List<String> alias,
-                   ImmutableBiMap<Integer, Integer> dimensionToCubeColumn) {
+                   List<String> tableName, List<String> alias) {
     super(Ordering.natural().immutableSortedCopy(measures),
         Ordering.natural().immutableSortedCopy(dimensions));
     this.tableName = tableName;
@@ -80,6 +77,5 @@ public class QuarkTile extends Lattice.Tile {
     this.groupingColumn = groupingColumn;
     this.groupingValue = groupingValue;
     this.alias = alias;
-    this.dimensionToCubeColumn = dimensionToCubeColumn;
   }
 }

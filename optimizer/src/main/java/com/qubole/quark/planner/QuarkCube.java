@@ -22,7 +22,6 @@ import org.apache.calcite.runtime.Utilities;
 import org.apache.calcite.util.ImmutableBitSet;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -410,10 +409,7 @@ public class QuarkCube {
             .auto(false)
             .algorithm(false);
 
-    final ImmutableBiMap<Integer, Integer> dimensionToCubeColumn =
-        getDimensionToCubeColumnMap(quarkTable, latticeBuilder);
-
-    validateCubeLatticeFilter(latticeBuilder, dimensionToCubeColumn);
+    validateCubeLatticeFilter(latticeBuilder);
 
     List<Lattice.Measure> measures = new ArrayList<>();
     for (QuarkCube.Measure nzMeasure : this.measures) {
@@ -450,36 +446,28 @@ public class QuarkCube {
 
       latticeBuilder.addTile(new QuarkTile(measures, columns, cubeColumns,
           quarkTable.getFieldOrdinal(this.groupingColumn), bitSetBuilder.build(),
-          this.tableName, this.alias, dimensionToCubeColumn));
+          this.tableName, this.alias));
     }
     return latticeBuilder.build();
   }
 
-  private void validateCubeLatticeFilter(Lattice.Builder latticeBuilder,
-      ImmutableBiMap<Integer, Integer> dimensionToCubeColumn) {
+  private void validateCubeLatticeFilter(Lattice.Builder latticeBuilder) {
     if (latticeBuilder.filter != null) {
       ImmutableBitSet rCols = RelOptUtil.InputFinder.bits(latticeBuilder.filter);
-      ImmutableBitSet dims = ImmutableBitSet.of(dimensionToCubeColumn.keySet());
+      Set<Integer> dimSet = new HashSet<>();
+      for (Dimension dimension : dimensions) {
+        dimSet.add(latticeBuilder.resolveColumn(dimension.qualifiedCol).ordinal);
+      }
+      ImmutableBitSet dims = ImmutableBitSet.of(dimSet);
       if (!dims.contains(rCols)) {
         throw new RuntimeException("Cube filter is only allowed on dimensions");
       }
     }
   }
 
-  private ImmutableBiMap<Integer, Integer> getDimensionToCubeColumnMap(QuarkTable quarkTable,
-      Lattice.Builder latticeBuilder) {
-    ImmutableBiMap.Builder<Integer, Integer> builder =  ImmutableBiMap.builder();
-    for (Dimension dimension : dimensions) {
-      final Lattice.Column column = latticeBuilder.resolveColumn(dimension.qualifiedCol);
-      builder.put(column.ordinal,
-          quarkTable.getFieldOrdinal(dimension.cubeColumn));
-    }
-    return builder.build();
-  }
-
   public static Set<Set<Dimension>> getDimensionSets(Set<Dimension> dimensions) {
     Set<Set<Dimension>> result = Sets.newHashSet();
-    result.add(new HashSet<Dimension>());
+    result.add(new HashSet<>());
     for (Dimension d : dimensions) {
       // traverse only the top level dimension i.e., with no parents
       if (d.parentDimension == null) {
