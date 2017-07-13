@@ -20,10 +20,10 @@
     <parent>
         <artifactId>quark-parent</artifactId>
         <groupId>com.qubole</groupId>
-        <version>6.0.3-SNAPSHOT</version>
+        <version>6.0.3</version>
     </parent>
     <artifactId>quark-plugins</artifactId>
-    <version>6.0.3-SNAPSHOT</version>
+    <version>6.0.3</version>
     <name>Quark Plugins</name>
     <packaging>jar</packaging>
 
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-optimizer</artifactId>
-            <version>6.0.3-SNAPSHOT</version>
+            <version>6.0.3</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
