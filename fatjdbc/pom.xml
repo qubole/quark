@@ -18,12 +18,12 @@
     <parent>
         <artifactId>quark-parent</artifactId>
         <groupId>com.qubole</groupId>
-        <version>6.0.2</version>
+        <version>6.0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>quark-fat-jdbc</artifactId>
-    <version>6.0.2</version>
+    <version>6.0.3-SNAPSHOT</version>
     <name>Quark Fat JDBC</name>
 
     <properties>
@@ -76,22 +76,22 @@
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-optimizer</artifactId>
-            <version>6.0.2</version>
+            <version>6.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-plugins</artifactId>
-            <version>6.0.2</version>
+            <version>6.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-catalog</artifactId>
-            <version>6.0.2</version>
+            <version>6.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.qubole</groupId>
             <artifactId>quark-ee</artifactId>
-            <version>6.0.2</version>
+            <version>6.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
